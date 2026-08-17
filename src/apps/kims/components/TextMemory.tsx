@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Timer, ShieldCheck, Medal, ArrowLeft, Info, CheckCircle2, XCircle, HelpCircle, Volume2, VolumeX, Type, Maximize, Minimize, Trash2, Plus } from 'lucide-react'
 import { GameConfig, GameResult, BORDER_COLORS, TEXT_COLORS } from '../types'
 import { Sound } from '../hooks/useSound'
+import { TEXT_PACKS, packWords } from '../../../data/textPacks'
 
 interface Props {
   config: GameConfig
@@ -96,6 +97,33 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
 
   const removeCard = useCallback((id: string) => setCards(prev => prev.filter(c => c.id !== id)), [])
 
+  /** 一鍵載入字詞包（隨機挑選並自動配色） */
+  const loadPack = useCallback((packId: string, replace = true) => {
+    const pack = TEXT_PACKS.find(p => p.id === packId)
+    if (!pack) return
+    const bgPalette = ['#1E3A5F', '#7F1D1D', '#064E3B', '#4C1D95', '#374151', '#0C4A6E', '#111827']
+    const words = packWords(pack)
+    const picked = [...words].sort(() => Math.random() - 0.5).slice(0, maxCards)
+    const made: CharCard[] = picked.map((text, i) => ({
+      id: `pack-${packId}-${Date.now()}-${i}`,
+      text,
+      textColor: TEXT_COLORS[Math.floor(Math.random() * TEXT_COLORS.length)].value,
+      bgColor: bgPalette[Math.floor(Math.random() * bgPalette.length)],
+    }))
+    setCards(prev => (replace ? made : [...prev, ...made].slice(0, maxCards)))
+    if (soundEnabled) Sound.click()
+  }, [maxCards, soundEnabled])
+
+  const shuffleColors = useCallback(() => {
+    const bgPalette = ['#1E3A5F', '#7F1D1D', '#064E3B', '#4C1D95', '#374151', '#0C4A6E', '#111827']
+    setCards(prev => prev.map(c => ({
+      ...c,
+      textColor: TEXT_COLORS[Math.floor(Math.random() * TEXT_COLORS.length)].value,
+      bgColor: bgPalette[Math.floor(Math.random() * bgPalette.length)],
+    })))
+    if (soundEnabled) Sound.click()
+  }, [soundEnabled])
+
   const startGame = useCallback(() => {
     if (cards.length === 0) return
     setCurrentCharIndex(0)
@@ -150,6 +178,30 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
             <h2 className="text-xl font-bold text-white">文字記憶遊戲</h2>
             <p className="text-blue-300 text-xs">全螢幕大字顯示，適合領袖投影給成員記憶</p>
             {playerName && <div className="mt-1 inline-block rounded-full bg-amber-400/20 px-3 py-0.5 text-xs text-amber-300">🎯 {playerName}</div>}
+          </div>
+
+          {/* 字詞包快速載入 */}
+          <div className="rounded-lg bg-[#0a1e4a]/40 border border-blue-700/30 p-3 mb-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-white flex items-center gap-1.5">
+                📚 字詞包快速載入
+                <span className="text-[10px] font-normal text-blue-400">（一鍵抽 {maxCards} 個字，自動配色）</span>
+              </span>
+              {cards.length > 0 && (
+                <button onClick={shuffleColors} className="text-[10px] text-amber-300 hover:text-amber-200 underline">
+                  重新配色
+                </button>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {TEXT_PACKS.map(p => (
+                <button key={p.id} onClick={() => loadPack(p.id)} title={p.desc}
+                  className="rounded-lg border border-blue-700/40 bg-[#02133E] px-2.5 py-1.5 text-[11px] text-blue-200 transition hover:border-amber-400/50 hover:text-white">
+                  {p.emoji} {p.name}
+                  <span className="ml-1 text-[9px] text-blue-500">{packWords(p).length}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="rounded-lg bg-[#0a1e4a]/40 border border-blue-700/30 p-3 mb-3 space-y-2">

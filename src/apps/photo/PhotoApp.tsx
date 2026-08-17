@@ -38,6 +38,7 @@ import Leaderboard from './components/Leaderboard'
 import QRCodeModal from './components/QRCodeModal'
 import { useTheme } from '../../context/ThemeContext'
 import { COPYRIGHT_UPPER } from '../../shared/brand'
+import { DECK_PACKS, generateDeck } from './lib/generatedDeck'
 import { Sound } from './lib/sound'
 import { canvasToBlob, PixelateOptions, pixelateToCanvas } from './lib/imagePixelate'
 import { useObjectUrl } from './lib/useObjectUrl'
@@ -91,6 +92,7 @@ function PhotoApp() {
 
   /* --- Core --- */
   const [files, setFiles] = useState<File[]>([])
+  const [deckLoading, setDeckLoading] = useState<string | null>(null)
   const [index, setIndex] = useState(0)
   const [gameMode, setGameMode] = useState<GameMode | null>(null)
   const [phase, setPhase] = useState<Phase>('idle')
@@ -329,6 +331,42 @@ function PhotoApp() {
               count={files.length}
               hint="拖曳或點擊上傳圖片（支援多張）"
             />
+          </div>
+
+          {/* 內建題目包 — 毋須上傳即可開玩 */}
+          <div className="w-full rounded-xl border border-white/10 bg-white/5 p-4">
+            <div className="mb-1 flex items-center justify-between">
+              <span className="text-sm font-semibold">🎁 內建題目包</span>
+              <span className="text-[11px] text-white/30">無相片？一鍵生成</span>
+            </div>
+            <p className="mb-3 text-[11px] text-white/40">即時產生題目圖，同樣支援四種出題方式。</p>
+            <div className="grid gap-2 sm:grid-cols-3">
+              {DECK_PACKS.map((p) => (
+                <button
+                  key={p.id}
+                  disabled={deckLoading !== null}
+                  onClick={async () => {
+                    setDeckLoading(p.id)
+                    try {
+                      const generated = await generateDeck(p.id, 12)
+                      setPlaylist(generated)
+                      setToast(`已載入「${p.name}」12 題`)
+                    } catch {
+                      setToast('題目生成失敗')
+                    } finally {
+                      setDeckLoading(null)
+                    }
+                  }}
+                  className="rounded-xl border border-white/10 bg-black/20 p-3 text-left transition hover:border-indigo-400/40 hover:bg-indigo-500/10 disabled:opacity-40"
+                >
+                  <div className="text-lg">{p.emoji}</div>
+                  <div className="mt-0.5 text-xs font-bold">
+                    {deckLoading === p.id ? '生成中…' : p.name}
+                  </div>
+                  <div className="mt-0.5 text-[10px] leading-snug text-white/40">{p.desc}</div>
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Mode select */}
