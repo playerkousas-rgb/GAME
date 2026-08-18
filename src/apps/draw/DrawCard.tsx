@@ -2,37 +2,41 @@
  * 猜猜畫畫 — 玩家手機卡（掃 QR 後常駐）
  * Copyright (c) 2026 Scout System. All rights reserved.
  *
- * 平時只顯示自己嘅玩家號。輪到自己作畫時，領袖公布 4 位代碼，
- * 輸入後只有「本局畫家」先會見到題目，其他人手機仍然係空白。
+ * 平時只顯示自己嘅玩家號。輪到自己作畫時，卡片先會出題目。
+ * 每局只需撳「下一局」對齊領袖畫面，毋須輸入任何嘢。
  */
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Home, Delete, EyeOff, Palette, Lock } from 'lucide-react'
+import { Home, EyeOff, Palette, Lock, ChevronLeft, ChevronRight, Flag } from 'lucide-react'
 import { DRAW_BANK } from '../../data/drawBank'
-import {
-  buildPool, CODE_LENGTH, normalizeCode, parseSeatUrl, resolveRound, type PoolItem,
-} from './lib/seat'
-
-const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
+import { buildPool, parseSeatUrl, resolveRound, type PoolItem } from './lib/seat'
 
 export default function DrawCard() {
   const link = useMemo(() => parseSeatUrl(window.location.hash), [])
-  const [code, setCode] = useState('')
-  const [activeCode, setActiveCode] = useState('')
-  const [revealed, setRevealed] = useState(false)
+  const storeKey = link ? `scoutsys:draw:r:${link.secret}` : ''
+
+  const [round, setRound] = useState(() => {
+    if (!link) return 1
+    const saved = Number(localStorage.getItem(`scoutsys:draw:r:${link.secret}`) || '1')
+    return Number.isFinite(saved) && saved >= 1 ? saved : 1
+  })
+  /** revealedRound === round 時才顯示，換局自動遮蓋 */
+  const [revealedRound, setRevealedRound] = useState(0)
+  const revealed = revealedRound === round
+
+  useEffect(() => {
+    if (storeKey) localStorage.setItem(storeKey, String(round))
+  }, [round, storeKey])
 
   const pool: PoolItem[] = useMemo(
     () => (link ? buildPool(DRAW_BANK as unknown as PoolItem[], link) : []),
     [link],
   )
 
-  const round = useMemo(
-    () => (link && activeCode ? resolveRound(link, activeCode, pool.length) : null),
-    [link, activeCode, pool.length],
+  const result = useMemo(
+    () => (link ? resolveRound(link, round, pool.length) : null),
+    [link, round, pool.length],
   )
-
-  const isArtist = round?.artistSeat === link?.seat
-  const question = round ? pool[round.questionIndex % Math.max(1, pool.length)] : null
 
   const vibrate = useCallback((ms = 25) => {
     try {
@@ -42,25 +46,7 @@ export default function DrawCard() {
     }
   }, [])
 
-  const press = (ch: string) => {
-    if (code.length >= CODE_LENGTH) return
-    const next = normalizeCode(code + ch)
-    setCode(next)
-    vibrate()
-    if (next.length === CODE_LENGTH) {
-      setActiveCode(next)
-      setRevealed(false)
-    }
-  }
-
-  const reset = () => {
-    setCode('')
-    setActiveCode('')
-    setRevealed(false)
-    vibrate()
-  }
-
-  if (!link) {
+  if (!link || !result) {
     return (
       <div className="flex min-h-[100dvh] flex-col items-center justify-center gap-4 bg-[#02133e] p-6 text-center text-white">
         <div className="text-5xl">🎨</div>
@@ -74,6 +60,11 @@ export default function DrawCard() {
       </div>
     )
   }
+
+  const total = link.rounds
+  const finished = round > total
+  const isArtist = result.artistSeat === link.seat
+  const question = pool.length ? pool[result.questionIndex % pool.length] : null
 
   return (
     <div className="flex min-h-[100dvh] flex-col bg-[#02133e] text-white">
@@ -89,143 +80,129 @@ export default function DrawCard() {
       </header>
 
       {/* 玩家號永遠顯示 */}
-      <div className="border-b border-white/10 bg-white/5 px-4 py-5 text-center">
+      <div className="border-b border-white/10 bg-white/5 px-4 py-4 text-center">
         <div className="text-[11px] text-white/70">你的玩家號</div>
         <div className="text-5xl font-black text-amber-300">{link.seat} 號</div>
         <div className="mt-1 text-[11px] text-white/60">共 {link.players} 人</div>
       </div>
 
-      {/* 未輸入代碼 */}
-      {!round && (
-        <main className="flex flex-1 flex-col px-4 py-4">
-          <div className="text-center">
-            <h1 className="text-base font-black">輸入本局代碼</h1>
-            <p className="mt-1 text-xs leading-relaxed text-white/75">
-              領袖叫到你個號、你出到嚟之後，先輸入畫面上嘅 4 位數字
-            </p>
-          </div>
-
-          <div className="mt-4 flex justify-center gap-2.5">
-            {Array.from({ length: CODE_LENGTH }).map((_, i) => (
-              <div
-                key={i}
-                className={`flex h-16 w-14 items-center justify-center rounded-2xl border-2 font-mono text-3xl font-black ${
-                  code[i]
-                    ? 'border-amber-400 bg-amber-400/15 text-amber-200'
-                    : 'border-white/20 bg-white/5 text-white/30'
-                }`}
-              >
-                {code[i] || ''}
-              </div>
-            ))}
-          </div>
-
-          <div className="mx-auto mt-6 w-full max-w-xs">
-            <div className="grid grid-cols-3 gap-2.5">
-              {KEYS.map((k) => (
-                <button
-                  key={k}
-                  onClick={() => press(k)}
-                  className="rounded-2xl border border-white/15 bg-white/10 py-5 font-mono text-2xl font-black text-white active:scale-90 active:bg-amber-400 active:text-stone-900"
-                >
-                  {k}
-                </button>
-              ))}
-              <button
-                onClick={reset}
-                className="rounded-2xl border border-white/15 bg-white/5 py-5 text-xs font-bold text-white/80 active:scale-90"
-              >
-                清除
-              </button>
-              <button
-                onClick={() => press('0')}
-                className="rounded-2xl border border-white/15 bg-white/10 py-5 font-mono text-2xl font-black text-white active:scale-90 active:bg-amber-400 active:text-stone-900"
-              >
-                0
-              </button>
-              <button
-                onClick={() => {
-                  setCode((c) => c.slice(0, -1))
-                  vibrate()
-                }}
-                className="rounded-2xl border border-white/15 bg-white/5 py-5 text-white/80 active:scale-90"
-                aria-label="刪除"
-              >
-                <Delete className="mx-auto h-5 w-5" />
-              </button>
-            </div>
-          </div>
-        </main>
-      )}
-
-      {/* 已輸入代碼 */}
-      {round && (
-        <main className="flex flex-1 flex-col items-center justify-center px-5 py-6">
-          {isArtist ? (
-            <>
-              <div className="mb-3 rounded-full bg-emerald-500/20 px-4 py-1.5 text-xs font-bold text-emerald-200">
-                🎨 今局輪到你作畫
-              </div>
-              <button
-                onPointerDown={() => {
-                  setRevealed(true)
-                  vibrate(30)
-                }}
-                onPointerUp={() => setRevealed(false)}
-                onPointerLeave={() => setRevealed(false)}
-                onPointerCancel={() => setRevealed(false)}
-                onContextMenu={(e) => e.preventDefault()}
-                className={`flex aspect-[3/4] w-full max-w-sm select-none flex-col items-center justify-center rounded-3xl bg-gradient-to-br shadow-2xl ring-4 transition-transform active:scale-[0.98] ${
-                  revealed
-                    ? 'from-emerald-500 to-emerald-700 ring-emerald-300/60'
-                    : 'from-[#0a2260] to-[#02133e] ring-white/10'
-                }`}
-                style={{ WebkitTouchCallout: 'none' }}
-              >
-                {revealed ? (
-                  <div className="px-6 text-center text-emerald-50">
-                    <div className="text-xs font-bold tracking-widest opacity-90">你要畫的是</div>
-                    <div className="mt-4 break-all text-5xl font-black leading-tight">
-                      {question?.answer}
-                    </div>
-                    {question?.hint && (
-                      <div className="mt-4 rounded-full bg-black/25 px-3 py-1 text-xs">
-                        💡 {question.hint}
-                      </div>
-                    )}
-                    <p className="mt-5 text-xs leading-relaxed opacity-90">
-                      只可畫圖，不可寫字、講嘢或做手勢
-                    </p>
-                  </div>
-                ) : (
-                  <div className="px-6 text-center text-white/85">
-                    <EyeOff className="mx-auto h-10 w-10 text-white/50" />
-                    <div className="mt-4 text-lg font-black">按住卡片查看題目</div>
-                    <p className="mt-2 text-xs text-white/65">放手即自動遮蓋，防止旁人偷看</p>
-                  </div>
-                )}
-              </button>
-            </>
-          ) : (
-            <div className="text-center">
-              <Lock className="mx-auto h-12 w-12 text-white/30" />
-              <div className="mt-4 text-lg font-black text-white/85">今局唔係你出場</div>
-              <p className="mt-2 text-sm text-white/70">
-                本局畫家係 <b className="text-amber-300">{round.artistSeat} 號</b>
-              </p>
-              <p className="mt-4 max-w-xs text-xs leading-relaxed text-white/60">
-                盡快猜出佢畫緊咩！等下一局領袖再公布新代碼。
-              </p>
-            </div>
-          )}
-
+      {finished ? (
+        <main className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
+          <Flag className="h-14 w-14 text-amber-300" />
+          <h1 className="text-2xl font-black">整輪玩完！</h1>
+          <p className="max-w-xs text-sm leading-relaxed text-white/75">
+            呢輪 {total} 局已經玩晒。想繼續就叫領袖開新牌局，重新掃一次 QR。
+          </p>
           <button
-            onClick={reset}
-            className="mt-6 rounded-xl border border-white/15 bg-white/10 px-5 py-3 text-xs font-bold text-white active:scale-95"
+            onClick={() => {
+              setRound(total)
+              vibrate()
+            }}
+            className="rounded-xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-bold text-white"
           >
-            輸入下一局代碼
+            返回第 {total} 局
           </button>
         </main>
+      ) : (
+        <>
+          {/* 局數 */}
+          <div className="px-4 py-3">
+            <div className="flex items-center justify-center gap-3">
+              <button
+                onClick={() => {
+                  setRound((r) => Math.max(1, r - 1))
+                  vibrate()
+                }}
+                disabled={round <= 1}
+                className="rounded-xl border border-white/20 bg-white/10 p-3.5 text-white disabled:opacity-25"
+                aria-label="上一局"
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </button>
+              <div className="min-w-32 rounded-2xl border border-amber-400/30 bg-amber-400/10 px-4 py-2 text-center">
+                <div className="text-[10px] text-amber-100/85">本輪第</div>
+                <div className="text-3xl font-black leading-tight text-amber-300">{round}</div>
+                <div className="text-[10px] text-amber-100/85">／ {total} 局</div>
+              </div>
+              <button
+                onClick={() => {
+                  setRound((r) => r + 1)
+                  vibrate()
+                }}
+                className="rounded-xl border border-amber-400/50 bg-amber-400/20 p-3.5 text-amber-200"
+                aria-label="下一局"
+              >
+                <ChevronRight className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="mx-auto mt-3 h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-white/10">
+              <div
+                className="h-full rounded-full bg-amber-400 transition-all"
+                style={{ width: `${(round / total) * 100}%` }}
+              />
+            </div>
+          </div>
+
+          <main className="flex flex-1 flex-col items-center justify-center px-5 pb-6">
+            {isArtist ? (
+              <>
+                <div className="mb-3 rounded-full bg-emerald-500/20 px-4 py-1.5 text-xs font-bold text-emerald-200">
+                  🎨 今局輪到你作畫
+                </div>
+                <button
+                  onPointerDown={() => {
+                    setRevealedRound(round)
+                    vibrate(30)
+                  }}
+                  onPointerUp={() => setRevealedRound(0)}
+                  onPointerLeave={() => setRevealedRound(0)}
+                  onPointerCancel={() => setRevealedRound(0)}
+                  onContextMenu={(e) => e.preventDefault()}
+                  className={`flex aspect-[3/4] w-full max-w-sm select-none flex-col items-center justify-center rounded-3xl bg-gradient-to-br shadow-2xl ring-4 transition-transform active:scale-[0.98] ${
+                    revealed
+                      ? 'from-emerald-500 to-emerald-700 ring-emerald-300/60'
+                      : 'from-[#0a2260] to-[#02133e] ring-white/10'
+                  }`}
+                  style={{ WebkitTouchCallout: 'none' }}
+                >
+                  {revealed ? (
+                    <div className="px-6 text-center text-emerald-50">
+                      <div className="text-xs font-bold tracking-widest opacity-90">你要畫的是</div>
+                      <div className="mt-4 break-all text-5xl font-black leading-tight">
+                        {question?.answer}
+                      </div>
+                      {question?.hint && (
+                        <div className="mt-4 inline-block rounded-full bg-black/25 px-3 py-1 text-xs">
+                          💡 {question.hint}
+                        </div>
+                      )}
+                      <p className="mt-5 text-xs leading-relaxed opacity-90">
+                        只可畫圖，不可寫字、講嘢或做手勢
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="px-6 text-center text-white/85">
+                      <EyeOff className="mx-auto h-10 w-10 text-white/50" />
+                      <div className="mt-4 text-lg font-black">按住卡片查看題目</div>
+                      <p className="mt-2 text-xs text-white/65">放手即自動遮蓋，防止旁人偷看</p>
+                    </div>
+                  )}
+                </button>
+              </>
+            ) : (
+              <div className="text-center">
+                <Lock className="mx-auto h-12 w-12 text-white/30" />
+                <div className="mt-4 text-lg font-black text-white/85">今局唔係你出場</div>
+                <p className="mt-2 text-sm text-white/70">
+                  本局畫家係 <b className="text-amber-300">{result.artistSeat} 號</b>
+                </p>
+                <p className="mt-4 max-w-xs text-xs leading-relaxed text-white/60">
+                  盡快猜出佢畫緊咩！等下一局領袖叫人，再一齊撳「下一局」。
+                </p>
+              </div>
+            )}
+          </main>
+        </>
       )}
     </div>
   )

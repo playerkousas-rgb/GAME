@@ -5,19 +5,22 @@
  * 設計目標：畫家唔使行埋去主持機睇題，避免其他人偷望。
  *
  * 流程：
- *  1. 領袖設定玩家人數 → 產生每人一個專屬 QR（整晚只掃一次）
+ *  1. 領袖設定玩家人數同局數 → 產生每人一個專屬 QR（一輪只掃一次）
  *  2. 玩家手機常駐一版，只顯示自己嘅玩家號（例：3 號）
- *  3. 領袖畫面顯示「下一局：3 號玩家」，等佢出嚟企定，先撳「開始」
- *  4. 開始後，只有 3 號嘅手機會出題目；其他人手機依然係一片空白
+ *  3. 領袖畫面顯示「下一局：3 號玩家」，等佢出嚟企定，先撳「開始計時」
+ *  4. 只有 3 號嘅手機會出題目；其他人手機依然係一片空白
  *  5. 領袖可設定自動蓋牌時間，或隨時手動蓋牌
+ *  6. 玩家撳「下一局」對齊局數即可，唔使輸入任何嘢
  *
- * 同「誰是臥底」一樣採用「牌局密鑰 + 本局代碼」：
- * 代碼係撳掣嗰刻先用密碼學亂數抽出，所以出場次序與題目都無法預先推算。
+ * 出場次序由派 QR 嗰刻抽出嘅密碼學亂數密鑰決定，
+ * 每開新牌局換一條新密鑰，上一輪次序冇參考價值。
  */
 
 export type DrawSeatSetup = {
   secret: string
   players: number
+  /** 本輪局數 */
+  rounds: number
   /** 難度篩選 */
   levels: string[]
   /** 分類篩選（空 = 全部） */
@@ -27,38 +30,21 @@ export type DrawSeatSetup = {
 }
 
 export type DrawRound = {
-  code: string
+  round: number
   /** 本局輪到邊個座位出場作畫 */
   artistSeat: number
   /** 題目在題庫中的索引 */
   questionIndex: number
 }
 
-export const CODE_LENGTH = 4
-const DIGITS = '0123456789'
+export const ROUND_OPTIONS = [10, 15, 20, 30]
 
-export function randomCode(): string {
-  const buf = new Uint32Array(CODE_LENGTH)
-  if (typeof crypto !== 'undefined' && crypto.getRandomValues) crypto.getRandomValues(buf)
-  else for (let i = 0; i < CODE_LENGTH; i++) buf[i] = Math.floor(Math.random() * 0xffffffff)
-  let s = ''
-  for (let i = 0; i < CODE_LENGTH; i++) s += DIGITS[buf[i] % 10]
-  return s
-}
-
-export function normalizeCode(input: string): string {
-  return input.split('').filter((c) => DIGITS.includes(c)).join('').slice(0, CODE_LENGTH)
-}
-
-export function isCodeComplete(code: string) {
-  return normalizeCode(code).length === CODE_LENGTH
-}
-
+/** 產生牌局密鑰（真・密碼學亂數） */
 export function makeSecret() {
-  const buf = new Uint8Array(8)
+  const buf = new Uint8Array(12)
   if (typeof crypto !== 'undefined' && crypto.getRandomValues) crypto.getRandomValues(buf)
-  else for (let i = 0; i < 8; i++) buf[i] = Math.floor(Math.random() * 256)
-  return Array.from(buf, (b) => b.toString(36).padStart(2, '0')).join('').slice(0, 12)
+  else for (let i = 0; i < 12; i++) buf[i] = Math.floor(Math.random() * 256)
+  return Array.from(buf, (b) => b.toString(36).padStart(2, '0')).join('').slice(0, 16)
 }
 
 function hashString(str: string): number {
@@ -86,33 +72,74 @@ function prng(seedNum: number) {
   }
 }
 
-/**
- * 由代碼推導本局資料。所有裝置計出嚟一定一樣。
- * @param poolSize 題庫可抽題目數
- */
-export function resolveRound(setup: DrawSeatSetup, code: string, poolSize: number): DrawRound {
-  const clean = normalizeCode(code)
-  // 畫家與題目各用獨立 hash domain，令兩者互不相關
-  const ra = prng(hashString(`${setup.secret}|draw-artist|${clean}|${setup.players}`))
-  const rq = prng(hashString(`${setup.secret}|draw-question|${clean}|${poolSize}`))
-  ra() // 丟棄第一個輸出，避開種子相近時的弱相關
-  rq()
-  const artistSeat = Math.floor(ra() * setup.players) + 1
-  const questionIndex = poolSize > 0 ? Math.floor(rq() * poolSize) : 0
-  return { code: clean, artistSeat, questionIndex }
+/** 建立 PRNG 並丟棄首個輸出，避開種子相近時的弱相關 */
+function prngAfter(seedNum: number) {
+  const f = prng(seedNum)
+  f()
+  return f
+}
+
+function shuffleWith<T>(arr: T[], rand: () => number): T[] {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
 }
 
 /**
- * 抽一個新代碼。
- * @param avoidSeat 盡量避開嘅座位（通常係上一局畫家，免得連續兩次同一人）
+ * 某一圈嘅畫家出場次序。
+ * 由第 0 圈逐圈推算，並確保新一圈第一位 ≠ 上一圈最後一位
+ * （必須拿「已修正」嘅上一圈嚟比較，否則會漏 case）。
  */
-export function drawCode(setup: DrawSeatSetup, poolSize: number, avoidSeat?: number): string {
-  if (!avoidSeat || setup.players <= 1) return randomCode()
-  for (let i = 0; i < 200; i++) {
-    const code = randomCode()
-    if (resolveRound(setup, code, poolSize).artistSeat !== avoidSeat) return code
+function artistCycleOrder(setup: DrawSeatSetup, cycle: number): number[] {
+  const n = Math.max(1, setup.players)
+  const base = (c: number) =>
+    shuffleWith(
+      Array.from({ length: n }, (_, i) => i + 1),
+      prngAfter(hashString(`${setup.secret}|draw-artist|c${c}|${n}`)),
+    )
+
+  let order = base(0)
+  for (let c = 1; c <= cycle; c++) {
+    const prevLast = order[n - 1]
+    let next = base(c)
+    if (n > 1 && next[0] === prevLast) next = [...next.slice(1), next[0]]
+    order = next
   }
-  return randomCode()
+  return order
+}
+
+/**
+ * 由局數推導本局資料。所有裝置計出嚟一定一樣。
+ *
+ * 畫家：將座位洗牌成「輪換表」逐個出場，出完一圈再洗一次 ——
+ * 保證每人出場次數平均，亦唔會連續兩局抽中同一人。
+ * 題目：將題庫洗牌後依序取用，確保一輪內唔會重複出題。
+ */
+export function resolveRound(setup: DrawSeatSetup, round: number, poolSize: number): DrawRound {
+  const n = Math.max(1, setup.players)
+  const idx = Math.max(1, round) - 1
+
+  const artistSeat = artistCycleOrder(setup, Math.floor(idx / n))[idx % n]
+
+  let questionIndex = 0
+  if (poolSize > 0) {
+    const qCycle = Math.floor(idx / poolSize)
+    const qOrder = shuffleWith(
+      Array.from({ length: poolSize }, (_, i) => i),
+      prngAfter(hashString(`${setup.secret}|draw-question|c${qCycle}|${poolSize}`)),
+    )
+    questionIndex = qOrder[idx % poolSize]
+  }
+
+  return { round, artistSeat, questionIndex }
+}
+
+/** 預覽整輪安排（供領袖備課，成員勿看） */
+export function previewRounds(setup: DrawSeatSetup, poolSize: number): DrawRound[] {
+  return Array.from({ length: setup.rounds }, (_, i) => resolveRound(setup, i + 1, poolSize))
 }
 
 /* ---------- 題目池（主持機與玩家手機必須完全一致） ---------- */
@@ -165,6 +192,7 @@ export function buildSeatUrl(setup: DrawSeatSetup, seat: number, origin?: string
     k: setup.secret,
     n: String(setup.players),
     p: String(seat),
+    r: String(setup.rounds),
   })
   if (setup.levels.length) p.set('l', setup.levels.map((x) => x[0]).join(''))
   if (setup.categories.length) p.set('c', toBase64Url(setup.categories.join('|')))
@@ -197,6 +225,7 @@ export function parseSeatUrl(hash: string): DrawSeatLink | null {
     secret,
     players,
     seat,
+    rounds: Number(p.get('r') || 20),
     levels: (p.get('l') || '').split('').map((c) => LEVEL_BY_INITIAL[c]).filter(Boolean),
     categories: decode('c'),
     customAnswers: decode('w'),

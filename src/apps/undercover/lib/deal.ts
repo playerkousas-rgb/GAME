@@ -2,17 +2,18 @@
  * 誰是臥底 — 角色分派核心
  * Copyright (c) 2026 Scout System. All rights reserved.
  *
- * ── 隨機性設計（重要）──────────────────────────────────
- * 每一局的分派 **不是** 開局時就預先定好的。
+ * ── 一次抽籤，玩足一輪 ─────────────────────────────────
+ * 領袖產生 QR 嗰刻，用 crypto.getRandomValues 抽出一條「牌局密鑰」，
+ * 呢條密鑰決定咗成輪（預設 20 局）嘅所有分派。
  *
- *  1. 領袖按下「開始本局」時，才用 crypto.getRandomValues 即場抽出
- *     一個 6 位「本局代碼」。按掣之前連領袖自己都無法預知。
- *  2. 所有裝置以 hash(牌局密鑰 ‖ 本局代碼) 推導同一組結果，
- *     所以毋須伺服器都能保證每部手機睇到嘅嘢一致。
- *  3.「牌局密鑰」只存在於各人自己嘅 QR 之中；單靠聽到／望到代碼
- *     並不能推算任何人嘅身分。
+ *  1. 密鑰係真・密碼學亂數，冇人可以預知或影響。
+ *  2. 所有裝置以 hash(密鑰 ‖ 局數) 推導，故毋須伺服器亦保證各機一致。
+ *  3. 玩家只需喺自己手機撳「下一局」，唔使每局輸入代碼。
+ *  4. 一輪玩完（或中途加減人）就開新牌局、重新派 QR，換一條全新密鑰。
  *
- * 結論：局與局之間完全獨立，沒有可以背誦的派發順序。
+ * 關於「會唔會俾人記住派發順序」：
+ *  密鑰每輪都換，而一輪得 20 局、通常玩足一個鐘。
+ *  就算有人記得「上一輪第 7 局我做臥底」，換咗密鑰之後完全冇參考價值。
  */
 import { WORD_PAIRS, type WordPair } from '../data/wordPairs'
 
@@ -30,6 +31,8 @@ export type GameSetup = {
   customPairs: WordPair[]
   /** 只用自訂題目 */
   onlyCustom: boolean
+  /** 本輪局數 */
+  rounds: number
 }
 
 export type SeatResult = {
@@ -42,7 +45,7 @@ export type SeatResult = {
 }
 
 export type RoundResult = {
-  code: string
+  round: number
   pair: WordPair
   civilianWord: string
   undercoverWord: string
@@ -61,48 +64,17 @@ export const ROLE_EMOJI: Record<Role, string> = {
   blank: '🃏',
 }
 
-/* ================= 本局代碼 ================= */
+/* ================= 牌局密鑰 ================= */
 
-/**
- * 本局代碼用純數字，令玩家可以用手機數字鍵盤快速輸入（撳 4 下即完）。
- * 4 位數 = 10000 種組合。玩家在領袖公布前無法得知，
- * 就算事後暴力嘗試全部 10000 個代碼，亦無從得知邊個先係真，
- * 因為佢冇其他人嘅牌局密鑰去驗證。
- */
-export const CODE_ALPHABET = '0123456789'
-export const CODE_LENGTH = 4
+/** 預設局數選項 */
+export const ROUND_OPTIONS = [10, 15, 20, 30]
 
-/** 用密碼學亂數即場抽出本局代碼 */
-export function randomCode(): string {
-  const buf = new Uint32Array(CODE_LENGTH)
-  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
-    crypto.getRandomValues(buf)
-  } else {
-    for (let i = 0; i < CODE_LENGTH; i++) buf[i] = Math.floor(Math.random() * 0xffffffff)
-  }
-  let s = ''
-  for (let i = 0; i < CODE_LENGTH; i++) s += CODE_ALPHABET[buf[i] % CODE_ALPHABET.length]
-  return s
-}
-
-export function normalizeCode(input: string): string {
-  return input
-    .split('')
-    .filter((ch) => CODE_ALPHABET.includes(ch))
-    .join('')
-    .slice(0, CODE_LENGTH)
-}
-
-export function isCodeComplete(code: string) {
-  return normalizeCode(code).length === CODE_LENGTH
-}
-
-/** 產生牌局密鑰 */
+/** 產生牌局密鑰（真・密碼學亂數） */
 export function makeSecret() {
-  const buf = new Uint8Array(8)
+  const buf = new Uint8Array(12)
   if (typeof crypto !== 'undefined' && crypto.getRandomValues) crypto.getRandomValues(buf)
-  else for (let i = 0; i < 8; i++) buf[i] = Math.floor(Math.random() * 256)
-  return Array.from(buf, (b) => b.toString(36).padStart(2, '0')).join('').slice(0, 12)
+  else for (let i = 0; i < 12; i++) buf[i] = Math.floor(Math.random() * 256)
+  return Array.from(buf, (b) => b.toString(36).padStart(2, '0')).join('').slice(0, 16)
 }
 
 /* ================= 決定性亂數 ================= */
@@ -178,10 +150,9 @@ export function buildPool(setup: GameSetup): WordPair[] {
 
 /* ================= 核心分派 ================= */
 
-export function dealRound(setup: GameSetup, code: string): RoundResult {
-  const clean = normalizeCode(code)
+export function dealRound(setup: GameSetup, round: number): RoundResult {
   const rand = prng(
-    hashString(`${setup.secret}|uc|${clean}|${setup.players}|${setup.undercovers}|${setup.blanks}`),
+    hashString(`${setup.secret}|uc|r${round}|${setup.players}|${setup.undercovers}|${setup.blanks}`),
   )
   rand() // 丟棄第一個輸出，避開種子相近時的弱相關
 
@@ -225,32 +196,12 @@ export function dealRound(setup: GameSetup, code: string): RoundResult {
     }
   })
 
-  return { code: clean, pair, civilianWord, undercoverWord, seats }
+  return { round, pair, civilianWord, undercoverWord, seats }
 }
 
-/** 只計算本局會抽中邊一對詞（供快速搜尋代碼用，避免做齊整個洗牌） */
-function pairIdForCode(setup: GameSetup, pool: WordPair[], code: string): string {
-  const rand = prng(
-    hashString(`${setup.secret}|uc|${code}|${setup.players}|${setup.undercovers}|${setup.blanks}`),
-  )
-  rand()
-  return pool[Math.floor(rand() * pool.length) % pool.length].id
-}
-
-/**
- * 產生一個本局代碼。
- * 若領袖指定咗詞語對，就不斷重抽真亂數代碼直至抽中該對詞
- * （代碼本身依然係真隨機，外人無法從代碼睇出領袖揀咗咩）。
- */
-export function generateRoundCode(setup: GameSetup, forcedPairId?: string): string {
-  if (!forcedPairId) return randomCode()
-  const pool = buildPool(setup)
-  if (!pool.some((p) => p.id === forcedPairId)) return randomCode()
-  for (let i = 0; i < 200000; i++) {
-    const code = randomCode()
-    if (pairIdForCode(setup, pool, code) === forcedPairId) return code
-  }
-  return randomCode()
+/** 預覽整輪每局會用邊對詞（供領袖備課，成員勿看） */
+export function previewRounds(setup: GameSetup): RoundResult[] {
+  return Array.from({ length: setup.rounds }, (_, i) => dealRound(setup, i + 1))
 }
 
 /* ================= QR 連結編碼 ================= */
@@ -264,6 +215,7 @@ export type SeatLink = {
   categories: string[]
   customPairs: WordPair[]
   onlyCustom: boolean
+  rounds: number
 }
 
 /* --- base64url（UTF-8）：中文每字約 4 字元，遠勝百分比編碼嘅 9 字元 --- */
@@ -322,6 +274,7 @@ export function buildSeatUrl(setup: GameSetup, seat: number, origin?: string): s
     u: String(setup.undercovers),
     b: String(setup.blanks),
     p: String(seat),
+    r: String(setup.rounds),
   })
   if (setup.categories.length) p.set('c', setup.categories.join(','))
   if (setup.customPairs.length) p.set('w', encodePairs(setup.customPairs))
@@ -346,6 +299,7 @@ export function parseSeatUrl(hash: string): SeatLink | null {
     categories: (p.get('c') || '').split(',').filter(Boolean),
     customPairs: decodePairs(p.get('w') || ''),
     onlyCustom: p.get('x') === '1',
+    rounds: Number(p.get('r') || 20),
   }
 }
 
@@ -358,5 +312,6 @@ export function seatLinkToSetup(l: SeatLink): GameSetup {
     categories: l.categories,
     customPairs: l.customPairs,
     onlyCustom: l.onlyCustom,
+    rounds: l.rounds,
   }
 }

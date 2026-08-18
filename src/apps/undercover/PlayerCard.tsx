@@ -2,15 +2,14 @@
  * 誰是臥底 — 玩家手機卡（掃 QR 後進入）
  * Copyright (c) 2026 Scout System. All rights reserved.
  *
- * 每人一條固定連結（座位號固定），整晚只需掃一次。
- * 每局領袖即場抽出「本局代碼」，玩家輸入後即見本局身分。
+ * 掃一次 QR 即可玩足整輪。每局只需撳「下一局」，毋須輸入任何嘢。
+ * 局數會記入 localStorage，中途熄咗屏幕／閂咗瀏覽器都唔會失去進度。
  */
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { EyeOff, Home, Users, Delete, Dices } from 'lucide-react'
+import { EyeOff, Home, Users, ChevronLeft, ChevronRight, Flag } from 'lucide-react'
 import {
-  dealRound, isCodeComplete, normalizeCode, parseSeatUrl, seatLinkToSetup,
-  ROLE_EMOJI, ROLE_LABEL, CODE_LENGTH,
+  dealRound, parseSeatUrl, seatLinkToSetup, ROLE_EMOJI, ROLE_LABEL,
 } from './lib/deal'
 
 const ROLE_STYLE: Record<string, { bg: string; ring: string; text: string }> = {
@@ -19,17 +18,23 @@ const ROLE_STYLE: Record<string, { bg: string; ring: string; text: string }> = {
   blank: { bg: 'from-slate-400 to-slate-600', ring: 'ring-slate-200/60', text: 'text-slate-50' },
 }
 
-/** 數字鍵盤排列（電話式） */
-const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
-
 export default function PlayerCard() {
   const link = useMemo(() => parseSeatUrl(window.location.hash), [])
   const setup = useMemo(() => (link ? seatLinkToSetup(link) : null), [link])
+  const storeKey = link ? `scoutsys:uc:r:${link.secret}` : ''
 
-  const [code, setCode] = useState('')
-  /** 已確認的代碼（輸入完整後鎖定顯示卡片） */
-  const [activeCode, setActiveCode] = useState('')
-  const [revealed, setRevealed] = useState(false)
+  const [round, setRound] = useState(() => {
+    if (!link) return 1
+    const saved = Number(localStorage.getItem(`scoutsys:uc:r:${link.secret}`) || '1')
+    return Number.isFinite(saved) && saved >= 1 ? saved : 1
+  })
+  /** revealedRound === round 時才顯示，換局自動遮蓋 */
+  const [revealedRound, setRevealedRound] = useState(0)
+  const revealed = revealedRound === round
+
+  useEffect(() => {
+    if (storeKey) localStorage.setItem(storeKey, String(round))
+  }, [round, storeKey])
 
   const vibrate = useCallback((ms = 25) => {
     try {
@@ -40,37 +45,12 @@ export default function PlayerCard() {
   }, [])
 
   const result = useMemo(
-    () => (setup && activeCode ? dealRound(setup, activeCode) : null),
-    [setup, activeCode],
+    () => (setup ? dealRound(setup, round) : null),
+    [setup, round],
   )
   const mine = result?.seats.find((s) => s.seat === link?.seat)
 
-  const press = (ch: string) => {
-    if (code.length >= CODE_LENGTH) return
-    const next = normalizeCode(code + ch)
-    setCode(next)
-    vibrate()
-    if (isCodeComplete(next)) {
-      setActiveCode(next)
-      setRevealed(false)
-    }
-  }
-
-  const back = () => {
-    setCode((c) => c.slice(0, -1))
-    setActiveCode('')
-    setRevealed(false)
-    vibrate()
-  }
-
-  const reset = () => {
-    setCode('')
-    setActiveCode('')
-    setRevealed(false)
-    vibrate()
-  }
-
-  if (!link || !setup) {
+  if (!link || !setup || !mine) {
     return (
       <div className="flex min-h-[100dvh] flex-col items-center justify-center gap-4 bg-[#02133e] p-6 text-center text-white">
         <div className="text-5xl">🕵️</div>
@@ -84,6 +64,9 @@ export default function PlayerCard() {
       </div>
     )
   }
+
+  const total = setup.rounds
+  const finished = round > total
 
   return (
     <div className="flex min-h-[100dvh] flex-col bg-[#02133e] text-white">
@@ -100,100 +83,77 @@ export default function PlayerCard() {
         <div className="w-12" />
       </header>
 
-      {/* ---------- 未輸入代碼：鍵盤 ---------- */}
-      {!mine && (
-        <main className="flex flex-1 flex-col px-4 py-4">
-          <div className="text-center">
-            <Dices className="mx-auto h-8 w-8 text-amber-300" />
-            <h1 className="mt-2 text-lg font-black">輸入本局代碼</h1>
-            <p className="mt-1 text-xs leading-relaxed text-white/75">
-              領袖每局都會即場抽出一個新代碼，請照住畫面輸入
+      {finished ? (
+        <main className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
+          <Flag className="h-14 w-14 text-amber-300" />
+          <h1 className="text-2xl font-black">整輪玩完！</h1>
+          <p className="max-w-xs text-sm leading-relaxed text-white/75">
+            呢輪 {total} 局已經玩晒。想繼續玩就叫領袖開新牌局，重新掃一次 QR。
+          </p>
+          <button
+            onClick={() => {
+              setRound(total)
+              vibrate()
+            }}
+            className="rounded-xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-bold text-white"
+          >
+            返回第 {total} 局
+          </button>
+        </main>
+      ) : (
+        <>
+          {/* 局數 */}
+          <div className="px-4 py-3">
+            <div className="flex items-center justify-center gap-3">
+              <button
+                onClick={() => {
+                  setRound((r) => Math.max(1, r - 1))
+                  vibrate()
+                }}
+                disabled={round <= 1}
+                className="rounded-xl border border-white/20 bg-white/10 p-3.5 text-white disabled:opacity-25"
+                aria-label="上一局"
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </button>
+              <div className="min-w-32 rounded-2xl border border-amber-400/30 bg-amber-400/10 px-4 py-2 text-center">
+                <div className="text-[10px] text-amber-100/85">本輪第</div>
+                <div className="text-3xl font-black leading-tight text-amber-300">{round}</div>
+                <div className="text-[10px] text-amber-100/85">／ {total} 局</div>
+              </div>
+              <button
+                onClick={() => {
+                  setRound((r) => r + 1)
+                  vibrate()
+                }}
+                className="rounded-xl border border-amber-400/50 bg-amber-400/20 p-3.5 text-amber-200"
+                aria-label="下一局"
+              >
+                <ChevronRight className="h-6 w-6" />
+              </button>
+            </div>
+            {/* 進度條 */}
+            <div className="mx-auto mt-3 h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-white/10">
+              <div
+                className="h-full rounded-full bg-amber-400 transition-all"
+                style={{ width: `${(round / total) * 100}%` }}
+              />
+            </div>
+            <p className="mt-2 text-center text-[11px] text-white/65">
+              請將局數對齊領袖畫面，然後長按卡片查看身分
             </p>
           </div>
 
-          {/* 代碼格 */}
-          <div className="mt-4 flex justify-center gap-2.5">
-            {Array.from({ length: CODE_LENGTH }).map((_, i) => (
-              <div
-                key={i}
-                className={`flex h-16 w-14 items-center justify-center rounded-2xl border-2 font-mono text-3xl font-black ${
-                  code[i]
-                    ? 'border-amber-400 bg-amber-400/15 text-amber-200'
-                    : 'border-white/20 bg-white/5 text-white/30'
-                }`}
-              >
-                {code[i] || ''}
-              </div>
-            ))}
-          </div>
-
-          {/* 鍵盤 */}
-          <div className="mx-auto mt-6 w-full max-w-xs">
-            <div className="grid grid-cols-3 gap-2.5">
-              {KEYS.map((k) => (
-                <button
-                  key={k}
-                  onClick={() => press(k)}
-                  className="rounded-2xl border border-white/15 bg-white/10 py-5 font-mono text-2xl font-black text-white active:scale-90 active:bg-amber-400 active:text-stone-900"
-                >
-                  {k}
-                </button>
-              ))}
-              <button
-                onClick={reset}
-                className="rounded-2xl border border-white/15 bg-white/5 py-5 text-xs font-bold text-white/80 active:scale-90"
-              >
-                清除
-              </button>
-              <button
-                onClick={() => press('0')}
-                className="rounded-2xl border border-white/15 bg-white/10 py-5 font-mono text-2xl font-black text-white active:scale-90 active:bg-amber-400 active:text-stone-900"
-              >
-                0
-              </button>
-              <button
-                onClick={back}
-                className="rounded-2xl border border-white/15 bg-white/5 py-5 text-white/80 active:scale-90"
-                aria-label="刪除"
-              >
-                <Delete className="mx-auto h-5 w-5" />
-              </button>
-            </div>
-          </div>
-
-          <p className="mt-auto pt-4 text-center text-[11px] text-white/60">
-            撳完 {CODE_LENGTH} 個數字即自動顯示身分卡
-          </p>
-        </main>
-      )}
-
-      {/* ---------- 已有代碼：身分卡 ---------- */}
-      {mine && (
-        <>
-          <div className="flex items-center justify-center gap-2 px-4 py-3">
-            <div className="rounded-xl border border-white/15 bg-white/5 px-3 py-1.5 text-center">
-              <div className="text-[10px] text-white/70">本局代碼</div>
-              <div className="font-mono text-lg font-black tracking-widest text-amber-300">
-                {activeCode}
-              </div>
-            </div>
-            <button
-              onClick={reset}
-              className="rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-xs font-bold text-white active:scale-95"
-            >
-              換新代碼
-            </button>
-          </div>
-
+          {/* 卡片 */}
           <main className="flex flex-1 items-center justify-center px-5 pb-6">
             <button
               onPointerDown={() => {
-                setRevealed(true)
+                setRevealedRound(round)
                 vibrate(30)
               }}
-              onPointerUp={() => setRevealed(false)}
-              onPointerLeave={() => setRevealed(false)}
-              onPointerCancel={() => setRevealed(false)}
+              onPointerUp={() => setRevealedRound(0)}
+              onPointerLeave={() => setRevealedRound(0)}
+              onPointerCancel={() => setRevealedRound(0)}
               onContextMenu={(e) => e.preventDefault()}
               className={`relative flex aspect-[3/4] w-full max-w-sm select-none flex-col items-center justify-center rounded-3xl bg-gradient-to-br shadow-2xl ring-4 transition-transform active:scale-[0.98] ${
                 revealed
@@ -235,7 +195,7 @@ export default function PlayerCard() {
                   <div className="mt-4 text-lg font-black">按住卡片查看身分</div>
                   <p className="mt-2 text-xs text-white/65">放手即自動遮蓋，防止旁人偷看</p>
                   <div className="mt-6 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs">
-                    {link.seat} 號 · 代碼 {activeCode}
+                    第 {round} 局 · {link.seat} 號
                   </div>
                 </div>
               )}

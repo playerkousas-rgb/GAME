@@ -5,18 +5,18 @@
  * 領袖流程：設定人數 → 派 QR → 每局抽代碼（畫面顯示「下一局：N 號」）
  * → 等該玩家出場企定 → 撳「開始計時」→ 自動或手動蓋牌 → 下一局
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ArrowLeft, QrCode, Printer, Users, Play, Pause, EyeOff, Check, X,
-  Dices, RotateCcw, Timer, SkipForward,
+  RotateCcw, Timer, SkipForward, ChevronLeft, Flag, ListOrdered,
 } from 'lucide-react'
 import QRCode from '../../components/QRCode'
 import { DRAW_BANK } from '../../data/drawBank'
 import { GameSound } from '../../shared/gameSound'
 import type { Question } from '../../shared/questionBank'
 import {
-  buildPool, buildSeatUrl, drawCode, estimateUrlLength, makeSecret, MAX_URL_LENGTH,
-  resolveRound, type DrawSeatSetup, type PoolItem,
+  buildPool, buildSeatUrl, estimateUrlLength, makeSecret, MAX_URL_LENGTH, previewRounds,
+  resolveRound, ROUND_OPTIONS, type DrawSeatSetup, type PoolItem,
 } from './lib/seat'
 
 type Phase = 'setup' | 'qr' | 'lobby' | 'drawing' | 'covered'
@@ -33,19 +33,19 @@ const TIME_OPTIONS = [60, 90, 120, 180, 0]
 export default function SecretDrawHost({ levels, categories, customAnswers, onBack }: Props) {
   const [phase, setPhase] = useState<Phase>('setup')
   const [players, setPlayers] = useState(6)
+  const [rounds, setRounds] = useState(20)
   const [secret, setSecret] = useState(makeSecret)
   const [seconds, setSeconds] = useState(90)
   const [left, setLeft] = useState(0)
   const [paused, setPaused] = useState(false)
-  const [code, setCode] = useState('')
-  const [roundNo, setRoundNo] = useState(0)
+  const [round, setRound] = useState(1)
   const [bigQr, setBigQr] = useState<number | null>(null)
   const [scores, setScores] = useState<Record<number, number>>({})
-  const lastArtist = useRef<number | undefined>(undefined)
+  const [previewOpen, setPreviewOpen] = useState(false)
 
   const setup: DrawSeatSetup = useMemo(
-    () => ({ secret, players, levels, categories, customAnswers }),
-    [secret, players, levels, categories, customAnswers],
+    () => ({ secret, players, rounds, levels, categories, customAnswers }),
+    [secret, players, rounds, levels, categories, customAnswers],
   )
 
   const pool = useMemo(
@@ -53,9 +53,9 @@ export default function SecretDrawHost({ levels, categories, customAnswers, onBa
     [setup],
   )
 
-  const round = useMemo(
-    () => (code ? resolveRound(setup, code, pool.length) : null),
-    [setup, code, pool.length],
+  const result = useMemo(
+    () => resolveRound(setup, round, pool.length),
+    [setup, round, pool.length],
   )
 
   const seatUrls = useMemo(
@@ -82,12 +82,9 @@ export default function SecretDrawHost({ levels, categories, customAnswers, onBa
   }, [phase, left, paused, seconds])
 
   const nextRound = useCallback(() => {
-    const c = drawCode(setup, pool.length, lastArtist.current)
-    setCode(c)
-    setRoundNo((r) => r + 1)
+    setRound((r) => r + 1)
     setPhase('lobby')
-    lastArtist.current = resolveRound(setup, c, pool.length).artistSeat
-  }, [setup, pool.length])
+  }, [])
 
   const startDrawing = useCallback(() => {
     GameSound.unlock?.()
@@ -98,15 +95,15 @@ export default function SecretDrawHost({ levels, categories, customAnswers, onBa
 
   const finish = useCallback(
     (correct: boolean) => {
-      if (correct && round) {
+      if (correct) {
         GameSound.correct?.()
-        setScores((s) => ({ ...s, [round.artistSeat]: (s[round.artistSeat] || 0) + 1 }))
+        setScores((s) => ({ ...s, [result.artistSeat]: (s[result.artistSeat] || 0) + 1 }))
       } else {
         GameSound.skip?.()
       }
       setPhase('covered')
     },
-    [round],
+    [result],
   )
 
   /* ============ SETUP ============ */
@@ -145,6 +142,31 @@ export default function SecretDrawHost({ levels, categories, customAnswers, onBa
                 </button>
               ))}
             </div>
+          </Section>
+
+          <Section
+            icon={<ListOrdered className="h-4 w-4" />}
+            title="本輪局數"
+            hint="開局抽一次籤，玩足呢個局數；玩完或中途加減人就開新牌局"
+          >
+            <div className="grid grid-cols-4 gap-2">
+              {ROUND_OPTIONS.map((n) => (
+                <button
+                  key={n}
+                  onClick={() => setRounds(n)}
+                  className={`rounded-xl border py-3.5 text-sm font-bold transition ${
+                    rounds === n
+                      ? 'border-amber-400 bg-amber-400 text-stone-900'
+                      : 'border-white/15 bg-white/5 text-white/85 active:scale-95'
+                  }`}
+                >
+                  {n} 局
+                </button>
+              ))}
+            </div>
+            <p className="mt-2 text-[11px] leading-relaxed text-white/65">
+              每人出場次數會自動平均分配，亦唔會連續兩局抽中同一人。
+            </p>
           </Section>
 
           <Section icon={<Timer className="h-4 w-4" />} title="每題時間" hint="時間到會自動蓋牌；亦可隨時手動蓋牌">
@@ -209,7 +231,7 @@ export default function SecretDrawHost({ levels, categories, customAnswers, onBa
             </button>
             <div className="text-center">
               <div className="text-sm font-black text-white">每位玩家掃描屬於自己的 QR</div>
-              <div className="text-[11px] text-white/75">{players} 人 · 整晚只需掃一次</div>
+              <div className="text-[11px] text-white/75">{players} 人 · 本輪 {rounds} 局 · 只需掃一次</div>
             </div>
             <button
               onClick={() => window.print()}
@@ -237,10 +259,8 @@ export default function SecretDrawHost({ levels, categories, customAnswers, onBa
 
           <button
             onClick={() => {
-              setRoundNo(0)
-              setCode('')
+              setRound(1)
               setScores({})
-              lastArtist.current = undefined
               setPhase('lobby')
             }}
             className="w-full rounded-2xl bg-amber-400 py-4 text-base font-black text-stone-900 active:scale-[0.99] print:hidden"
@@ -268,62 +288,105 @@ export default function SecretDrawHost({ levels, categories, customAnswers, onBa
   }
 
   /* ============ 遊戲中 ============ */
-  const artist = round?.artistSeat
-  const question = round ? pool[round.questionIndex % Math.max(1, pool.length)] : null
+  const artist = result.artistSeat
+  const question = pool.length ? pool[result.questionIndex % pool.length] : null
+  const finished = round > rounds
+
+  if (finished) {
+    return (
+      <Shell>
+        <div className="mx-auto w-full max-w-2xl space-y-4 text-center">
+          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#0a2260] to-[#02133e] p-8">
+            <Flag className="mx-auto h-14 w-14 text-amber-300" />
+            <h1 className="mt-3 text-2xl font-black text-white">整輪玩完！</h1>
+            <p className="mt-2 text-sm leading-relaxed text-white/75">
+              呢輪 {rounds} 局已經玩晒。開新牌局會抽一條全新密鑰，需要重新派 QR。
+            </p>
+          </div>
+
+          {Object.keys(scores).length > 0 && (
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-left">
+              <div className="mb-2 text-xs font-bold text-white/85">🏆 最終成績</div>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(scores)
+                  .sort((a, b) => b[1] - a[1])
+                  .map(([seat, n], i) => (
+                    <span
+                      key={seat}
+                      className={`rounded-full border px-3 py-1.5 text-xs ${
+                        i === 0
+                          ? 'border-amber-400/50 bg-amber-400/20 text-amber-100'
+                          : 'border-white/15 bg-black/25 text-white/90'
+                      }`}
+                    >
+                      {i === 0 && '👑 '}
+                      {seat} 號 · {n} 分
+                    </span>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          <button
+            onClick={() => {
+              setSecret(makeSecret())
+              setRound(1)
+              setScores({})
+              setPhase('setup')
+            }}
+            className="w-full rounded-2xl bg-amber-400 py-5 text-lg font-black text-stone-900 active:scale-[0.99]"
+          >
+            <RotateCcw className="mr-2 inline h-6 w-6" /> 開新牌局
+          </button>
+          <button
+            onClick={() => setRound(rounds)}
+            className="w-full rounded-xl border border-white/15 bg-white/5 py-3 text-xs text-white/85"
+          >
+            返回第 {rounds} 局
+          </button>
+        </div>
+      </Shell>
+    )
+  }
 
   return (
     <Shell>
       <div className="mx-auto w-full max-w-3xl space-y-4">
+        {/* 進度 */}
+        <div className="flex items-center justify-center gap-2 text-xs text-white/75">
+          <span>
+            本輪第 <b className="text-amber-300">{round}</b> ／ {rounds} 局
+          </span>
+        </div>
+        <div className="mx-auto h-1.5 w-full max-w-sm overflow-hidden rounded-full bg-white/10">
+          <div
+            className="h-full rounded-full bg-amber-400 transition-all"
+            style={{ width: `${(round / rounds) * 100}%` }}
+          />
+        </div>
+
         {/* 叫人出場 */}
         {phase === 'lobby' && (
           <>
-            {round ? (
-              <div className="rounded-2xl border border-emerald-400/30 bg-gradient-to-br from-emerald-900/40 to-[#02133e] p-6 text-center">
-                <div className="text-xs text-white/75">第 {roundNo} 局 · 請呢位玩家出嚟</div>
-                <div
-                  className="my-1 font-black leading-none text-emerald-300"
-                  style={{ fontSize: 'clamp(4rem, 20vw, 9rem)' }}
-                >
-                  {artist} 號
-                </div>
-                <div className="mt-3 inline-block rounded-2xl border border-white/15 bg-black/30 px-5 py-3">
-                  <div className="text-[11px] text-white/70">本局代碼（等佢出到嚟先公布）</div>
-                  <div
-                    className="font-mono font-black tracking-[0.15em] text-amber-300"
-                    style={{ fontSize: 'clamp(2.5rem, 12vw, 5rem)' }}
-                  >
-                    {code}
-                  </div>
-                </div>
-                <p className="mt-3 text-xs leading-relaxed text-white/75">
-                  等 {artist} 號企定喺前面，先公布代碼；佢喺自己手機輸入後就見到題目
-                </p>
-              </div>
-            ) : (
-              <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#0a2260] to-[#02133e] p-6 text-center">
-                <div className="text-4xl">🎲</div>
-                <div className="mt-2 text-lg font-black text-white">準備開始</div>
-                <p className="mt-1 text-xs text-white/75">撳下面按鈕抽出本局畫家</p>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 gap-2">
-              {round && (
-                <button
-                  onClick={startDrawing}
-                  className="w-full rounded-2xl bg-emerald-400 py-5 text-lg font-black text-stone-900 active:scale-[0.99]"
-                >
-                  <Play className="mr-2 inline h-6 w-6" /> 佢出到嚟喇，開始計時
-                </button>
-              )}
-              <button
-                onClick={nextRound}
-                className="w-full rounded-2xl bg-amber-400 py-4 text-base font-black text-stone-900 active:scale-[0.99]"
+            <div className="rounded-2xl border border-emerald-400/30 bg-gradient-to-br from-emerald-900/40 to-[#02133e] p-6 text-center">
+              <div className="text-xs text-white/75">請呢位玩家出嚟作畫</div>
+              <div
+                className="my-1 font-black leading-none text-emerald-300"
+                style={{ fontSize: 'clamp(4.5rem, 22vw, 10rem)' }}
               >
-                <Dices className="mr-2 inline h-5 w-5" />
-                {round ? '重抽另一位玩家' : '抽出第 1 位畫家'}
-              </button>
+                {artist} 號
+              </div>
+              <p className="mt-2 text-xs leading-relaxed text-white/75">
+                等 {artist} 號企定喺前面，佢喺自己手機撳到第 {round} 局就會見到題目
+              </p>
             </div>
+
+            <button
+              onClick={startDrawing}
+              className="w-full rounded-2xl bg-emerald-400 py-5 text-lg font-black text-stone-900 active:scale-[0.99]"
+            >
+              <Play className="mr-2 inline h-6 w-6" /> 佢出到嚟喇，開始計時
+            </button>
           </>
         )}
 
@@ -331,9 +394,7 @@ export default function SecretDrawHost({ levels, categories, customAnswers, onBa
         {phase === 'drawing' && (
           <>
             <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-center">
-              <div className="text-xs text-white/75">
-                第 {roundNo} 局 · {artist} 號作畫中
-              </div>
+              <div className="text-xs text-white/75">{artist} 號作畫中</div>
               {seconds === 0 ? (
                 <div className="my-4 text-4xl font-black text-white/85">手動計時</div>
               ) : (
@@ -347,7 +408,7 @@ export default function SecretDrawHost({ levels, categories, customAnswers, onBa
                 </div>
               )}
               <div className="mt-2 rounded-xl border border-white/10 bg-black/25 px-4 py-2 text-xs text-white/70">
-                🔒 題目只喺 {artist} 號部手機顯示，主持機唔會show出嚟
+                🔒 題目只喺 {artist} 號部手機顯示
               </div>
             </div>
 
@@ -402,7 +463,8 @@ export default function SecretDrawHost({ levels, categories, customAnswers, onBa
               onClick={nextRound}
               className="w-full rounded-2xl bg-amber-400 py-5 text-lg font-black text-stone-900 active:scale-[0.99]"
             >
-              <SkipForward className="mr-2 inline h-6 w-6" /> 下一局（叫下一位玩家）
+              <SkipForward className="mr-2 inline h-6 w-6" />
+              {round >= rounds ? '完成整輪' : '下一局（叫下一位玩家）'}
             </button>
           </>
         )}
@@ -426,12 +488,61 @@ export default function SecretDrawHost({ levels, categories, customAnswers, onBa
           </div>
         )}
 
-        <div className="grid grid-cols-3 gap-2">
+        {/* 出場表預覽 */}
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <button
+            onClick={() => setPreviewOpen((v) => !v)}
+            className="flex w-full items-center justify-between text-sm font-bold text-white"
+          >
+            <span className="flex items-center gap-2">
+              <ListOrdered className="h-4 w-4 text-amber-300" />
+              整輪出場表（備課用．成員勿看）
+            </span>
+            <span className="text-xs text-white/75">{previewOpen ? '隱藏' : '顯示'}</span>
+          </button>
+          {previewOpen && (
+            <div className="mt-3 max-h-72 space-y-1.5 overflow-y-auto pr-1">
+              {previewRounds(setup, pool.length).map((r) => (
+                <button
+                  key={r.round}
+                  onClick={() => {
+                    setRound(r.round)
+                    setPhase('lobby')
+                  }}
+                  className={`flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-xs ${
+                    r.round === round
+                      ? 'border-amber-400 bg-amber-400/15'
+                      : 'border-white/10 bg-[#0d2050]'
+                  }`}
+                >
+                  <span className="w-8 shrink-0 text-left font-black text-amber-300">{r.round}.</span>
+                  <span className="w-16 shrink-0 text-left text-emerald-200">{r.artistSeat} 號</span>
+                  <span className="flex-1 truncate text-left text-white/75">
+                    {pool.length ? pool[r.questionIndex % pool.length].answer : ''}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* 上一局 + 其他 */}
+        <div className="grid grid-cols-4 gap-2">
+          <button
+            onClick={() => {
+              setRound((r) => Math.max(1, r - 1))
+              setPhase('lobby')
+            }}
+            disabled={round <= 1}
+            className="rounded-xl border border-white/15 bg-white/5 py-3 text-xs text-white/85 disabled:opacity-25"
+          >
+            <ChevronLeft className="mr-0.5 inline h-3.5 w-3.5" /> 上局
+          </button>
           <button
             onClick={() => setPhase('qr')}
             className="rounded-xl border border-white/15 bg-white/5 py-3 text-xs text-white/85"
           >
-            <QrCode className="mr-1 inline h-3.5 w-3.5" /> 重看 QR
+            <QrCode className="mr-1 inline h-3.5 w-3.5" /> QR
           </button>
           <button
             onClick={() => setPhase('setup')}
@@ -442,17 +553,18 @@ export default function SecretDrawHost({ levels, categories, customAnswers, onBa
           <button
             onClick={() => {
               setSecret(makeSecret())
-              setCode('')
-              setRoundNo(0)
+              setRound(1)
               setScores({})
-              lastArtist.current = undefined
               setPhase('setup')
             }}
             className="rounded-xl border border-white/15 bg-white/5 py-3 text-xs text-white/85"
           >
-            <RotateCcw className="mr-1 inline h-3.5 w-3.5" /> 全新一局
+            <RotateCcw className="mr-1 inline h-3.5 w-3.5" /> 新局
           </button>
         </div>
+        <p className="pb-2 text-center text-[10px] leading-relaxed text-white/55">
+          中途加減人數需要「新局」並重新派 QR
+        </p>
       </div>
     </Shell>
   )
