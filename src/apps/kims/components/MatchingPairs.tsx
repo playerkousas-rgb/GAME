@@ -29,7 +29,6 @@ export default function MatchingPairs({ config, playerName, onBack }: Props) {
   const [timer, setTimer] = useState(0)
   const [score, setScore] = useState(0)
   const [isChecking, setIsChecking] = useState(false)
-  const [startTime, setStartTime] = useState(0)
   const [soundEnabled, setSoundEnabled] = useState(true)
   const [submitted, setSubmitted] = useState(false)
 
@@ -74,7 +73,6 @@ export default function MatchingPairs({ config, playerName, onBack }: Props) {
     setIsChecking(false)
     setPhase('playing')
     setTimer(timeLimit)
-    setStartTime(Date.now())
     setSubmitted(false)
     if (soundEnabled) Sound.gameStart()
   }, [pairCount, timeLimit, soundEnabled])
@@ -82,12 +80,14 @@ export default function MatchingPairs({ config, playerName, onBack }: Props) {
   useEffect(() => {
     if (phase !== 'playing') return
     if (timer <= 0) {
-      if (!submitted) {
+      if (submitted) return
+      // 以 timeout 延後，避免在 effect 內同步 setState
+      const t = window.setTimeout(() => {
         setSubmitted(true)
         if (soundEnabled) Sound.timeout()
         setPhase('results')
-      }
-      return
+      }, 0)
+      return () => window.clearTimeout(t)
     }
 
     if (timer <= 5 && timer > 0 && soundEnabled) {
@@ -155,8 +155,8 @@ export default function MatchingPairs({ config, playerName, onBack }: Props) {
     accuracy: Math.round((matchedPairs / pairCount) * 100),
     score,
     rank: matchedPairs === pairCount ? '記憶大師' : matchedPairs >= pairCount * 0.7 ? '記憶高手' : '初學記憶者',
-    timeUsed: Math.round((Date.now() - startTime) / 1000),
-  }), [matchedPairs, attempts, pairCount, score, startTime])
+    timeUsed: Math.max(0, timeLimit - timer),
+  }), [matchedPairs, attempts, pairCount, score, timeLimit, timer])
 
   return (
     <div className="space-y-4">

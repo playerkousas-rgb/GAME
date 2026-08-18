@@ -3,7 +3,7 @@
  * Copyright (c) 2026 Scout System. All rights reserved.
  */
 import { useMemo, useState } from 'react'
-import { Plus, Trash2, Upload, Download, X, Search, ChevronDown } from 'lucide-react'
+import { Plus, Trash2, Upload, X, Search, ChevronDown } from 'lucide-react'
 import {
   type BankId,
   type Question,
@@ -11,7 +11,6 @@ import {
   DIFFICULTY_META,
   makeCustomId,
   parseBulk,
-  exportBulk,
   listCategories,
 } from '../shared/questionBank'
 
@@ -71,17 +70,6 @@ export default function QuestionManager({ bank, builtIn, custom, onChange, onClo
     setBulkText('')
     setBulkOpen(false)
     flash(`成功匯入 ${parsed.length} 題`)
-  }
-
-  const doExport = () => {
-    const text = exportBulk(custom, bank)
-    if (!text) return flash('沒有自訂題目可匯出')
-    navigator.clipboard?.writeText(text).then(
-      () => flash('已複製到剪貼簿'),
-      () => flash('複製失敗，請手動選取'),
-    )
-    setBulkText(text)
-    setBulkOpen(true)
   }
 
   const filtered = query.trim()
@@ -185,13 +173,6 @@ export default function QuestionManager({ bank, builtIn, custom, onChange, onClo
           <Upload className="h-3.5 w-3.5" />
           批次匯入
           <ChevronDown className={`h-3 w-3 transition ${bulkOpen ? 'rotate-180' : ''}`} />
-        </button>
-        <button
-          onClick={doExport}
-          className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-black/20 px-3 py-1.5 text-[11px] text-white/60 transition hover:text-white"
-        >
-          <Download className="h-3.5 w-3.5" />
-          匯出／複製
         </button>
         {custom.length > 0 && (
           <button

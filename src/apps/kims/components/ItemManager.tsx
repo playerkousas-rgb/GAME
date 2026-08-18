@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
-import { Plus, Trash2, Search, X, RotateCcw, Upload, ChevronDown, ChevronUp } from 'lucide-react'
+import { Plus, Trash2, Search, RotateCcw, Upload } from 'lucide-react'
 import { Item, Difficulty } from '../types'
-import { DEFAULT_BUILT_IN_ITEMS, shuffleArray } from '../data/items'
+import { DEFAULT_BUILT_IN_ITEMS } from '../data/items'
 
 interface Props {
   items: Item[]
@@ -9,8 +9,7 @@ interface Props {
   onUploadImage: (files: FileList | null) => void
 }
 
-const EMOJI_CATEGORIES = ['😀動物', '🍎食物', '⚽運動', '🚗交通', '🏠物品', '🔧工具', '🎵音樂', '🌍自然', '⭐符號', '🎨其他']
-const ALL_EMOJIS = '🐶🐱🐭🐹🐰🦊🐻🐼🐨🐯🦁🐮🐷🐸🐵🐔🐧🐦🐤🦆🦅🦉🦇🐺🐗🐴🦄🐝🐛🦋🐌🐞🐜🦟🦗🐢🐍🦎🦖🦕🐙🦑🦐🦀🐡🐠🐟🐬🐳🐋🦈🐊🐅🦣🐘🦏🦒🦘🐂🐄🐪🐫🦙🦥🦨🦔🐿️🦫🐇🐁🐀🐈🐕🦮🐩🐕‍🦺🐾🐒🦧🦍🦌🐕🐩🐈🐓🦃🦤🦚🦜🦢🦩🕊️🐇🦝🦡🦦🦥🐄🐖🐏🐑🐐🦌🐕🐈'.split('')
+const ALL_EMOJIS = [...new Set([...'📦🎒🔦🧭🗺️📯🪢⛺🔥🔪🩹🧤🥾📻🏮📦🎒🔦🧭🗺️📯🪢⛺🔥🔪🩹🧤🥾📻🏮🐶🐱🐭🐹🐰🦊🐻🐼🐨🐯🦁🐮🐷🐸🐵🐔🐧🐦🐤🦆🦅🦉🦇🐺🐗🐴🦄🐝🐛🦋🐌🐞🐜🦟🦗🐢🐍🦎🦖🦕🐙🦑🦐🦀🐡🐠🐟🐬🐳🐋🦈🐊🐅🦣🐘🦏🦒🦘🐂🐄🐪🐫🦙🦥🦨🦔🐿️🦫🐇🐁🐀🐈🐕🦮🐩🐕‍🦺🐾🐒🦧🦍🦌🐕🐩🐈🐓🦃🦤🦚🦜🦢🦩🕊️🐇🦝🦡🦦🦥🐄🐖🐏🐑🐐🦌🐕🐈'])]
 
 const CATEGORIES = ['求生', '定向', '安全', '夜間', '裝備', '補給', '制服', '記錄', '榮譽', '時間', '服裝', '衛生', '炊事', '露營', '觀察', '通訊', '防護', '天候', '生火', '繩結', '工具', '求救', '醫療', '動物', '自訂']
 
@@ -27,7 +26,6 @@ export default function ItemManager({ items, onItemsChange, onUploadImage }: Pro
   const [newEmoji, setNewEmoji] = useState('📦')
   const [newCategory, setNewCategory] = useState('自訂')
   const [newLevel, setNewLevel] = useState<Difficulty>('easy')
-  const [showDeleted, setShowDeleted] = useState(false)
   const [deletedIds, setDeletedIds] = useState<string[]>([])
 
   // Filter items based on search
@@ -116,8 +114,8 @@ export default function ItemManager({ items, onItemsChange, onUploadImage }: Pro
               <label className="text-[10px] text-blue-400">Emoji</label>
               <div className="flex gap-1">
                 <input value={newEmoji} onChange={e => setNewEmoji(e.target.value)} placeholder="📦" maxLength={2} className="w-12 rounded border border-blue-700/50 bg-[#02133E] p-1.5 text-xs text-center text-white" />
-                <div className="flex-1 overflow-x-auto flex gap-0.5">
-                  {['📦', '🎒', '🔦', '🧭', '🗺️', '📯', '🪢', '⛺', '🔥', '🔪', '🩹', '🧤', '🥾', '📻', '🏮'].map(e => (
+                <div className="flex-1 max-h-16 overflow-y-auto flex flex-wrap gap-0.5">
+                  {ALL_EMOJIS.map(e => (
                     <button key={e} onClick={() => setNewEmoji(e)} className={`w-6 h-6 rounded text-xs flex items-center justify-center ${newEmoji === e ? 'bg-amber-400/30 border border-amber-400' : 'bg-blue-900/30 hover:bg-blue-800/30'}`}>{e}</button>
                   ))}
                 </div>

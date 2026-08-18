@@ -1,5 +1,5 @@
 import { useMemo, useRef } from 'react'
-import { Trophy, Crown, Medal, X, Clock, Target, Hash, Download, Sparkles, ImageIcon } from 'lucide-react'
+import {  Crown, Medal, X, Clock, Target, Hash, Download, Sparkles, ImageIcon } from 'lucide-react'
 import type { Player } from './ScoreBoard'
 import { COPYRIGHT_UPPER } from '../../../shared/brand'
 

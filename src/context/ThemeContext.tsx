@@ -1,18 +1,9 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
-
-export type Theme = 'dark' | 'light'
-
-interface ThemeContextValue {
-  theme: Theme
-  setTheme: (t: Theme) => void
-  toggle: () => void
-}
-
-const ThemeContext = createContext<ThemeContextValue>({
-  theme: 'dark',
-  setTheme: () => {},
-  toggle: () => {},
-})
+/**
+ * 主題 Provider（深色／淺色）
+ * Copyright (c) 2026 Scout System. All rights reserved.
+ */
+import { useState, useEffect, type ReactNode } from 'react'
+import { ThemeContext, type Theme } from './themeContextValue'
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
@@ -39,5 +30,3 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     </ThemeContext.Provider>
   )
 }
-
-export const useTheme = () => useContext(ThemeContext)

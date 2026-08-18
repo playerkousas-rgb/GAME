@@ -24,11 +24,18 @@ export default function MaskedRevealPane({ src, variant = 'card' }: Props) {
   const [dragging, setDragging] = useState(false)
   const lastRef = useRef<Pt | null>(null)
 
-  useEffect(() => {
+  // 換圖時重設鏡頭狀態（渲染期間依 props 調整 state）
+  const [prevSrc, setPrevSrc] = useState(src)
+  if (src !== prevSrc) {
+    setPrevSrc(src)
     setLensPos({ x: 0, y: 0 })
     setLens({ w: 120, h: 90 })
     setZoom(4)
     setImgNatural(null)
+    setReveal(false)
+  }
+
+  useEffect(() => {
     if (!src) return
     const img = new Image()
     img.decoding = 'async'
@@ -37,16 +44,26 @@ export default function MaskedRevealPane({ src, variant = 'card' }: Props) {
     img.onload = () => setImgNatural({ w: img.naturalWidth, h: img.naturalHeight })
   }, [src])
 
+  // 以 ResizeObserver 追蹤容器尺寸，避免在渲染期間讀取 ref
+  const [wrapSize, setWrapSize] = useState<{ w: number; h: number } | null>(null)
+
   useEffect(() => {
-    setReveal(false)
-  }, [src])
+    const el = wrapRef.current
+    if (!el) return
+    const measure = () => {
+      const rect = el.getBoundingClientRect()
+      setWrapSize({ w: rect.width, h: rect.height })
+    }
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [src, variant])
 
   const baseScale = useMemo(() => {
-    if (!imgNatural || !wrapRef.current) return 1
-    const rect = wrapRef.current.getBoundingClientRect()
-    if (!rect.width || !rect.height) return 1
-    return Math.min(rect.width / imgNatural.w, rect.height / imgNatural.h)
-  }, [imgNatural, src])
+    if (!imgNatural || !wrapSize || !wrapSize.w || !wrapSize.h) return 1
+    return Math.min(wrapSize.w / imgNatural.w, wrapSize.h / imgNatural.h)
+  }, [imgNatural, wrapSize])
 
   const maskStyle = useMemo(() => {
     const w = lens.w

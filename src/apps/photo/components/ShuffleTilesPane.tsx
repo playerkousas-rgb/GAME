@@ -14,10 +14,16 @@ function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n))
 }
 
-function shuffled<T>(arr: T[]) {
+/** 以 seed 決定的洗牌，確保渲染純淨且可重現 */
+function shuffled<T>(arr: T[], seed: number) {
   const a = [...arr]
+  let state = (seed + 1) * 2654435761
+  const next = () => {
+    state = (state * 1103515245 + 12345) & 0x7fffffff
+    return state / 0x7fffffff
+  }
   for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
+    const j = Math.floor(next() * (i + 1))
     ;[a[i], a[j]] = [a[j]!, a[i]!]
   }
   return a
@@ -32,9 +38,17 @@ export default function ShuffleTilesPane({ src, variant = 'card' }: Props) {
   const [fitWidth, setFitWidth] = useState(720)
   const [reveal, setReveal] = useState(false)
 
+  // 換圖／重新洗牌時重設狀態（渲染期間依 props 調整 state）
+  const [prevKey, setPrevKey] = useState(`${src}|${seed}`)
+  const key = `${src}|${seed}`
+  if (key !== prevKey) {
+    setPrevKey(key)
+    setReveal(false)
+    if (!src) setImgSize(null)
+  }
+
   useEffect(() => {
     if (!src) {
-      setImgSize(null)
       imgRef.current = null
       return
     }
@@ -47,10 +61,6 @@ export default function ShuffleTilesPane({ src, variant = 'card' }: Props) {
       setImgSize({ w: img.naturalWidth, h: img.naturalHeight })
     }
   }, [src])
-
-  useEffect(() => {
-    setReveal(false)
-  }, [src, seed])
 
   const tiles = useMemo(() => {
     if (!imgSize) return [] as Tile[]
@@ -65,7 +75,7 @@ export default function ShuffleTilesPane({ src, variant = 'card' }: Props) {
         list.push({ key: `${x}-${y}`, x, y, sx: x, sy: y })
       }
     }
-    const shuffledSrc = shuffled(list.map((t) => ({ sx: t.sx, sy: t.sy })))
+    const shuffledSrc = shuffled(list.map((t) => ({ sx: t.sx, sy: t.sy })), seed)
     return list.map((t, i) => ({ ...t, ...shuffledSrc[i]! }))
   }, [imgSize, piece, seed])
 

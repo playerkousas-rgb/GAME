@@ -1,9 +1,9 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { 
-  Users, Trophy, Timer, Crown, ArrowLeft, Plus, Trash2, Play, 
-  UserPlus, ChevronRight, Medal, Star, Volume2, VolumeX 
+  Users, Crown, ArrowLeft, Plus, Trash2, Play, 
+  UserPlus, Star, Volume2, VolumeX 
 } from 'lucide-react'
-import { Competitor, GameConfig, GameResult, Difficulty } from '../types'
+import { Competitor, GameConfig, GameResult } from '../types'
 import { Sound } from '../hooks/useSound'
 
 interface Props {
@@ -110,16 +110,18 @@ export default function CompetitionMode({ config, gameComponent, onBack, onCompe
 
   // 如果當前玩家沒有名字（不應該發生），跳過
   useEffect(() => {
-    if (phase === 'playing' && !isTransitioning) {
-      const player = competitors[currentPlayerIndex]
-      if (!player || !player.name) {
-        if (currentPlayerIndex + 1 >= activeCompetitors.length) {
-          setPhase('leaderboard')
-        } else {
-          setCurrentPlayerIndex(prev => prev + 1)
-        }
+    if (phase !== 'playing' || isTransitioning) return
+    const player = competitors[currentPlayerIndex]
+    if (player && player.name) return
+    // 以 timeout 延後，避免在 effect 內同步 setState 造成連鎖渲染
+    const t = window.setTimeout(() => {
+      if (currentPlayerIndex + 1 >= activeCompetitors.length) {
+        setPhase('leaderboard')
+      } else {
+        setCurrentPlayerIndex(prev => prev + 1)
       }
-    }
+    }, 0)
+    return () => window.clearTimeout(t)
   }, [phase, currentPlayerIndex, competitors, activeCompetitors.length, isTransitioning])
 
   return (

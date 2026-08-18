@@ -37,7 +37,6 @@ function playArpeggio(freqs: number[], gap = 0.08) {
 }
 
 // ============ Lo-fi BGM Engine ============
-type BGMNote = { freq: number; time: number; duration: number; velocity: number }
 
 const CHORDS = [
   [261.63, 329.63, 392.0, 493.88], // Cmaj7

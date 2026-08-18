@@ -1,11 +1,11 @@
 /**
  * Copyright (c) 2026 Scout System. All rights reserved.
  */
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import {
-  Users, Settings, Trophy, Upload, 
+  Users, Settings, Trophy, 
   Clock, Target, Gamepad2, BookOpen,
-  Crown, Volume2, VolumeX, Headphones, Type
+  Crown, Volume2, VolumeX
 } from 'lucide-react'
 import { Item, GameConfig, GameResult, Difficulty, GameMode, PlayMode, TeamScore, Competitor } from './types'
 import { DEFAULT_BUILT_IN_ITEMS } from './data/items'
@@ -47,7 +47,7 @@ function KimsApp() {
     answerMode: 'input', enableDistractors: false, playMode: 'team', teamName: '獵鷹小隊',
     competitionMode: false, teams: ['獵鷹小隊', '灰狼小隊', '黑熊小隊'],
   })
-  const { uploadedImages, upload } = useImageUpload()
+  const { upload } = useImageUpload()
   const [activeItems, setActiveItems] = useState<Item[]>(() => [...DEFAULT_BUILT_IN_ITEMS])
   const [scores, setScores] = useState<TeamScore[]>(
     ['獵鷹小隊', '灰狼小隊', '黑熊小隊', '海狸小隊', '白狐小隊'].map(name => ({ team: name, points: 0, rounds: 0 }))
@@ -57,7 +57,6 @@ function KimsApp() {
   const [customTeamName, setCustomTeamName] = useState('')
   const [isCustomTeam, setIsCustomTeam] = useState(false)
 
-  const allItems = useMemo(() => activeItems, [activeItems])
   const toggleSound = useCallback(() => setSoundEnabled(prev => !prev), [])
 
   const handleUpload = useCallback((files: FileList | null) => {

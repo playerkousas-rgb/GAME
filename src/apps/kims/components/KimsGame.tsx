@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { Timer, ShieldCheck, Medal, ArrowLeft, Info, CheckCircle2, XCircle, HelpCircle, Volume2, VolumeX, Maximize, Minimize } from 'lucide-react'
 import { Item, GameConfig, GameResult } from '../types'
 import { DISTRACTORS, shuffleArray, normalizeText } from '../data/items'
@@ -27,7 +27,7 @@ export default function KimsGame({ config, uploadedItems = [], allItems, playerN
   const [observeSeconds] = useState(config.observeSeconds)
   const [answerSeconds] = useState(config.answerSeconds)
   const [showItems, setShowItems] = useState(true)
-  const [animating, setAnimating] = useState(false)
+  const [, setAnimating] = useState(false)
   const [usedTime, setUsedTime] = useState(0)
   const [soundEnabled, setSoundEnabled] = useState(onSoundEnabled)
   const [submitted, setSubmitted] = useState(false)
@@ -61,12 +61,20 @@ export default function KimsGame({ config, uploadedItems = [], allItems, playerN
     if (phase !== 'observe' && phase !== 'answer') return
     if (timer <= 5 && timer > 0 && soundEnabled) Sound.tick()
     if (timer <= 0) {
+      // 以 timeout 延後，避免在 effect 內同步 setState
       if (phase === 'observe') {
         if (soundEnabled) Sound.submit()
-        setPhase('hidden'); setShowItems(false); setAnimating(true)
-        window.setTimeout(() => { setAnimating(false); setPhase('answer'); setTimer(answerSeconds) }, 1500)
-      } else { if (!submitted) { setSubmitted(true); if (soundEnabled) Sound.timeout(); setPhase('results') } }
-      return
+        const toHidden = window.setTimeout(() => { setPhase('hidden'); setShowItems(false); setAnimating(true) }, 0)
+        const toAnswer = window.setTimeout(() => { setAnimating(false); setPhase('answer'); setTimer(answerSeconds) }, 1500)
+        return () => { window.clearTimeout(toHidden); window.clearTimeout(toAnswer) }
+      }
+      if (submitted) return
+      const t = window.setTimeout(() => {
+        setSubmitted(true)
+        if (soundEnabled) Sound.timeout()
+        setPhase('results')
+      }, 0)
+      return () => window.clearTimeout(t)
     }
     const interval = window.setInterval(() => { setTimer(p => p - 1); setUsedTime(p => p + 1) }, 1000)
     return () => window.clearInterval(interval)
@@ -102,16 +110,35 @@ export default function KimsGame({ config, uploadedItems = [], allItems, playerN
     return { correct, wrong, missed, accuracy, score: correct * 10 - wrong * 5, rank, timeUsed: usedTime }
   }, [roundItems, config.answerMode, answerPool, inputParsed, selectedChoices, usedTime])
 
+  /* 遊戲結束時回報成績（更新積分榜） */
+  const reportedRef = useRef(false)
+  useEffect(() => {
+    if (phase !== 'results' || reportedRef.current) return
+    reportedRef.current = true
+    onResult(result)
+  }, [phase, result, onResult])
+
   const handleSubmit = useCallback(() => { if (!submitted) { setSubmitted(true); if (soundEnabled) Sound.submit(); setPhase('results') }}, [submitted, soundEnabled])
 
+  // 以物品 id 產生穩定亂數，令擺位每輪固定（渲染期間保持純函式）
   const itemPositions = useMemo(() => {
     const gridCols = Math.min(roundItems.length <= 12 ? 4 : roundItems.length <= 20 ? 5 : 6, 6)
-    return roundItems.map((_, idx) => ({
-      x: (idx % gridCols) * (92 / gridCols) + 4 + (Math.random() - 0.5) * 6,
-      y: Math.floor(idx / gridCols) * 76 + 20 + (Math.random() - 0.5) * 10,
-      rotation: (Math.random() - 0.5) * 6,
-      scale: 0.85 + Math.random() * 0.3,
-    }))
+    const jitter = (key: string, salt: number) => {
+      let h = 2166136261 ^ salt
+      for (let i = 0; i < key.length; i++) {
+        h = Math.imul(h ^ key.charCodeAt(i), 16777619)
+      }
+      return ((h >>> 0) % 10000) / 10000
+    }
+    return roundItems.map((item, idx) => {
+      const key = String(item?.id ?? idx)
+      return {
+        x: (idx % gridCols) * (92 / gridCols) + 4 + (jitter(key, 1) - 0.5) * 6,
+        y: Math.floor(idx / gridCols) * 76 + 20 + (jitter(key, 2) - 0.5) * 10,
+        rotation: (jitter(key, 3) - 0.5) * 6,
+        scale: 0.85 + jitter(key, 4) * 0.3,
+      }
+    })
   }, [roundItems])
 
   return (

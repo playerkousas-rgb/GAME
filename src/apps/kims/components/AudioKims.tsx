@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
-import { Timer, ShieldCheck, Medal, ArrowLeft, Info, CheckCircle2, XCircle, HelpCircle, Volume2, VolumeX, Headphones, Play, Upload, Trash2, Music } from 'lucide-react'
+import { Timer, Medal, ArrowLeft, Info, CheckCircle2, XCircle, HelpCircle, Volume2, VolumeX, Headphones, Play, Trash2, Music } from 'lucide-react'
 import { GameConfig, GameResult, AudioClip } from '../types'
-import { shuffleArray, normalizeText } from '../data/items'
+import { shuffleArray } from '../data/items'
 import { Sound, playSoundEffect, SOUND_LIBRARY, SoundItem } from '../hooks/useSound'
 
 interface Props {
@@ -173,7 +173,6 @@ export default function AudioKims({ config, playerName, onBack, onResult }: Prop
 
   const answerPool = useMemo(() => {
     const pool = shuffleArray(allSounds).slice(0, 30)
-    const base = roundSounds.filter(s => !pool.some(p => p.id === s.id))
     return shuffleArray([...roundSounds, ...pool]).slice(0, roundSounds.length * 2 + 4)
   }, [roundSounds, allSounds])
 
@@ -190,6 +189,14 @@ export default function AudioKims({ config, playerName, onBack, onResult }: Prop
     else if (accuracy >= 60) rank = '銅耳朵'
     return { correct, wrong, missed, accuracy, score: correct * 15 - wrong * 5, rank, timeUsed: Math.round((Date.now() - startTime) / 1000) }
   }, [roundSounds, selectedChoices, startTime])
+
+  /* 遊戲結束時回報成績（更新積分榜） */
+  const reportedRef = useRef(false)
+  useEffect(() => {
+    if (phase !== 'results' || reportedRef.current) return
+    reportedRef.current = true
+    onResult(result)
+  }, [phase, result, onResult])
 
   const handleSubmit = useCallback(() => {
     if (submitted) return

@@ -82,7 +82,7 @@ src/
 ├── index.css                 # 合併後的全域樣式（含淺色主題覆寫）
 ├── shared/
 │   ├── brand.ts              # 品牌與版權設定（單一事實來源）
-│   ├── questionBank.ts       # 題庫型別、隨機抽題、自訂題目儲存、匯入匯出
+│   ├── questionBank.ts       # 題庫型別、隨機抽題、自訂題目儲存、批次匯入
 │   ├── useQuestionBank.ts    # 題庫 hook（合併內建＋自訂、localStorage 持久化）
 │   ├── useRoundEngine.ts     # 回合引擎（題目佇列、倒數、計分）
 │   ├── useTeams.ts           # 隊伍計分
@@ -98,7 +98,7 @@ src/
 │   ├── Home.tsx              # 主頁遊戲中心
 │   ├── Footer.tsx            # 統一版權頁腳
 │   ├── BackToHub.tsx         # 子遊戲返回主頁按鈕
-│   ├── QuestionManager.tsx   # 自訂題目管理（新增／刪除／批次匯入匯出）
+│   ├── QuestionManager.tsx   # 自訂題目管理（新增／刪除／批次匯入）
 │   ├── BankFilters.tsx       # 難度與分類篩選
 │   ├── SetupShell.tsx        # 遊戲設定頁共用外殼
 │   └── RoundUI.tsx           # 倒數環、開場倒數、結算、隊伍計分列
@@ -128,8 +128,8 @@ src/
   🦁👑 | 獅子王 | 電影 | 中        ← EMOJI 題庫格式
   ```
   難度可寫 `易／中／難` 或 `easy/medium/hard`，可省略
-- **匯出／複製** — 一鍵複製到剪貼簿，方便備份或分享給其他旅團
 - 自訂題目存於瀏覽器 `localStorage`，重開仍在；與內建題庫合併後一起隨機抽題
+- 其他旅團要用直接開這個 App 連結即可，毋須匯出／匯入
 
 ### 修改版權標示
 所有版權字串來自 `src/shared/brand.ts`，只需修改該檔案即可全站生效：

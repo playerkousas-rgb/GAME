@@ -57,7 +57,7 @@ export function playSoundEffect(effectId: string) {
         setTimeout(() => playBeep(2000 + Math.random() * 3000, 0.04, 'sine', 0.05), i * 80)
       }
       break
-    case 'wind':   
+    case 'wind': {
       const now = ctx.currentTime
       const osc2 = ctx.createOscillator()
       const gain2 = ctx.createGain()
@@ -73,6 +73,7 @@ export function playSoundEffect(effectId: string) {
       osc2.start()
       osc2.stop(now + 1.0)
       break
+    }
     case 'thunder': playBeep(100, 0.6, 'sawtooth', 0.3); break
     case 'water':  
       for (let i = 0; i < 4; i++) {

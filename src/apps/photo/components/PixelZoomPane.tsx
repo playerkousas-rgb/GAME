@@ -27,12 +27,16 @@ export default function PixelZoomPane({ sourceUrl, options, revealSeed, variant 
   const [dragging, setDragging] = useState(false)
   const lastRef = useRef<Pt | null>(null)
   const [reveal, setReveal] = useState(false)
+  const [imgReady, setImgReady] = useState(0)
 
-  useEffect(() => {
+  // 換圖時重設檢視狀態（渲染期間依 props 調整 state）
+  const [prevSource, setPrevSource] = useState(sourceUrl)
+  if (sourceUrl !== prevSource) {
+    setPrevSource(sourceUrl)
     setZoom(1)
     setPan({ x: 0, y: 0 })
     setReveal(false)
-  }, [sourceUrl])
+  }
 
   useEffect(() => {
     if (!sourceUrl) return
@@ -42,8 +46,7 @@ export default function PixelZoomPane({ sourceUrl, options, revealSeed, variant 
     img.src = sourceUrl
     img.onload = () => {
       imgRef.current = img
-      if (!canvasRef.current) return
-      pixelateToCanvas(img, canvasRef.current, options)
+      setImgReady((v) => v + 1)
     }
   }, [sourceUrl])
 
@@ -52,7 +55,7 @@ export default function PixelZoomPane({ sourceUrl, options, revealSeed, variant 
     const canvas = canvasRef.current
     if (!img || !canvas) return
     pixelateToCanvas(img, canvas, options)
-  }, [options, revealSeed])
+  }, [options, revealSeed, imgReady])
 
   function startDrag(clientX: number, clientY: number) {
     setDragging(true)

@@ -11,27 +11,25 @@ export default function CountdownOverlay({ active, onComplete, onCancel }: Props
   const [count, setCount] = useState(3)
   const [showGo, setShowGo] = useState(false)
 
-  useEffect(() => {
-    if (!active) {
-      setCount(3)
-      setShowGo(false)
-      return
-    }
-
-    let step = 3
+  // 依 active 變化重設，避免在 effect 內同步 setState
+  const [prevActive, setPrevActive] = useState(active)
+  if (active !== prevActive) {
+    setPrevActive(active)
     setCount(3)
     setShowGo(false)
+  }
+
+  useEffect(() => {
+    if (!active) return
 
     Sound.countdown3()
 
     const t1 = setTimeout(() => {
-      step = 2
       setCount(2)
       Sound.countdown2()
     }, 800)
 
     const t2 = setTimeout(() => {
-      step = 1
       setCount(1)
       Sound.countdown1()
     }, 1600)

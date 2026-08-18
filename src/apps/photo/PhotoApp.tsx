@@ -1,21 +1,17 @@
 /**
  * Copyright (c) 2026 Scout System. All rights reserved.
  */
-import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Play,
   Eye,
   EyeOff,
-  Zap,
   Volume2,
   VolumeX,
   Sun,
   Moon,
-  Trophy,
   Settings,
   X,
-  Plus,
-  Minus,
   Shuffle,
   Smartphone,
   Maximize2,
@@ -31,16 +27,15 @@ import MaskedRevealPane from './components/MaskedRevealPane'
 import PixelZoomPane from './components/PixelZoomPane'
 import WarpPane from './components/WarpPane'
 import ShuffleTilesPane from './components/ShuffleTilesPane'
-import RevealOriginalButton from './components/RevealOriginalButton'
 import CountdownOverlay from './components/CountdownOverlay'
 import FullscreenStage from './components/FullscreenStage'
 import Leaderboard from './components/Leaderboard'
 import QRCodeModal from './components/QRCodeModal'
-import { useTheme } from '../../context/ThemeContext'
+import { useTheme } from '../../context/useTheme'
 import { COPYRIGHT_UPPER } from '../../shared/brand'
 import { DECK_PACKS, generateDeck } from './lib/generatedDeck'
 import { Sound } from './lib/sound'
-import { canvasToBlob, PixelateOptions, pixelateToCanvas } from './lib/imagePixelate'
+import {  PixelateOptions } from './lib/imagePixelate'
 import { useObjectUrl } from './lib/useObjectUrl'
 import {
   createSessionId,
@@ -123,11 +118,10 @@ function PhotoApp() {
   const [qrOpen, setQrOpen] = useState(false)
   const [fullscreenOpen, setFullscreenOpen] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
-  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [, setSessionId] = useState<string | null>(null)
 
   const currentFile = files[index] ?? null
   const sourceUrl = useObjectUrl(currentFile)
-  const exportCanvasRef = useRef<HTMLCanvasElement | null>(null)
 
   const options: PixelateOptions = useMemo(
     () => ({ pixelSize, grid, gridAlpha, gridColor, background }),
@@ -158,7 +152,6 @@ function PhotoApp() {
         setBackground(s.background ?? 'transparent')
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -287,10 +280,6 @@ function PhotoApp() {
       prev.map((p) => (p.id === id ? { ...p, score: Math.max(0, p.score + delta) } : p)),
     )
     if (delta > 0) { Sound.success(); setToast(`+${delta} 分！`) }
-  }
-
-  function resetScores() {
-    setPlayers((prev) => prev.map((p) => ({ ...p, score: 0 })))
   }
 
   /* ==================== DERIVED ==================== */

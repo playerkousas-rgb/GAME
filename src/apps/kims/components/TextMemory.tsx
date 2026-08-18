@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
-import { Timer, ShieldCheck, Medal, ArrowLeft, Info, CheckCircle2, XCircle, HelpCircle, Volume2, VolumeX, Type, Maximize, Minimize, Trash2, Plus } from 'lucide-react'
-import { GameConfig, GameResult, BORDER_COLORS, TEXT_COLORS } from '../types'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { Timer, ShieldCheck, Medal, ArrowLeft, Info, CheckCircle2, XCircle, HelpCircle, Volume2, VolumeX, Type, Maximize, Minimize, Plus } from 'lucide-react'
+import { GameConfig, GameResult, TEXT_COLORS } from '../types'
 import { Sound } from '../hooks/useSound'
 import { TEXT_PACKS, packWords } from '../../../data/textPacks'
 
@@ -61,12 +61,16 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
     if (phase !== 'observe') return
     if (timer <= 0) {
       if (soundEnabled) Sound.submit()
-      setPhase('hidden')
-      window.setTimeout(() => {
+      // 以 timeout 延後，避免在 effect 內同步 setState
+      const toHidden = window.setTimeout(() => setPhase('hidden'), 0)
+      const toAnswer = window.setTimeout(() => {
         setPhase('answer')
         setTimer(config.answerSeconds)
       }, 1500)
-      return
+      return () => {
+        window.clearTimeout(toHidden)
+        window.clearTimeout(toAnswer)
+      }
     }
     if (timer <= 5 && timer > 0 && soundEnabled) Sound.tick()
     const interval = window.setInterval(() => setTimer(prev => {
@@ -82,7 +86,16 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
   // Answer timer
   useEffect(() => {
     if (phase !== 'answer') return
-    if (timer <= 0) { if (!submitted) { setSubmitted(true); if (soundEnabled) Sound.timeout(); setPhase('results') } return }
+    if (timer <= 0) {
+      if (submitted) return
+      // 以 timeout 延後，避免在 effect 內同步 setState
+      const t = window.setTimeout(() => {
+        setSubmitted(true)
+        if (soundEnabled) Sound.timeout()
+        setPhase('results')
+      }, 0)
+      return () => window.clearTimeout(t)
+    }
     if (timer <= 5 && timer > 0 && soundEnabled) Sound.tick()
     const interval = window.setInterval(() => setTimer(prev => prev - 1), 1000)
     return () => window.clearInterval(interval)
@@ -151,6 +164,14 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
     else if (accuracy >= 60) rank = '記憶新星'
     return { correct, wrong, missed, accuracy, score: correct * 10 - wrong * 3, rank, timeUsed: 0 }
   }, [cards, inputParsed])
+
+  /* 遊戲結束時回報成績（更新積分榜） */
+  const reportedRef = useRef(false)
+  useEffect(() => {
+    if (phase !== 'results' || reportedRef.current) return
+    reportedRef.current = true
+    onResult(result)
+  }, [phase, result, onResult])
 
   const handleSubmit = useCallback(() => { if (!submitted) { setSubmitted(true); if (soundEnabled) Sound.submit(); setPhase('results') }}, [submitted, soundEnabled])
 

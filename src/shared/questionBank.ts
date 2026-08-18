@@ -130,7 +130,7 @@ export function mergeBank(builtIn: readonly Question[], custom: readonly Questio
   return [...builtIn, ...custom]
 }
 
-/* ==================== 匯入／匯出 ==================== */
+/* ==================== 批次匯入 ==================== */
 
 /**
  * 由純文字批次解析題目。每行一題，支援：
@@ -177,16 +177,4 @@ export function parseBulk(text: string, bank: BankId, defaultCategory = '自訂'
     }
   }
   return out
-}
-
-/** 匯出為可再匯入的純文字 */
-export function exportBulk(questions: readonly Question[], bank: BankId): string {
-  const levelZh: Record<QDifficulty, string> = { easy: '易', medium: '中', hard: '難' }
-  return questions
-    .map((q) =>
-      bank === 'emoji'
-        ? [q.emoji ?? '', q.answer, q.category, levelZh[q.level], q.hint ?? ''].filter(Boolean).join(' | ')
-        : [q.answer, q.category, levelZh[q.level], q.hint ?? ''].filter(Boolean).join(' | '),
-    )
-    .join('\n')
 }

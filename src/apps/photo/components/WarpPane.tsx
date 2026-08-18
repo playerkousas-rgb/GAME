@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useId, useMemo, useRef, useState } from 'react'
 import { RotateCcw, Shuffle } from 'lucide-react'
 import RevealOriginalButton from './RevealOriginalButton'
 import RevealOriginalOverlay from './RevealOriginalOverlay'
@@ -47,18 +47,23 @@ export default function WarpPane({ src, variant = 'card' }: Props) {
   const [reveal, setReveal] = useState(false)
   const wrapRef = useRef<HTMLDivElement | null>(null)
 
-  useEffect(() => {
+  // 換圖時重設扭曲與公布狀態（React 官方「渲染期間依 props 調整 state」寫法）
+  const [prevSrc, setPrevSrc] = useState(src)
+  if (src !== prevSrc) {
+    setPrevSrc(src)
     setSeed((s) => s + 1)
     setReveal(false)
-  }, [src])
+  }
 
-  const filterId = useMemo(() => `warp-${Math.random().toString(36).slice(2, 8)}`, [])
+  const filterId = useId().replace(/:/g, '')
 
   const warpStyle = useMemo(() => {
     const t = clamp(intensity, 0, 1)
-    const rot = (Math.sin((seed + 1) * 1.7) * 3 + (Math.random() - 0.5) * 2) * t
-    const skewX = (Math.sin((seed + 3) * 2.1) * 12 + (Math.random() - 0.5) * 6) * t
-    const skewY = (Math.cos((seed + 2) * 1.3) * 10 + (Math.random() - 0.5) * 5) * t
+    // 以 seed 推導的偽亂數，避免渲染期間呼叫 Math.random()
+    const noise = (salt: number) => ((Math.sin((seed + 1) * 12.9898 + salt * 78.233) * 43758.5453) % 1 + 1) % 1
+    const rot = (Math.sin((seed + 1) * 1.7) * 3 + (noise(1) - 0.5) * 2) * t
+    const skewX = (Math.sin((seed + 3) * 2.1) * 12 + (noise(2) - 0.5) * 6) * t
+    const skewY = (Math.cos((seed + 2) * 1.3) * 10 + (noise(3) - 0.5) * 5) * t
     return {
       transform: `rotate(${rot}deg) skew(${skewX}deg, ${skewY}deg)`,
       borderRadius: `${12 + t * 22}px`,

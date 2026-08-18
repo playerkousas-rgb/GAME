@@ -81,6 +81,7 @@ export default function ScoreBoard({ players, setPlayers, showStats = true }: Pr
     )
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   function recordTime(id: string, seconds: number) {
     setPlayers(
       players.map((p) =>

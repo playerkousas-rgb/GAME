@@ -1,17 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 
+/** 由 Blob/File 產生暫時網址，卸載或換檔時自動釋放 */
 export function useObjectUrl(blobOrFile: Blob | File | null | undefined) {
-  const [url, setUrl] = useState<string | null>(null)
+  const url = useMemo(() => (blobOrFile ? URL.createObjectURL(blobOrFile) : null), [blobOrFile])
 
   useEffect(() => {
-    if (!blobOrFile) {
-      setUrl(null)
-      return
-    }
-    const u = URL.createObjectURL(blobOrFile)
-    setUrl(u)
-    return () => URL.revokeObjectURL(u)
-  }, [blobOrFile])
+    if (!url) return
+    return () => URL.revokeObjectURL(url)
+  }, [url])
 
   return url
 }
