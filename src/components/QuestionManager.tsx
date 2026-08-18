@@ -91,12 +91,12 @@ export default function QuestionManager({ bank, builtIn, custom, onChange, onClo
         <h3 className="flex items-center gap-2 text-sm font-bold">
           <span className="text-amber-400">✏️</span>
           自訂題目
-          <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-normal text-white/50">
+          <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-normal text-white/75">
             {custom.length} 題
           </span>
         </h3>
         {onClose && (
-          <button onClick={onClose} className="rounded-lg p-1 text-white/30 transition hover:bg-white/10 hover:text-white">
+          <button onClick={onClose} className="rounded-lg p-1 text-white/75 transition hover:bg-white/10 hover:text-white">
             <X className="h-4 w-4" />
           </button>
         )}
@@ -148,7 +148,7 @@ export default function QuestionManager({ bank, builtIn, custom, onChange, onClo
               className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition ${
                 level === l
                   ? 'border-amber-400/60 bg-amber-400/15 text-amber-200'
-                  : 'border-white/10 bg-black/20 text-white/40 hover:text-white/70'
+                  : 'border-white/10 bg-black/20 text-white/70 hover:text-white/70'
               }`}
             >
               {DIFFICULTY_META[l].label}
@@ -168,7 +168,7 @@ export default function QuestionManager({ bank, builtIn, custom, onChange, onClo
       <div className="mt-3 flex flex-wrap gap-2">
         <button
           onClick={() => setBulkOpen((o) => !o)}
-          className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-black/20 px-3 py-1.5 text-[11px] text-white/60 transition hover:text-white"
+          className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-black/20 px-3 py-1.5 text-[11px] text-white/75 transition hover:text-white"
         >
           <Upload className="h-3.5 w-3.5" />
           批次匯入
@@ -189,7 +189,7 @@ export default function QuestionManager({ bank, builtIn, custom, onChange, onClo
 
       {bulkOpen && (
         <div className="mt-2 rounded-xl border border-white/10 bg-black/30 p-3">
-          <p className="mb-2 text-[11px] leading-relaxed text-white/40">
+          <p className="mb-2 text-[11px] leading-relaxed text-white/70">
             每行一題，用 <code className="rounded bg-white/10 px-1 text-amber-300">|</code> 分隔。格式：
             <br />
             <code className="text-amber-300">
@@ -223,7 +223,7 @@ export default function QuestionManager({ bank, builtIn, custom, onChange, onClo
       {custom.length > 0 && (
         <>
           <div className="mt-3 flex items-center gap-2">
-            <Search className="h-3.5 w-3.5 text-white/25" />
+            <Search className="h-3.5 w-3.5 text-white/75" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -239,20 +239,20 @@ export default function QuestionManager({ bank, builtIn, custom, onChange, onClo
               >
                 {q.emoji && <span className="text-base">{q.emoji}</span>}
                 <span className="font-medium">{q.answer}</span>
-                <span className="text-[10px] text-white/30">({q.category})</span>
+                <span className="text-[10px] text-white/75">({q.category})</span>
                 <span className={`text-[10px] ${DIFFICULTY_META[q.level].color}`}>
                   {DIFFICULTY_META[q.level].short}
                 </span>
                 <button
                   onClick={() => remove(q.id)}
-                  className="ml-auto rounded p-1 text-white/20 transition hover:bg-rose-500/20 hover:text-rose-300"
+                  className="ml-auto rounded p-1 text-white/75 transition hover:bg-rose-500/20 hover:text-rose-300"
                 >
                   <Trash2 className="h-3 w-3" />
                 </button>
               </div>
             ))}
             {filtered.length === 0 && (
-              <p className="py-3 text-center text-[11px] text-white/25">沒有符合的題目</p>
+              <p className="py-3 text-center text-[11px] text-white/75">沒有符合的題目</p>
             )}
           </div>
         </>

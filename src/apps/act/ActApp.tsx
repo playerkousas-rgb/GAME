@@ -121,8 +121,8 @@ export default function ActApp() {
           </div>
           <div className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-white/60">⏱️ 每題時間</label>
-              <div className="grid grid-cols-5 gap-1.5">
+              <label className="mb-1.5 block text-xs font-medium text-white/75">⏱️ 每題時間</label>
+              <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-5">
                 {TIME_OPTIONS.map((s) => (
                   <button
                     key={s}
@@ -130,7 +130,7 @@ export default function ActApp() {
                     className={`rounded-lg border py-2 text-xs font-medium transition ${
                       seconds === s
                         ? 'border-amber-400/60 bg-amber-400/15 text-amber-200'
-                        : 'border-white/10 bg-black/20 text-white/40 hover:text-white/70'
+                        : 'border-white/10 bg-black/20 text-white/70 hover:text-white/70'
                     }`}
                   >
                     {s === 0 ? '手動' : `${s}秒`}
@@ -139,8 +139,8 @@ export default function ActApp() {
               </div>
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-white/60">🎲 題目數量</label>
-              <div className="grid grid-cols-5 gap-1.5">
+              <label className="mb-1.5 block text-xs font-medium text-white/75">🎲 題目數量</label>
+              <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-5">
                 {COUNT_OPTIONS.map((c) => (
                   <button
                     key={c}
@@ -148,7 +148,7 @@ export default function ActApp() {
                     className={`rounded-lg border py-2 text-xs font-medium transition ${
                       count === c
                         ? 'border-amber-400/60 bg-amber-400/15 text-amber-200'
-                        : 'border-white/10 bg-black/20 text-white/40 hover:text-white/70'
+                        : 'border-white/10 bg-black/20 text-white/70 hover:text-white/70'
                     }`}
                   >
                     {c}
@@ -157,7 +157,7 @@ export default function ActApp() {
               </div>
             </div>
             <div className="rounded-xl border border-indigo-400/20 bg-indigo-400/5 p-3">
-              <p className="text-[11px] leading-relaxed text-white/45">
+              <p className="text-[11px] leading-relaxed text-white/70">
                 💡 <span className="font-semibold text-indigo-200">投影小貼士</span>：開始後按 <kbd className="rounded bg-white/10 px-1">F</kbd> 進入全屏，
                 字體會自動放到最大。主持可站在螢幕側面用鍵盤操作。
               </p>
@@ -174,7 +174,7 @@ export default function ActApp() {
 
   if (engine.phase === 'summary') {
     return (
-      <div className="min-h-screen bg-[#02133e] text-white">
+      <div className="min-h-[100dvh] bg-[#02133e] text-white">
         <SummaryScreen
           log={engine.log}
           teams={teamState.teams}
@@ -196,7 +196,7 @@ export default function ActApp() {
     wordLen <= 3 ? 'text-[18vw]' : wordLen <= 5 ? 'text-[13vw]' : wordLen <= 8 ? 'text-[9vw]' : 'text-[6.5vw]'
 
   return (
-    <div className={`flex flex-col bg-[#02133e] text-white ${full ? 'fixed inset-0 z-50' : 'min-h-screen'}`}>
+    <div className={`flex flex-col bg-[#02133e] text-white ${full ? 'fixed inset-0 z-50' : 'min-h-[100dvh]'}`}>
       {/* 頂列 */}
       <div className="flex items-center gap-3 border-b border-white/10 px-4 py-2">
         <span className="text-lg">📺</span>
@@ -208,23 +208,23 @@ export default function ActApp() {
         </span>
         {q && <span className={`hidden text-[11px] sm:inline ${DIFFICULTY_META[q.level].color}`}>{q.category}</span>}
         <div className="ml-auto flex items-center gap-1">
-          <button onClick={() => setBlurred((b) => !b)} className="rounded-lg p-2 text-white/40 transition hover:bg-white/10 hover:text-white" title="遮蔽 (B)">
+          <button onClick={() => setBlurred((b) => !b)} className="rounded-lg p-2 text-white/70 transition hover:bg-white/10 hover:text-white" title="遮蔽 (B)">
             {blurred ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
-          <button onClick={() => engine.setPaused((p) => !p)} className="rounded-lg p-2 text-white/40 transition hover:bg-white/10 hover:text-white" title="暫停 (P)">
+          <button onClick={() => engine.setPaused((p) => !p)} className="rounded-lg p-2 text-white/70 transition hover:bg-white/10 hover:text-white" title="暫停 (P)">
             <Pause className="h-4 w-4" />
           </button>
           {seconds > 0 && (
             <>
-              <button onClick={() => engine.addTime(-10)} className="rounded-lg p-2 text-white/40 transition hover:bg-white/10 hover:text-white">
+              <button onClick={() => engine.addTime(-10)} className="rounded-lg p-2 text-white/70 transition hover:bg-white/10 hover:text-white">
                 <Minus className="h-4 w-4" />
               </button>
-              <button onClick={() => engine.addTime(10)} className="rounded-lg p-2 text-white/40 transition hover:bg-white/10 hover:text-white">
+              <button onClick={() => engine.addTime(10)} className="rounded-lg p-2 text-white/70 transition hover:bg-white/10 hover:text-white">
                 <Plus className="h-4 w-4" />
               </button>
             </>
           )}
-          <button onClick={() => setFull((f) => !f)} className="rounded-lg p-2 text-white/40 transition hover:bg-white/10 hover:text-white" title="全屏 (F)">
+          <button onClick={() => setFull((f) => !f)} className="rounded-lg p-2 text-white/70 transition hover:bg-white/10 hover:text-white" title="全屏 (F)">
             {full ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
           </button>
         </div>
@@ -243,7 +243,7 @@ export default function ActApp() {
           {q?.hint && !blurred && (
             <button
               onClick={() => setShowHint((h) => !h)}
-              className="mt-6 inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/25 px-4 py-2 text-sm text-white/45 transition hover:text-amber-200"
+              className="mt-6 inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/25 px-4 py-2 text-sm text-white/70 transition hover:text-amber-200"
             >
               <Lightbulb className="h-4 w-4" />
               {showHint ? q.hint : '顯示提示'}
@@ -259,7 +259,7 @@ export default function ActApp() {
         {/* 隊伍 */}
         {teamState.teams.length > 0 && (
           <div className="absolute bottom-3 left-4">
-            <p className="mb-1.5 text-[11px] text-white/35">
+            <p className="mb-1.5 text-[11px] text-white/75">
               輪到：<span className="font-bold text-amber-200">{teamState.teams[teamState.active]?.name}</span>
             </p>
             <TeamBar teams={teamState.teams} active={teamState.active} onActive={teamState.setActive} />
@@ -270,7 +270,7 @@ export default function ActApp() {
       {/* 底部操作 */}
       <div className="border-t border-white/10 p-3">
         <ActionButtons onCorrect={() => handleOutcome('correct')} onPass={() => handleOutcome('pass')} />
-        <p className="mt-2 text-center text-[10px] text-white/20">
+        <p className="mt-2 text-center text-[10px] text-white/75">
           空白鍵 = 答對 · → = 跳過 · B = 遮蔽 · F = 全屏 · P = 暫停
         </p>
       </div>

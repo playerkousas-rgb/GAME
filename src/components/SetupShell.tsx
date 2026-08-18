@@ -32,19 +32,19 @@ export default function SetupShell({
   const [newTeam, setNewTeam] = useState('')
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#02133e] text-white">
+    <div className="flex min-h-[100dvh] flex-col bg-[#02133e] text-white">
       <header className="sticky top-0 z-40 border-b border-white/10 bg-[#02133e]/85 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2.5">
             <span className="text-2xl">{emoji}</span>
             <div>
               <h1 className="text-sm font-bold leading-tight">{title}</h1>
-              <p className="text-[10px] text-white/35">{subtitle}</p>
+              <p className="text-[10px] text-white/75">{subtitle}</p>
             </div>
           </div>
           <button
             onClick={() => onSound(!soundOn)}
-            className="rounded-lg p-2 text-white/40 transition hover:bg-white/10 hover:text-white"
+            className="rounded-lg p-2 text-white/70 transition hover:bg-white/10 hover:text-white"
             aria-label="音效開關"
           >
             {soundOn ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
@@ -65,7 +65,7 @@ export default function SetupShell({
           ].map((s) => (
             <div key={s.label} className="rounded-xl border border-white/10 bg-white/5 p-2.5 text-center">
               <div className={`text-xl font-black tabular-nums ${s.color}`}>{s.value}</div>
-              <div className="text-[10px] text-white/35">{s.label}</div>
+              <div className="text-[10px] text-white/75">{s.label}</div>
             </div>
           ))}
         </div>
@@ -73,7 +73,7 @@ export default function SetupShell({
         {/* 玩法 */}
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
           <h3 className="mb-2 text-sm font-bold">📖 玩法</h3>
-          <ol className="space-y-1 text-xs leading-relaxed text-white/50">
+          <ol className="space-y-1 text-xs leading-relaxed text-white/75">
             {howTo.map((h, i) => (
               <li key={i} className="flex gap-2">
                 <span className="text-amber-400">{i + 1}.</span>
@@ -89,18 +89,18 @@ export default function SetupShell({
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
           <h3 className="mb-2 flex items-center gap-2 text-sm font-bold">
             <Users className="h-4 w-4 text-amber-400" /> 隊伍設定
-            <span className="text-[10px] font-normal text-white/35">（可選，用於計分）</span>
+            <span className="text-[10px] font-normal text-white/75">（可選，用於計分）</span>
           </h3>
           <div className="mb-2 flex flex-wrap gap-1.5">
             {teams.map((t) => (
               <span key={t.name} className="flex items-center gap-1.5 rounded-full border border-white/10 bg-black/25 py-1 pl-3 pr-1.5 text-xs">
                 {t.name}
-                <button onClick={() => onRemoveTeam(t.name)} className="rounded-full p-0.5 text-white/25 transition hover:bg-rose-500/20 hover:text-rose-300">
+                <button onClick={() => onRemoveTeam(t.name)} className="rounded-full p-0.5 text-white/75 transition hover:bg-rose-500/20 hover:text-rose-300">
                   <X className="h-3 w-3" />
                 </button>
               </span>
             ))}
-            {teams.length === 0 && <span className="text-[11px] text-white/25">未設定隊伍 — 將以自由模式進行</span>}
+            {teams.length === 0 && <span className="text-[11px] text-white/75">未設定隊伍 — 將以自由模式進行</span>}
           </div>
           <div className="flex gap-2">
             <input

@@ -20,7 +20,7 @@ export default function QRCodeModal({ url, onClose }: Props) {
       >
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-full bg-white/5 p-2 text-white/60 hover:bg-white/10 hover:text-white transition"
+          className="absolute right-4 top-4 rounded-full bg-white/5 p-2 text-white/75 hover:bg-white/10 hover:text-white transition"
         >
           <X className="h-5 w-5" />
         </button>
@@ -30,7 +30,7 @@ export default function QRCodeModal({ url, onClose }: Props) {
           <h3 className="text-lg font-black tracking-wider">加入遊戲</h3>
         </div>
 
-        <p className="mb-5 text-xs text-white/40">
+        <p className="mb-5 text-xs text-white/70">
           <Wifi className="mr-1 inline h-3 w-3" />
           請使用手機相機掃描 QR Code
         </p>
@@ -45,8 +45,8 @@ export default function QRCodeModal({ url, onClose }: Props) {
         </div>
 
         <div className="rounded-lg border border-white/5 bg-white/[0.03] px-3 py-2">
-          <div className="text-[11px] text-white/30">網址</div>
-          <div className="break-all text-xs text-white/60">{url}</div>
+          <div className="text-[11px] text-white/75">網址</div>
+          <div className="break-all text-xs text-white/75">{url}</div>
         </div>
 
         <button

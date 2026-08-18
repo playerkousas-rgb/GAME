@@ -97,7 +97,7 @@ export default function ShuffleTilesPane({ src, variant = 'card' }: Props) {
   /* ==================== STAGE MODE ==================== */
   if (variant === 'stage') {
     if (!src || !board) {
-      return <div className="grid h-full place-items-center text-sm text-white/40">先上傳圖片</div>
+      return <div className="grid h-full place-items-center text-sm text-white/70">先上傳圖片</div>
     }
 
     // Calculate scale to fit stage
@@ -144,12 +144,12 @@ export default function ShuffleTilesPane({ src, variant = 'card' }: Props) {
       <div className="mb-3 flex items-center justify-between gap-3">
         <div>
           <div className="text-sm font-semibold text-white">切割打亂猜謎（拼圖亂序）</div>
-          <div className="text-xs text-white/60">把圖切成方塊後打亂位置。方塊越小越難。</div>
+          <div className="text-xs text-white/75">把圖切成方塊後打亂位置。方塊越小越難。</div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <RevealOriginalButton revealed={reveal} setRevealed={setReveal} disabled={!src} />
-          <button type="button" onClick={() => setSeed((s) => s + 1)} disabled={!src} className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-white/80 hover:bg-white/10 disabled:opacity-50"><Shuffle className="h-4 w-4" /> 重新打亂</button>
-          <button type="button" onClick={() => { setPiece(30); setSeed((s) => s + 1) }} disabled={!src} className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-white/80 hover:bg-white/10 disabled:opacity-50"><RotateCcw className="h-4 w-4" /> 重置</button>
+          <button type="button" onClick={() => setSeed((s) => s + 1)} disabled={!src} className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-white/80 hover:bg-white/10 disabled:opacity-70"><Shuffle className="h-4 w-4" /> 重新打亂</button>
+          <button type="button" onClick={() => { setPiece(30); setSeed((s) => s + 1) }} disabled={!src} className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-white/80 hover:bg-white/10 disabled:opacity-70"><RotateCcw className="h-4 w-4" /> 重置</button>
         </div>
       </div>
 
@@ -177,19 +177,19 @@ export default function ShuffleTilesPane({ src, variant = 'card' }: Props) {
             </div>
           </div>
         ) : (
-          <div className="grid min-h-[360px] place-items-center p-6 text-center text-sm text-white/60">先上傳圖片。</div>
+          <div className="grid min-h-[360px] place-items-center p-6 text-center text-sm text-white/75">先上傳圖片。</div>
         )}
       </div>
 
       <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-3">
-        <div className="mb-2 flex items-center justify-between"><div className="text-[11px] font-semibold text-white/60">方塊大小（越小越難）</div><div className="text-[11px] font-mono text-white/70">{Math.round(piece)}px</div></div>
+        <div className="mb-2 flex items-center justify-between"><div className="text-[11px] font-semibold text-white/75">方塊大小（越小越難）</div><div className="text-[11px] font-mono text-white/70">{Math.round(piece)}px</div></div>
         <input type="range" min={30} max={260} value={Math.round(piece)} onChange={(e) => setPiece(parseInt(e.target.value, 10))} className="w-full" disabled={!src} />
       </div>
       <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-3">
-        <div className="mb-2 flex items-center justify-between"><div className="text-[11px] font-semibold text-white/60">畫布寬度（固定顯示範圍）</div><div className="text-[11px] font-mono text-white/70">{fitWidth}px</div></div>
+        <div className="mb-2 flex items-center justify-between"><div className="text-[11px] font-semibold text-white/75">畫布寬度（固定顯示範圍）</div><div className="text-[11px] font-mono text-white/70">{fitWidth}px</div></div>
         <input type="range" min={420} max={1200} value={Math.round(fitWidth)} onChange={(e) => setFitWidth(parseInt(e.target.value, 10))} className="w-full" disabled={!src} />
       </div>
-      <div className="mt-2 text-[11px] leading-relaxed text-white/45">小技巧：把方塊調大比較像「提示」，調小就會變成高難度猜圖。</div>
+      <div className="mt-2 text-[11px] leading-relaxed text-white/70">小技巧：把方塊調大比較像「提示」，調小就會變成高難度猜圖。</div>
     </div>
   )
 }

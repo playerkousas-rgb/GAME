@@ -93,7 +93,7 @@ export default function WarpPane({ src, variant = 'card' }: Props) {
             <RevealOriginalOverlay src={src} revealed={reveal} />
           </div>
         ) : (
-          <div className="grid h-full place-items-center text-sm text-white/40">先上傳圖片</div>
+          <div className="grid h-full place-items-center text-sm text-white/70">先上傳圖片</div>
         )}
       </div>
     )
@@ -105,12 +105,12 @@ export default function WarpPane({ src, variant = 'card' }: Props) {
       <div className="mb-3 flex items-center justify-between gap-3">
         <div>
           <div className="text-sm font-semibold text-white">變形扭曲猜謎（整張圖，但變形）</div>
-          <div className="text-xs text-white/60">用扭曲/透視讓整張圖不容易一眼看出來。可調整難度強度。</div>
+          <div className="text-xs text-white/75">用扭曲/透視讓整張圖不容易一眼看出來。可調整難度強度。</div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <RevealOriginalButton revealed={reveal} setRevealed={setReveal} disabled={!src} />
-          <button type="button" onClick={() => { setIntensity(0.55); setSeed((s) => s + 1) }} disabled={!src} className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-white/80 hover:bg-white/10 disabled:opacity-50"><RotateCcw className="h-4 w-4" /> 重置</button>
-          <button type="button" onClick={() => setSeed((s) => s + 1)} disabled={!src} className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-white/80 hover:bg-white/10 disabled:opacity-50"><Shuffle className="h-4 w-4" /> 換一種扭曲</button>
+          <button type="button" onClick={() => { setIntensity(0.55); setSeed((s) => s + 1) }} disabled={!src} className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-white/80 hover:bg-white/10 disabled:opacity-70"><RotateCcw className="h-4 w-4" /> 重置</button>
+          <button type="button" onClick={() => setSeed((s) => s + 1)} disabled={!src} className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-white/80 hover:bg-white/10 disabled:opacity-70"><Shuffle className="h-4 w-4" /> 換一種扭曲</button>
         </div>
       </div>
 
@@ -124,21 +124,21 @@ export default function WarpPane({ src, variant = 'card' }: Props) {
             <RevealOriginalOverlay src={src} revealed={reveal} />
           </div>
         ) : (
-          <div className="grid h-full place-items-center p-6 text-center text-sm text-white/60">先上傳圖片。</div>
+          <div className="grid h-full place-items-center p-6 text-center text-sm text-white/75">先上傳圖片。</div>
         )}
       </div>
 
       <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-3">
         <div className="mb-2 flex items-center justify-between">
-          <div className="text-[11px] font-semibold text-white/60">扭曲強度</div>
+          <div className="text-[11px] font-semibold text-white/75">扭曲強度</div>
           <div className="text-[11px] font-mono text-white/70">{Math.round(intensity * 100)}%</div>
         </div>
         <input type="range" min={0} max={100} value={Math.round(intensity * 100)} onChange={(e) => setIntensity(parseInt(e.target.value, 10) / 100)} className="w-full" disabled={!src} />
       </div>
       <div className="mt-3 rounded-xl border border-white/10 bg-black/20 p-3">
         <div className="mb-2 flex items-center justify-between">
-          <div className="text-[11px] font-semibold text-white/60">色調</div>
-          <div className="text-[11px] text-white/55">選擇更自然的顏色</div>
+          <div className="text-[11px] font-semibold text-white/75">色調</div>
+          <div className="text-[11px] text-white/75">選擇更自然的顏色</div>
         </div>
         <div className="flex flex-wrap gap-2">
           {(['none', 'warm', 'cool', 'mono'] as const).map((o) => (

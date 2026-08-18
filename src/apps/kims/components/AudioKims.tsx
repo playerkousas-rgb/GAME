@@ -211,15 +211,15 @@ export default function AudioKims({ config, playerName, onBack, onResult }: Prop
       <audio ref={audioRef} className="hidden" />
 
       <div className="flex items-center justify-between rounded-xl bg-[#02133E]/60 border border-blue-800/30 p-2.5">
-        <button onClick={onBack} className="flex items-center gap-1 text-blue-300 hover:text-blue-100 text-xs"><ArrowLeft size={14} /> 返回</button>
+        <button onClick={onBack} className="flex items-center gap-1 text-blue-100 hover:text-blue-100 text-xs"><ArrowLeft size={14} /> 返回</button>
         <div className="flex items-center gap-2 text-xs text-blue-200">
           <Headphones size={14} />
           <span>聽覺金氏</span>
-          {playerName && (<><span className="text-blue-400">|</span><span className="text-white">{playerName}</span></>)}
-          <span className="text-blue-400">|</span>
+          {playerName && (<><span className="text-blue-200">|</span><span className="text-white">{playerName}</span></>)}
+          <span className="text-blue-200">|</span>
           <span className="text-amber-300 font-bold">{score} 分</span>
         </div>
-        <button onClick={() => setSoundEnabled(!soundEnabled)} className="text-blue-300 hover:text-white">{soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}</button>
+        <button onClick={() => setSoundEnabled(!soundEnabled)} className="text-blue-100 hover:text-white">{soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}</button>
       </div>
 
       {/* Setup */}
@@ -228,7 +228,7 @@ export default function AudioKims({ config, playerName, onBack, onResult }: Prop
           <div className="text-center mb-4">
             <div className="text-5xl mb-2">🎧</div>
             <h2 className="text-xl font-bold text-white">聽覺金氏遊戲</h2>
-            <p className="text-blue-300 text-xs">聆聽聲音序列，考驗聽覺記憶力</p>
+            <p className="text-blue-100 text-xs">聆聽聲音序列，考驗聽覺記憶力</p>
             {playerName && <div className="mt-1 inline-block rounded-full bg-amber-400/20 px-3 py-0.5 text-xs text-amber-300">🎯 {playerName}</div>}
             <div className="mt-2 flex justify-center gap-4 text-xs text-blue-200">
               <span>🎵 {gameConfig[difficulty].count} 種聲音</span>
@@ -238,20 +238,20 @@ export default function AudioKims({ config, playerName, onBack, onResult }: Prop
 
           {/* Audio upload */}
           <div className="rounded-lg border border-blue-700/30 bg-[#0a1e4a]/40 p-3 mb-3">
-            <label className="flex items-center justify-center gap-2 rounded-lg border border-dashed border-blue-700/40 px-4 py-3 text-xs text-blue-300 cursor-pointer hover:border-amber-400/50 transition-colors">
+            <label className="flex items-center justify-center gap-2 rounded-lg border border-dashed border-blue-700/40 px-4 py-3 text-xs text-blue-100 cursor-pointer hover:border-amber-400/50 transition-colors">
               <Music size={16} />
               上傳音訊檔（MP3/WAV）
               <input type="file" multiple accept="audio/*" onChange={e => handleAudioUpload(e.target.files)} className="hidden" />
             </label>
             {uploadedAudio.length > 0 && (
               <div className="mt-2 space-y-1">
-                <p className="text-[10px] text-blue-500">已上傳 {uploadedAudio.length} 個音訊</p>
+                <p className="text-[10px] text-blue-200">已上傳 {uploadedAudio.length} 個音訊</p>
                 {uploadedAudio.map(a => (
                   <div key={a.id} className="flex items-center justify-between rounded bg-blue-900/30 px-2 py-1 text-xs">
                     <span className="text-blue-200 truncate max-w-[150px]">{a.name}</span>
                     <div className="flex items-center gap-1">
-                      <span className="text-blue-500">{Math.round(a.duration)}s</span>
-                      <button onClick={() => playSound(a)} className="text-blue-300 hover:text-white p-0.5"><Play size={10} /></button>
+                      <span className="text-blue-200">{Math.round(a.duration)}s</span>
+                      <button onClick={() => playSound(a)} className="text-blue-100 hover:text-white p-0.5"><Play size={10} /></button>
                       <button onClick={() => deleteAudio(a.id)} className="text-rose-400 hover:text-rose-300 p-0.5"><Trash2 size={10} /></button>
                     </div>
                   </div>
@@ -269,7 +269,7 @@ export default function AudioKims({ config, playerName, onBack, onResult }: Prop
         <div className="rounded-2xl border border-blue-800/30 bg-[#02133E]/60 p-5 text-center">
           <div className="text-5xl mb-2 animate-bounce">🎧</div>
           <h2 className="text-lg font-bold text-white mb-2">👂 仔細聆聽</h2>
-          <p className="text-blue-300 text-xs mb-3">{allPlayed ? '全部播放完畢！' : isPlaying ? '正在播放...' : '準備就緒'}</p>
+          <p className="text-blue-100 text-xs mb-3">{allPlayed ? '全部播放完畢！' : isPlaying ? '正在播放...' : '準備就緒'}</p>
 
           {roundSounds.length > 0 && (
             <div className="flex justify-center gap-1.5 mb-3">
@@ -277,7 +277,7 @@ export default function AudioKims({ config, playerName, onBack, onResult }: Prop
                 <div key={s.id} className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs transition-all ${
                   idx < currentSoundIndex ? 'bg-emerald-500/30 text-emerald-300 border border-emerald-500/40' :
                   idx === currentSoundIndex ? 'bg-amber-500/30 text-amber-300 border border-amber-400 animate-pulse' :
-                  'bg-blue-900/30 text-blue-400 border border-blue-700/20'
+                  'bg-blue-900/30 text-blue-200 border border-blue-700/20'
                 }`}>
                   {idx < currentSoundIndex ? '✓' : idx === currentSoundIndex ? '🔊' : '🎵'}
                 </div>
@@ -287,7 +287,7 @@ export default function AudioKims({ config, playerName, onBack, onResult }: Prop
 
           <div className="flex justify-center gap-2">
             {!allPlayed ? (
-              <button onClick={playAll} disabled={isPlaying} className="px-6 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold text-sm disabled:opacity-50">
+              <button onClick={playAll} disabled={isPlaying} className="px-6 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold text-sm disabled:opacity-70">
                 {isPlaying ? '🔊 播放中...' : '▶️ 播放全部'}
               </button>
             ) : (
@@ -342,7 +342,7 @@ export default function AudioKims({ config, playerName, onBack, onResult }: Prop
                     <span className="text-base">{'emoji' in item ? item.emoji : '🔊'}</span>
                     <div>
                       <div className="text-xs font-medium truncate max-w-[80px]">{item.name}</div>
-                      <div className="text-[8px] text-blue-400">{'category' in item ? item.category : '自訂'}</div>
+                      <div className="text-[10px] text-blue-200">{'category' in item ? item.category : '自訂'}</div>
                     </div>
                   </div>
                 </button>
@@ -350,7 +350,7 @@ export default function AudioKims({ config, playerName, onBack, onResult }: Prop
             })}
           </div>
 
-          <button onClick={handleSubmit} disabled={submitted} className={`mt-3 w-full rounded-xl py-2.5 text-xs font-bold ${submitted ? 'bg-blue-900/30 text-blue-500' : 'bg-amber-400 text-stone-900 hover:bg-amber-300'}`}>
+          <button onClick={handleSubmit} disabled={submitted} className={`mt-3 w-full rounded-xl py-2.5 text-xs font-bold ${submitted ? 'bg-blue-900/30 text-blue-200' : 'bg-amber-400 text-stone-900 hover:bg-amber-300'}`}>
             {submitted ? '已提交' : `📤 提交 (${selectedChoices.length} 項)`}
           </button>
         </div>
@@ -372,7 +372,7 @@ export default function AudioKims({ config, playerName, onBack, onResult }: Prop
             <div className="text-sm font-bold text-white mt-1">+{result.score} 分</div>
           </div>
           <div className="mb-3">
-            <button onClick={() => setShowAnswers(!showAnswers)} className="text-xs text-blue-300 hover:text-blue-100 flex items-center gap-1"><Info size={12} />{showAnswers ? '隱藏' : '顯示'}答案</button>
+            <button onClick={() => setShowAnswers(!showAnswers)} className="text-xs text-blue-100 hover:text-blue-100 flex items-center gap-1"><Info size={12} />{showAnswers ? '隱藏' : '顯示'}答案</button>
             {showAnswers && <div className="mt-1 flex flex-wrap gap-1">{roundSounds.map(s => <button key={s.id} onClick={() => playSound(s)} className="flex items-center gap-1 rounded-full bg-blue-900/40 px-2 py-0.5 text-[10px] text-blue-200 hover:border-amber-400/50"><Play size={8} /> {'emoji' in s ? s.emoji : '🔊'} {'name' in s ? s.name : (s as AudioClip).name}</button>)}</div>}
           </div>
           <div className="flex gap-2">

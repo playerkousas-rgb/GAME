@@ -63,7 +63,7 @@ export default function Dropzone({ onFiles, fileName, count, hint }: Props) {
                 '上傳圖片'
               )}
             </div>
-            <div className="text-xs text-white/65">
+            <div className="text-xs text-white/75">
               {hint ?? '拖曳圖片到這裡，或點擊選擇檔案（支援 PNG / JPG / WEBP）'}
             </div>
           </div>

@@ -157,7 +157,7 @@ export default function MaskedRevealPane({ src, variant = 'card' }: Props) {
             <RevealOriginalOverlay src={src} revealed={reveal} />
           </>
         ) : (
-          <div className="grid h-full place-items-center text-sm text-white/40">先上傳圖片</div>
+          <div className="grid h-full place-items-center text-sm text-white/70">先上傳圖片</div>
         )}
       </div>
     )
@@ -169,7 +169,7 @@ export default function MaskedRevealPane({ src, variant = 'card' }: Props) {
       <div className="mb-3 flex items-center justify-between gap-3">
         <div>
           <div className="text-sm font-semibold text-white">局部放大猜謎（只露出一小塊）</div>
-          <div className="text-xs text-white/60">畫面其餘部分會遮住，只顯示一個「放大鏡」區域給小朋友猜。拖曳可移動；按鈕可調整放大倍率。</div>
+          <div className="text-xs text-white/75">畫面其餘部分會遮住，只顯示一個「放大鏡」區域給小朋友猜。拖曳可移動；按鈕可調整放大倍率。</div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -178,7 +178,7 @@ export default function MaskedRevealPane({ src, variant = 'card' }: Props) {
             type="button"
             onClick={() => { setLensPos({ x: 0, y: 0 }); setZoom(2) }}
             disabled={!src}
-            className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-white/80 hover:bg-white/10 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-white/80 hover:bg-white/10 disabled:opacity-70"
           >
             <RotateCcw className="h-4 w-4" /> 重置
           </button>
@@ -186,7 +186,7 @@ export default function MaskedRevealPane({ src, variant = 'card' }: Props) {
             type="button"
             onClick={randomSpot}
             disabled={!src}
-            className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-white/80 hover:bg-white/10 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-white/80 hover:bg-white/10 disabled:opacity-70"
           >
             <Shuffle className="h-4 w-4" /> 換一個位置
           </button>
@@ -194,7 +194,7 @@ export default function MaskedRevealPane({ src, variant = 'card' }: Props) {
             type="button"
             onClick={() => setZoom((z) => clamp(z / 1.2, 1, 6))}
             disabled={!src}
-            className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-white/80 hover:bg-white/10 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-semibold text-white/80 hover:bg-white/10 disabled:opacity-70"
           >
             <Minus className="h-4 w-4" />
           </button>
@@ -202,7 +202,7 @@ export default function MaskedRevealPane({ src, variant = 'card' }: Props) {
             type="button"
             onClick={() => setZoom((z) => clamp(z * 1.2, 1, 6))}
             disabled={!src}
-            className="inline-flex items-center gap-2 rounded-xl bg-indigo-500 px-3 py-2 text-xs font-semibold text-white shadow-sm shadow-indigo-500/30 hover:bg-indigo-400 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-xl bg-indigo-500 px-3 py-2 text-xs font-semibold text-white shadow-sm shadow-indigo-500/30 hover:bg-indigo-400 disabled:opacity-70"
           >
             <Plus className="h-4 w-4" />
           </button>
@@ -253,7 +253,7 @@ export default function MaskedRevealPane({ src, variant = 'card' }: Props) {
             <RevealOriginalOverlay src={src} revealed={reveal} />
           </>
         ) : (
-          <div className="grid h-full place-items-center p-6 text-center text-sm text-white/60">
+          <div className="grid h-full place-items-center p-6 text-center text-sm text-white/75">
             先上傳一張圖片，就能開始局部放大猜謎。
           </div>
         )}
@@ -261,11 +261,11 @@ export default function MaskedRevealPane({ src, variant = 'card' }: Props) {
 
       <div className="mt-3 grid gap-3 md:grid-cols-2">
         <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-          <div className="mb-2 text-[11px] font-semibold text-white/60">放大鏡寬度</div>
+          <div className="mb-2 text-[11px] font-semibold text-white/75">放大鏡寬度</div>
           <input type="range" min={80} max={520} value={lens.w} onChange={(e) => setLens((s) => ({ ...s, w: parseInt(e.target.value, 10) }))} className="w-full" disabled={!src} />
         </div>
         <div className="rounded-xl border border-white/10 bg-black/20 p-3">
-          <div className="mb-2 text-[11px] font-semibold text-white/60">放大鏡高度</div>
+          <div className="mb-2 text-[11px] font-semibold text-white/75">放大鏡高度</div>
           <input type="range" min={60} max={420} value={lens.h} onChange={(e) => setLens((s) => ({ ...s, h: parseInt(e.target.value, 10) }))} className="w-full" disabled={!src} />
         </div>
       </div>

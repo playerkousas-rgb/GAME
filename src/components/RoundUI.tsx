@@ -19,7 +19,7 @@ export function TimerRing({
 }) {
   if (total <= 0) {
     return (
-      <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-black/30 px-4 py-2 text-sm text-white/50">
+      <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-black/30 px-4 py-2 text-sm text-white/75">
         <Clock className="h-4 w-4" /> 手動
       </div>
     )
@@ -120,15 +120,15 @@ export function SummaryScreen({
         <div className="mt-4 grid grid-cols-3 gap-3">
           <div className="rounded-xl bg-black/25 p-3">
             <div className="text-2xl font-black text-emerald-300">{correct}</div>
-            <div className="text-[11px] text-white/40">答對</div>
+            <div className="text-[11px] text-white/70">答對</div>
           </div>
           <div className="rounded-xl bg-black/25 p-3">
             <div className="text-2xl font-black text-white/70">{log.length}</div>
-            <div className="text-[11px] text-white/40">總題數</div>
+            <div className="text-[11px] text-white/70">總題數</div>
           </div>
           <div className="rounded-xl bg-black/25 p-3">
             <div className="text-2xl font-black text-amber-300">{rate}%</div>
-            <div className="text-[11px] text-white/40">命中率</div>
+            <div className="text-[11px] text-white/70">命中率</div>
           </div>
         </div>
         <div className="mt-3 text-lg font-bold text-amber-200">{rank}</div>
@@ -156,12 +156,12 @@ export function SummaryScreen({
         <div className="max-h-72 space-y-1 overflow-y-auto pr-1">
           {log.map((l, i) => (
             <div key={i} className="flex items-center gap-2 rounded-lg bg-black/20 px-3 py-2 text-sm">
-              <span className={l.outcome === 'correct' ? 'text-emerald-400' : l.outcome === 'pass' ? 'text-white/30' : 'text-rose-400'}>
+              <span className={l.outcome === 'correct' ? 'text-emerald-400' : l.outcome === 'pass' ? 'text-white/75' : 'text-rose-400'}>
                 {l.outcome === 'correct' ? '✓' : l.outcome === 'pass' ? '⤼' : '✗'}
               </span>
               {l.question.emoji && <span className="text-base">{l.question.emoji}</span>}
               <span className="font-medium">{l.question.answer}</span>
-              <span className="text-[10px] text-white/25">{l.question.category}</span>
+              <span className="text-[10px] text-white/75">{l.question.category}</span>
               <span className={`ml-auto text-[10px] ${DIFFICULTY_META[l.question.level].color}`}>
                 {DIFFICULTY_META[l.question.level].short}
               </span>
@@ -178,7 +178,7 @@ export function SummaryScreen({
         <button onClick={onSetup} className="rounded-xl bg-white/10 py-3 text-sm font-semibold text-white/70 transition hover:bg-white/15">
           重新設定
         </button>
-        <Link to="/" className="flex items-center justify-center gap-1.5 rounded-xl bg-white/5 py-3 text-sm text-white/50 transition hover:bg-white/10">
+        <Link to="/" className="flex items-center justify-center gap-1.5 rounded-xl bg-white/5 py-3 text-sm text-white/75 transition hover:bg-white/10">
           <HomeIcon className="h-4 w-4" /> 主頁
         </Link>
       </div>
@@ -206,7 +206,7 @@ export function TeamBar({
           className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm transition ${
             i === active
               ? 'border-amber-400/60 bg-amber-400/15 text-amber-100'
-              : 'border-white/10 bg-black/20 text-white/45 hover:text-white/70'
+              : 'border-white/10 bg-black/20 text-white/70 hover:text-white/70'
           }`}
         >
           <span className="font-medium">{t.name}</span>

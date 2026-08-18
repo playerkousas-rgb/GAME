@@ -53,9 +53,9 @@ export default function PixelCanvas({ sourceUrl, options, revealSeed, onSize, va
       <div className="mb-3 flex items-center justify-between gap-3">
         <div>
           <div className="text-sm font-semibold text-white">像素化結果</div>
-          <div className="text-xs text-white/60">可直接下載當作猜謎提示圖</div>
+          <div className="text-xs text-white/75">可直接下載當作猜謎提示圖</div>
         </div>
-        <div className="text-xs font-mono text-white/60">{ready ? 'Ready' : 'No image'}</div>
+        <div className="text-xs font-mono text-white/75">{ready ? 'Ready' : 'No image'}</div>
       </div>
 
       <div className="grid place-items-center overflow-auto rounded-xl border border-white/10 bg-black/30 p-3">

@@ -72,6 +72,15 @@ const GAMES: GameCard[] = [
     bank: EMOJI_BANK.length,
     accent: 'from-fuchsia-500/20 to-fuchsia-700/5 border-fuchsia-500/30 hover:border-fuchsia-400/60',
   },
+  {
+    to: '/undercover',
+    emoji: '🕵️',
+    title: '誰是臥底',
+    subtitle: 'Who Is The Undercover',
+    desc: '領袖設定人數後產生每人專屬 QR Code，掃一次即派牌到手機；之後每回合自動重新分派臥底、平民與白卡。',
+    tags: ['手機派牌', 'QR Code', '推理'],
+    accent: 'from-slate-400/20 to-slate-700/5 border-slate-300/30 hover:border-amber-400/60',
+  },
 ]
 
 const FEATURES = [
@@ -83,7 +92,7 @@ const FEATURES = [
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col bg-[#02133e] text-white">
+    <div className="flex min-h-[100dvh] flex-col bg-[#02133e] text-white">
       {/* HERO */}
       <div className="relative overflow-hidden border-b border-white/10">
         <div className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-amber-500/10 blur-3xl" />
@@ -93,17 +102,17 @@ export default function Home() {
             ⚜
           </div>
           <h1 className="text-3xl font-black tracking-tight md:text-5xl">{BRAND.name}</h1>
-          <p className="mt-2 text-base text-white/60 md:text-lg">
+          <p className="mt-2 text-base text-white/75 md:text-lg">
             {BRAND.nameZh} · {BRAND.tagline}
           </p>
           <p className="mt-3 inline-block rounded-full border border-amber-400/20 bg-amber-400/10 px-4 py-1.5 text-xs text-amber-200">
-            🎲 5 個遊戲 · 內建 {TOTAL_QUESTIONS}+ 條題目 · 支援自訂題庫
+            🎲 6 個遊戲 · 內建 {TOTAL_QUESTIONS}+ 條題目 · 支援自訂題庫
           </p>
           <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
             {FEATURES.map((f) => (
               <div
                 key={f.label}
-                className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/60"
+                className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/75"
               >
                 <span className="text-amber-400">{f.icon}</span>
                 {f.label}
@@ -127,22 +136,22 @@ export default function Home() {
             >
               <div className="mb-3 flex items-start justify-between">
                 <div className="text-4xl">{g.emoji}</div>
-                <ArrowRight className="h-5 w-5 text-white/25 transition group-hover:translate-x-1 group-hover:text-white/70" />
+                <ArrowRight className="h-5 w-5 text-white/75 transition group-hover:translate-x-1 group-hover:text-white/70" />
               </div>
               <h3 className="text-lg font-black">{g.title}</h3>
-              <p className="mt-0.5 text-[10px] uppercase tracking-wider text-white/35">{g.subtitle}</p>
-              <p className="mt-2.5 text-xs leading-relaxed text-white/55">{g.desc}</p>
+              <p className="mt-0.5 text-[10px] uppercase tracking-wider text-white/75">{g.subtitle}</p>
+              <p className="mt-2.5 text-xs leading-relaxed text-white/75">{g.desc}</p>
               <div className="mt-3 flex flex-wrap items-center gap-1.5">
                 {g.tags.map((t) => (
                   <span
                     key={t}
-                    className="rounded-full border border-white/10 bg-black/20 px-2 py-0.5 text-[10px] text-white/50"
+                    className="rounded-full border border-white/10 bg-black/20 px-2 py-0.5 text-[10px] text-white/75"
                   >
                     {t}
                   </span>
                 ))}
                 {g.bank && (
-                  <span className="ml-auto rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-white/60">
+                  <span className="ml-auto rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold text-white/75">
                     {g.bank} 題
                   </span>
                 )}
@@ -159,14 +168,14 @@ export default function Home() {
                 <span className="text-amber-400">{f.icon}</span>
                 {f.label}
               </div>
-              <p className="text-xs text-white/45">{f.desc}</p>
+              <p className="text-xs text-white/70">{f.desc}</p>
             </div>
           ))}
         </div>
 
         <div className="mt-8 rounded-xl border border-white/10 bg-white/[0.03] p-5">
           <h3 className="mb-2 text-sm font-semibold">📋 更多集會小遊戲建議</h3>
-          <p className="text-xs leading-relaxed text-white/50">
+          <p className="text-xs leading-relaxed text-white/75">
             倉庫內附有 <code className="rounded bg-black/30 px-1.5 py-0.5 text-amber-300">docs/集會小遊戲建議.md</code>
             ，收錄 22 個適合旅團集會的破冰、團隊合作、技能訓練及室內外遊戲，含人數、時間、器材與玩法說明。
           </p>

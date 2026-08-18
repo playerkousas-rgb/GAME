@@ -152,7 +152,7 @@ export default function EmojiApp() {
           </div>
           <div className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-white/60">🎮 遊戲模式</label>
+              <label className="mb-1.5 block text-xs font-medium text-white/75">🎮 遊戲模式</label>
               <div className="grid grid-cols-2 gap-1.5">
                 <button
                   onClick={() => setInputMode(true)}
@@ -161,7 +161,7 @@ export default function EmojiApp() {
                   }`}
                 >
                   <div className="text-xs font-bold">⌨️ 輸入模式</div>
-                  <div className="mt-0.5 text-[10px] text-white/40">打字作答，自動判分</div>
+                  <div className="mt-0.5 text-[10px] text-white/70">打字作答，自動判分</div>
                 </button>
                 <button
                   onClick={() => setInputMode(false)}
@@ -170,13 +170,13 @@ export default function EmojiApp() {
                   }`}
                 >
                   <div className="text-xs font-bold">📽️ 主持模式</div>
-                  <div className="mt-0.5 text-[10px] text-white/40">投影搶答，人手計分</div>
+                  <div className="mt-0.5 text-[10px] text-white/70">投影搶答，人手計分</div>
                 </button>
               </div>
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-white/60">⏱️ 每題時間</label>
-              <div className="grid grid-cols-5 gap-1.5">
+              <label className="mb-1.5 block text-xs font-medium text-white/75">⏱️ 每題時間</label>
+              <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-5">
                 {TIME_OPTIONS.map((s) => (
                   <button
                     key={s}
@@ -184,7 +184,7 @@ export default function EmojiApp() {
                     className={`rounded-lg border py-2 text-xs font-medium transition ${
                       seconds === s
                         ? 'border-amber-400/60 bg-amber-400/15 text-amber-200'
-                        : 'border-white/10 bg-black/20 text-white/40 hover:text-white/70'
+                        : 'border-white/10 bg-black/20 text-white/70 hover:text-white/70'
                     }`}
                   >
                     {s === 0 ? '手動' : `${s}秒`}
@@ -193,7 +193,7 @@ export default function EmojiApp() {
               </div>
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-white/60">🎲 題目數量</label>
+              <label className="mb-1.5 block text-xs font-medium text-white/75">🎲 題目數量</label>
               <div className="grid grid-cols-4 gap-1.5">
                 {COUNT_OPTIONS.map((c) => (
                   <button
@@ -202,7 +202,7 @@ export default function EmojiApp() {
                     className={`rounded-lg border py-2 text-xs font-medium transition ${
                       count === c
                         ? 'border-amber-400/60 bg-amber-400/15 text-amber-200'
-                        : 'border-white/10 bg-black/20 text-white/40 hover:text-white/70'
+                        : 'border-white/10 bg-black/20 text-white/70 hover:text-white/70'
                     }`}
                   >
                     {c}
@@ -222,7 +222,7 @@ export default function EmojiApp() {
 
   if (engine.phase === 'summary') {
     return (
-      <div className="min-h-screen bg-[#02133e] text-white">
+      <div className="min-h-[100dvh] bg-[#02133e] text-white">
         <SummaryScreen
           log={engine.log}
           teams={teamState.teams}
@@ -242,7 +242,7 @@ export default function EmojiApp() {
   const emojiClass = emojiLen <= 2 ? 'text-[22vw]' : emojiLen <= 4 ? 'text-[15vw]' : 'text-[10vw]'
 
   return (
-    <div className={`flex flex-col bg-[#02133e] text-white ${full ? 'fixed inset-0 z-50' : 'min-h-screen'}`}>
+    <div className={`flex flex-col bg-[#02133e] text-white ${full ? 'fixed inset-0 z-50' : 'min-h-[100dvh]'}`}>
       <div className="flex items-center gap-3 border-b border-white/10 px-4 py-2">
         <span className="text-lg">🧩</span>
         <span className="rounded-lg bg-white/10 px-2.5 py-1 text-xs font-bold tabular-nums">
@@ -253,20 +253,20 @@ export default function EmojiApp() {
         </span>
         {q && <span className={`hidden text-[11px] sm:inline ${DIFFICULTY_META[q.level].color}`}>{q.category}</span>}
         <div className="ml-auto flex items-center gap-1">
-          <button onClick={() => engine.setPaused((p) => !p)} className="rounded-lg p-2 text-white/40 transition hover:bg-white/10 hover:text-white">
+          <button onClick={() => engine.setPaused((p) => !p)} className="rounded-lg p-2 text-white/70 transition hover:bg-white/10 hover:text-white">
             <Pause className="h-4 w-4" />
           </button>
           {seconds > 0 && (
             <>
-              <button onClick={() => engine.addTime(-10)} className="rounded-lg p-2 text-white/40 transition hover:bg-white/10 hover:text-white">
+              <button onClick={() => engine.addTime(-10)} className="rounded-lg p-2 text-white/70 transition hover:bg-white/10 hover:text-white">
                 <Minus className="h-4 w-4" />
               </button>
-              <button onClick={() => engine.addTime(10)} className="rounded-lg p-2 text-white/40 transition hover:bg-white/10 hover:text-white">
+              <button onClick={() => engine.addTime(10)} className="rounded-lg p-2 text-white/70 transition hover:bg-white/10 hover:text-white">
                 <Plus className="h-4 w-4" />
               </button>
             </>
           )}
-          <button onClick={() => setFull((f) => !f)} className="rounded-lg p-2 text-white/40 transition hover:bg-white/10 hover:text-white">
+          <button onClick={() => setFull((f) => !f)} className="rounded-lg p-2 text-white/70 transition hover:bg-white/10 hover:text-white">
             {full ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
           </button>
         </div>
@@ -281,11 +281,11 @@ export default function EmojiApp() {
 
           {revealed ? (
             <div className="mt-6 animate-[pulse_0.6s_ease-out_1]">
-              <div className="text-[10px] uppercase tracking-widest text-white/30">答案</div>
+              <div className="text-[10px] uppercase tracking-widest text-white/75">答案</div>
               <div className="text-4xl font-black text-emerald-300 md:text-6xl">{q?.answer}</div>
             </div>
           ) : (
-            <div className="mt-6 text-sm text-white/25">
+            <div className="mt-6 text-sm text-white/75">
               {q ? `${[...q.answer].length} 個字` : ''}
             </div>
           )}
@@ -293,7 +293,7 @@ export default function EmojiApp() {
           {q?.hint && !revealed && (
             <button
               onClick={() => setShowHint((h) => !h)}
-              className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/25 px-4 py-2 text-sm text-white/45 transition hover:text-amber-200"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/25 px-4 py-2 text-sm text-white/70 transition hover:text-amber-200"
             >
               <Lightbulb className="h-4 w-4" />
               {showHint ? q.hint : '顯示提示'}
@@ -339,7 +339,7 @@ export default function EmojiApp() {
                 setRevealed(true)
                 GameSound.reveal()
               }}
-              className="rounded-xl bg-white/10 px-4 py-3 text-sm text-white/60 transition hover:bg-white/15"
+              className="rounded-xl bg-white/10 px-4 py-3 text-sm text-white/75 transition hover:bg-white/15"
               title="放棄並公布答案"
             >
               <Sparkles className="h-4 w-4" />
@@ -386,7 +386,7 @@ export default function EmojiApp() {
             )}
           </div>
         )}
-        <p className="mt-2 text-center text-[10px] text-white/20">
+        <p className="mt-2 text-center text-[10px] text-white/75">
           {inputMode ? 'Enter = 作答 · ✨ = 放棄並看答案' : '空白鍵 = 公布/答對 · → = 跳過 · F = 全屏 · P = 暫停'}
         </p>
       </div>

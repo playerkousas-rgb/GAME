@@ -124,7 +124,7 @@ export default function ScoreBoard({ players, setPlayers, showStats = true }: Pr
           <button
             type="button"
             onClick={resetScores}
-            className="inline-flex items-center gap-1 rounded-lg bg-white/5 px-2 py-1 text-[11px] text-white/50 hover:bg-white/10 hover:text-white/80"
+            className="inline-flex items-center gap-1 rounded-lg bg-white/5 px-2 py-1 text-[11px] text-white/75 hover:bg-white/10 hover:text-white/80"
           >
             <RotateCcw className="h-3 w-3" /> 重置
           </button>
@@ -132,7 +132,7 @@ export default function ScoreBoard({ players, setPlayers, showStats = true }: Pr
       </div>
 
       {players.length === 0 ? (
-        <div className="mb-3 rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-white/60">
+        <div className="mb-3 rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-white/75">
           加入成員開始團體猜謎競賽！主持人公布答案後可幫答對者加分，也可使用 Kahoot 搶答器。
         </div>
       ) : (
@@ -154,7 +154,7 @@ export default function ScoreBoard({ players, setPlayers, showStats = true }: Pr
                     ) : idx === 2 ? (
                       <Medal className="h-4 w-4 text-amber-600" />
                     ) : (
-                      <span className="w-4 text-center text-xs font-mono text-white/40">
+                      <span className="w-4 text-center text-xs font-mono text-white/70">
                         #{idx + 1}
                       </span>
                     )}
@@ -183,7 +183,7 @@ export default function ScoreBoard({ players, setPlayers, showStats = true }: Pr
                     <button
                       type="button"
                       onClick={() => removePlayer(p.id)}
-                      className="rounded-lg bg-white/5 px-2 py-1 text-white/60 hover:bg-white/10"
+                      className="rounded-lg bg-white/5 px-2 py-1 text-white/75 hover:bg-white/10"
                       title="移除"
                     >
                       <UserMinus className="h-3 w-3" />
@@ -192,7 +192,7 @@ export default function ScoreBoard({ players, setPlayers, showStats = true }: Pr
                 </div>
 
                 {showStats && (acc !== null || avg !== null || (p.totalTimeMs ?? 0) > 0) && (
-                  <div className="flex flex-wrap items-center gap-2 text-[11px] text-white/40">
+                  <div className="flex flex-wrap items-center gap-2 text-[11px] text-white/70">
                     {acc !== null && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-white/5 px-2 py-0.5">
                         <Target className="h-3 w-3 text-sky-300" />
@@ -226,7 +226,7 @@ export default function ScoreBoard({ players, setPlayers, showStats = true }: Pr
           onChange={(e) => setNewName(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && addPlayer()}
           placeholder="輸入成員名稱（例如：紅隊、小明）..."
-          className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-indigo-400/40"
+          className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-white placeholder:text-white/70 focus:outline-none focus:ring-1 focus:ring-indigo-400/40"
         />
         <button
           type="button"

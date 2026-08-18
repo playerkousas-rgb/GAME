@@ -130,8 +130,8 @@ export default function DrawApp() {
 
           <div className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4">
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-white/60">⏱️ 每題時間</label>
-              <div className="grid grid-cols-5 gap-1.5">
+              <label className="mb-1.5 block text-xs font-medium text-white/75">⏱️ 每題時間</label>
+              <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-5">
                 {TIME_OPTIONS.map((s) => (
                   <button
                     key={s}
@@ -139,7 +139,7 @@ export default function DrawApp() {
                     className={`rounded-lg border py-2 text-xs font-medium transition ${
                       seconds === s
                         ? 'border-amber-400/60 bg-amber-400/15 text-amber-200'
-                        : 'border-white/10 bg-black/20 text-white/40 hover:text-white/70'
+                        : 'border-white/10 bg-black/20 text-white/70 hover:text-white/70'
                     }`}
                   >
                     {s === 0 ? '手動' : `${s}秒`}
@@ -148,7 +148,7 @@ export default function DrawApp() {
               </div>
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-white/60">🎲 題目數量</label>
+              <label className="mb-1.5 block text-xs font-medium text-white/75">🎲 題目數量</label>
               <div className="grid grid-cols-4 gap-1.5">
                 {COUNT_OPTIONS.map((c) => (
                   <button
@@ -157,7 +157,7 @@ export default function DrawApp() {
                     className={`rounded-lg border py-2 text-xs font-medium transition ${
                       count === c
                         ? 'border-amber-400/60 bg-amber-400/15 text-amber-200'
-                        : 'border-white/10 bg-black/20 text-white/40 hover:text-white/70'
+                        : 'border-white/10 bg-black/20 text-white/70 hover:text-white/70'
                     }`}
                   >
                     {c} 題
@@ -179,7 +179,7 @@ export default function DrawApp() {
   /* ---------- SUMMARY ---------- */
   if (engine.phase === 'summary') {
     return (
-      <div className="min-h-screen bg-[#02133e] text-white">
+      <div className="min-h-[100dvh] bg-[#02133e] text-white">
         <SummaryScreen
           log={engine.log}
           teams={teamState.teams}
@@ -196,7 +196,7 @@ export default function DrawApp() {
   /* ---------- PLAYING ---------- */
   const q = engine.current
   return (
-    <div className={`flex flex-col bg-[#02133e] text-white ${full ? 'fixed inset-0 z-50' : 'min-h-screen'}`}>
+    <div className={`flex flex-col bg-[#02133e] text-white ${full ? 'fixed inset-0 z-50' : 'min-h-[100dvh]'}`}>
       {/* 頂列 */}
       <div className="flex items-center gap-3 border-b border-white/10 px-4 py-2.5">
         <span className="text-xl">🎨</span>
@@ -209,22 +209,22 @@ export default function DrawApp() {
         <div className="ml-auto flex items-center gap-1.5">
           <button
             onClick={() => engine.setPaused((p) => !p)}
-            className="rounded-lg p-2 text-white/40 transition hover:bg-white/10 hover:text-white"
+            className="rounded-lg p-2 text-white/70 transition hover:bg-white/10 hover:text-white"
             title="暫停 (P)"
           >
             <Pause className="h-4 w-4" />
           </button>
           {seconds > 0 && (
             <>
-              <button onClick={() => engine.addTime(-10)} className="rounded-lg p-2 text-white/40 transition hover:bg-white/10 hover:text-white" title="減 10 秒">
+              <button onClick={() => engine.addTime(-10)} className="rounded-lg p-2 text-white/70 transition hover:bg-white/10 hover:text-white" title="減 10 秒">
                 <Minus className="h-4 w-4" />
               </button>
-              <button onClick={() => engine.addTime(10)} className="rounded-lg p-2 text-white/40 transition hover:bg-white/10 hover:text-white" title="加 10 秒">
+              <button onClick={() => engine.addTime(10)} className="rounded-lg p-2 text-white/70 transition hover:bg-white/10 hover:text-white" title="加 10 秒">
                 <Plus className="h-4 w-4" />
               </button>
             </>
           )}
-          <button onClick={() => setFull((f) => !f)} className="rounded-lg p-2 text-white/40 transition hover:bg-white/10 hover:text-white">
+          <button onClick={() => setFull((f) => !f)} className="rounded-lg p-2 text-white/70 transition hover:bg-white/10 hover:text-white">
             {full ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
           </button>
         </div>
@@ -246,7 +246,7 @@ export default function DrawApp() {
               <span className="text-[11px] font-medium text-amber-200/70">畫家題目</span>
               <button
                 onClick={() => setShowWord((v) => !v)}
-                className="rounded-lg p-1 text-white/40 transition hover:bg-white/10 hover:text-white"
+                className="rounded-lg p-1 text-white/70 transition hover:bg-white/10 hover:text-white"
                 title="顯示/隱藏 (H)"
               >
                 {showWord ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
@@ -260,7 +260,7 @@ export default function DrawApp() {
             {q?.hint && (
               <button
                 onClick={() => setShowHint((h) => !h)}
-                className="mt-3 inline-flex items-center gap-1 rounded-full border border-white/10 bg-black/25 px-3 py-1 text-[11px] text-white/50 transition hover:text-amber-200"
+                className="mt-3 inline-flex items-center gap-1 rounded-full border border-white/10 bg-black/25 px-3 py-1 text-[11px] text-white/75 transition hover:text-amber-200"
               >
                 <Lightbulb className="h-3 w-3" />
                 {showHint ? q.hint : '顯示提示'}
@@ -272,14 +272,14 @@ export default function DrawApp() {
 
           {teamState.teams.length > 0 && (
             <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-              <p className="mb-2 text-[11px] text-white/40">
+              <p className="mb-2 text-[11px] text-white/70">
                 輪到：<span className="font-bold text-amber-200">{teamState.teams[teamState.active]?.name}</span>
               </p>
               <TeamBar teams={teamState.teams} active={teamState.active} onActive={teamState.setActive} />
             </div>
           )}
 
-          <p className="text-center text-[10px] text-white/20">
+          <p className="text-center text-[10px] text-white/75">
             空白鍵 = 答對 · → = 跳過 · H = 隱藏題目 · P = 暫停
           </p>
         </div>

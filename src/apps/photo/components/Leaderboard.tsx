@@ -181,7 +181,7 @@ export default function Leaderboard({ open, players, onClose }: Props) {
             <Sparkles className="h-5 w-5" />
           </div>
           <h2 className="text-2xl font-black text-white">🏆 排行榜</h2>
-          <p className="mt-1 text-xs text-white/50">猜謎大賽最終成績</p>
+          <p className="mt-1 text-xs text-white/75">猜謎大賽最終成績</p>
 
           <button
             type="button"
@@ -233,7 +233,7 @@ export default function Leaderboard({ open, players, onClose }: Props) {
 
         {/* Full list */}
         <div className="max-h-[50vh] overflow-y-auto px-6 py-2">
-          <div className="mb-2 grid grid-cols-[auto_1fr_auto_auto_auto] gap-3 border-b border-white/10 pb-2 text-[11px] font-semibold uppercase tracking-wider text-white/40">
+          <div className="mb-2 grid grid-cols-[auto_1fr_auto_auto_auto] gap-3 border-b border-white/10 pb-2 text-[11px] font-semibold uppercase tracking-wider text-white/70">
             <span className="w-8 text-center">#</span>
             <span>名稱</span>
             <span className="text-center">分數</span>
@@ -242,7 +242,7 @@ export default function Leaderboard({ open, players, onClose }: Props) {
           </div>
 
           {sorted.length === 0 ? (
-            <div className="py-6 text-center text-xs text-white/40">尚無玩家資料</div>
+            <div className="py-6 text-center text-xs text-white/70">尚無玩家資料</div>
           ) : (
             sorted.map((p, i) => {
               const totalAttempts = (p.correctCount ?? 0) + (p.wrongCount ?? 0)
@@ -274,18 +274,18 @@ export default function Leaderboard({ open, players, onClose }: Props) {
                     ) : i === 2 ? (
                       <Medal className="h-4 w-4 text-amber-600" />
                     ) : (
-                      <span className="text-xs font-mono text-white/30">{i + 1}</span>
+                      <span className="text-xs font-mono text-white/75">{i + 1}</span>
                     )}
                   </div>
                   <div className="text-sm font-medium text-white">{p.name}</div>
                   <div className="text-center font-mono text-sm font-bold text-amber-300">
                     {p.score}
                   </div>
-                  <div className="flex items-center justify-center gap-1 text-[11px] text-white/60">
+                  <div className="flex items-center justify-center gap-1 text-[11px] text-white/75">
                     <Target className="h-3 w-3" />
                     {acc !== null ? `${acc}%` : '-'}
                   </div>
-                  <div className="flex items-center justify-center gap-1 text-[11px] text-white/60">
+                  <div className="flex items-center justify-center gap-1 text-[11px] text-white/75">
                     <Clock className="h-3 w-3" />
                     {avg !== null ? `${avg}s` : '-'}
                   </div>
@@ -297,7 +297,7 @@ export default function Leaderboard({ open, players, onClose }: Props) {
 
         {/* Footer actions */}
         <div className="flex items-center justify-between border-t border-white/10 p-4">
-          <div className="flex items-center gap-1 text-[11px] text-white/40">
+          <div className="flex items-center gap-1 text-[11px] text-white/70">
             <Hash className="h-3 w-3" />
             共 {players.length} 位參賽者
           </div>

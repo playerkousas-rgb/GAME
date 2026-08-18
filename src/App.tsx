@@ -10,6 +10,8 @@ import PhotoApp from './apps/photo/PhotoApp'
 import DrawApp from './apps/draw/DrawApp'
 import ActApp from './apps/act/ActApp'
 import EmojiApp from './apps/emoji/EmojiApp'
+import UndercoverApp from './apps/undercover/UndercoverApp'
+import PlayerCard from './apps/undercover/PlayerCard'
 
 const GAME_ROUTES = [
   { path: '/kims', element: <KimsApp /> },
@@ -17,6 +19,7 @@ const GAME_ROUTES = [
   { path: '/draw', element: <DrawApp /> },
   { path: '/act', element: <ActApp /> },
   { path: '/emoji', element: <EmojiApp /> },
+  { path: '/undercover', element: <UndercoverApp /> },
 ]
 
 export default function App() {
@@ -35,6 +38,7 @@ export default function App() {
           }
         />
       ))}
+      <Route path="/undercover/card" element={<PlayerCard />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

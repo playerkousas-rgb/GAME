@@ -177,14 +177,14 @@ export default function DrawCanvas({ disabled = false }: { disabled?: boolean })
         <button
           onClick={() => setErase((e) => !e)}
           className={`flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs transition ${
-            erase ? 'border-amber-400/60 bg-amber-400/15 text-amber-200' : 'border-white/10 bg-black/20 text-white/50 hover:text-white'
+            erase ? 'border-amber-400/60 bg-amber-400/15 text-amber-200' : 'border-white/10 bg-black/20 text-white/75 hover:text-white'
           }`}
         >
           <Eraser className="h-3.5 w-3.5" /> 橡皮
         </button>
         <button
           onClick={undo}
-          className="flex items-center gap-1 rounded-lg border border-white/10 bg-black/20 px-2.5 py-1.5 text-xs text-white/50 transition hover:text-white"
+          className="flex items-center gap-1 rounded-lg border border-white/10 bg-black/20 px-2.5 py-1.5 text-xs text-white/75 transition hover:text-white"
         >
           <Undo2 className="h-3.5 w-3.5" /> 復原
         </button>
