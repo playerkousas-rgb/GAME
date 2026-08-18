@@ -77,8 +77,8 @@ const GAMES: GameCard[] = [
     emoji: '🕵️',
     title: '誰是臥底',
     subtitle: 'Who Is The Undercover',
-    desc: '領袖設定人數後產生每人專屬 QR Code，掃一次即派牌到手機；之後每回合自動重新分派臥底、平民與白卡。',
-    tags: ['手機派牌', 'QR Code', '推理'],
+    desc: '領袖設定人數即產生每人專屬 QR，掃一次派牌到手機。每局即場抽新代碼，角色真隨機無跡可尋；平民詞／臥底詞可自訂。',
+    tags: ['手機派牌', '真隨機', '可自訂題目'],
     accent: 'from-slate-400/20 to-slate-700/5 border-slate-300/30 hover:border-amber-400/60',
   },
 ]
