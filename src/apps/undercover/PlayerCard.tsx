@@ -19,12 +19,8 @@ const ROLE_STYLE: Record<string, { bg: string; ring: string; text: string }> = {
   blank: { bg: 'from-slate-400 to-slate-600', ring: 'ring-slate-200/60', text: 'text-slate-50' },
 }
 
-const KEYS = [
-  'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
-  'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R',
-  'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-  '2', '3', '4', '5', '6', '7', '8', '9',
-]
+/** 數字鍵盤排列（電話式） */
+const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
 
 export default function PlayerCard() {
   const link = useMemo(() => parseSeatUrl(window.location.hash), [])
@@ -116,11 +112,11 @@ export default function PlayerCard() {
           </div>
 
           {/* 代碼格 */}
-          <div className="mt-4 flex justify-center gap-1.5">
+          <div className="mt-4 flex justify-center gap-2.5">
             {Array.from({ length: CODE_LENGTH }).map((_, i) => (
               <div
                 key={i}
-                className={`flex h-12 w-11 items-center justify-center rounded-xl border-2 font-mono text-2xl font-black ${
+                className={`flex h-16 w-14 items-center justify-center rounded-2xl border-2 font-mono text-3xl font-black ${
                   code[i]
                     ? 'border-amber-400 bg-amber-400/15 text-amber-200'
                     : 'border-white/20 bg-white/5 text-white/30'
@@ -132,36 +128,41 @@ export default function PlayerCard() {
           </div>
 
           {/* 鍵盤 */}
-          <div className="mx-auto mt-5 w-full max-w-md">
-            <div className="grid grid-cols-8 gap-1.5">
+          <div className="mx-auto mt-6 w-full max-w-xs">
+            <div className="grid grid-cols-3 gap-2.5">
               {KEYS.map((k) => (
                 <button
                   key={k}
                   onClick={() => press(k)}
-                  className="rounded-lg border border-white/15 bg-white/10 py-3 font-mono text-base font-bold text-white active:scale-90 active:bg-amber-400 active:text-stone-900"
+                  className="rounded-2xl border border-white/15 bg-white/10 py-5 font-mono text-2xl font-black text-white active:scale-90 active:bg-amber-400 active:text-stone-900"
                 >
                   {k}
                 </button>
               ))}
-            </div>
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              <button
-                onClick={back}
-                className="rounded-xl border border-white/15 bg-white/10 py-3 text-sm font-bold text-white active:scale-95"
-              >
-                <Delete className="mr-1 inline h-4 w-4" /> 刪除
-              </button>
               <button
                 onClick={reset}
-                className="rounded-xl border border-white/15 bg-white/10 py-3 text-sm font-bold text-white active:scale-95"
+                className="rounded-2xl border border-white/15 bg-white/5 py-5 text-xs font-bold text-white/80 active:scale-90"
               >
                 清除
+              </button>
+              <button
+                onClick={() => press('0')}
+                className="rounded-2xl border border-white/15 bg-white/10 py-5 font-mono text-2xl font-black text-white active:scale-90 active:bg-amber-400 active:text-stone-900"
+              >
+                0
+              </button>
+              <button
+                onClick={back}
+                className="rounded-2xl border border-white/15 bg-white/5 py-5 text-white/80 active:scale-90"
+                aria-label="刪除"
+              >
+                <Delete className="mx-auto h-5 w-5" />
               </button>
             </div>
           </div>
 
           <p className="mt-auto pt-4 text-center text-[11px] text-white/60">
-            輸入滿 {CODE_LENGTH} 個字即自動顯示身分卡
+            撳完 {CODE_LENGTH} 個數字即自動顯示身分卡
           </p>
         </main>
       )}

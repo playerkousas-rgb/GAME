@@ -63,9 +63,14 @@ export const ROLE_EMOJI: Record<Role, string> = {
 
 /* ================= 本局代碼 ================= */
 
-/** 避開易混淆字元（無 I O 0 1） */
-export const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-export const CODE_LENGTH = 6
+/**
+ * 本局代碼用純數字，令玩家可以用手機數字鍵盤快速輸入（撳 4 下即完）。
+ * 4 位數 = 10000 種組合。玩家在領袖公布前無法得知，
+ * 就算事後暴力嘗試全部 10000 個代碼，亦無從得知邊個先係真，
+ * 因為佢冇其他人嘅牌局密鑰去驗證。
+ */
+export const CODE_ALPHABET = '0123456789'
+export const CODE_LENGTH = 4
 
 /** 用密碼學亂數即場抽出本局代碼 */
 export function randomCode(): string {
@@ -82,9 +87,6 @@ export function randomCode(): string {
 
 export function normalizeCode(input: string): string {
   return input
-    .toUpperCase()
-    .replace(/0/g, 'O')
-    .replace(/1/g, 'I')
     .split('')
     .filter((ch) => CODE_ALPHABET.includes(ch))
     .join('')
@@ -179,8 +181,9 @@ export function buildPool(setup: GameSetup): WordPair[] {
 export function dealRound(setup: GameSetup, code: string): RoundResult {
   const clean = normalizeCode(code)
   const rand = prng(
-    hashString(`${setup.secret}|${clean}|${setup.players}|${setup.undercovers}|${setup.blanks}`),
+    hashString(`${setup.secret}|uc|${clean}|${setup.players}|${setup.undercovers}|${setup.blanks}`),
   )
+  rand() // 丟棄第一個輸出，避開種子相近時的弱相關
 
   const pool = buildPool(setup)
   const pair = pool[Math.floor(rand() * pool.length) % pool.length]
@@ -228,8 +231,9 @@ export function dealRound(setup: GameSetup, code: string): RoundResult {
 /** 只計算本局會抽中邊一對詞（供快速搜尋代碼用，避免做齊整個洗牌） */
 function pairIdForCode(setup: GameSetup, pool: WordPair[], code: string): string {
   const rand = prng(
-    hashString(`${setup.secret}|${code}|${setup.players}|${setup.undercovers}|${setup.blanks}`),
+    hashString(`${setup.secret}|uc|${code}|${setup.players}|${setup.undercovers}|${setup.blanks}`),
   )
+  rand()
   return pool[Math.floor(rand() * pool.length) % pool.length].id
 }
 

@@ -297,8 +297,8 @@ export default function UndercoverApp() {
           <div className="rounded-2xl border border-amber-400/25 bg-amber-400/10 p-4 text-xs leading-relaxed text-amber-100 print:hidden">
             <div className="mb-1 font-bold">💡 玩法提示</div>
             呢啲 QR 係「座位卡」，整晚只需掃一次。每局開始時，領袖會即場抽出一個
-            <b> 6 位本局代碼</b>，大聲讀出或展示畀所有人；玩家喺自己手機輸入代碼，
-            就會見到本局全新身分。
+            <b> 4 位數字代碼</b>，用超大字顯示喺主持機／投影幕；
+            玩家喺自己手機數字鍵盤撳 4 下，即見本局全新身分。
           </div>
 
           <button
@@ -340,10 +340,13 @@ export default function UndercoverApp() {
           {code ? (
             <>
               <div className="text-xs text-white/75">第 {roundNo} 局 · 本局代碼</div>
-              <div className="my-2 font-mono text-5xl font-black tracking-[0.2em] text-amber-300 sm:text-6xl">
+              <div
+                className="my-1 font-mono font-black leading-none tracking-[0.15em] text-amber-300"
+                style={{ fontSize: 'clamp(4.5rem, 22vw, 11rem)' }}
+              >
                 {code}
               </div>
-              <p className="text-xs text-white/75">請所有玩家在手機輸入此代碼</p>
+              <p className="text-sm text-white/85">請所有玩家在手機撳入呢 4 個數字</p>
             </>
           ) : (
             <>

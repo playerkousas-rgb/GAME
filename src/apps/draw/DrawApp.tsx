@@ -3,8 +3,9 @@
  * Copyright (c) 2026 Scout System. All rights reserved.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Eye, EyeOff, Pause, Plus, Minus, Maximize2, Minimize2, Lightbulb } from 'lucide-react'
+import { Eye, EyeOff, Pause, Plus, Minus, Maximize2, Minimize2, Lightbulb, Smartphone } from 'lucide-react'
 import DrawCanvas from './DrawCanvas'
+import SecretDrawHost from './SecretDrawHost'
 import QuestionManager from '../../components/QuestionManager'
 import BankFilters from '../../components/BankFilters'
 import SetupShell from '../../components/SetupShell'
@@ -31,6 +32,7 @@ export default function DrawApp() {
   const [showWord, setShowWord] = useState(true)
   const [showHint, setShowHint] = useState(false)
   const [full, setFull] = useState(false)
+  const [secretMode, setSecretMode] = useState(false)
 
   useEffect(() => GameSound.setEnabled(soundOn), [soundOn])
 
@@ -91,6 +93,18 @@ export default function DrawApp() {
     () => `${Math.min(engine.idx + 1, engine.queue.length)} / ${engine.queue.length}`,
     [engine.idx, engine.queue.length],
   )
+
+  /* ---------- 秘密派題模式 ---------- */
+  if (secretMode) {
+    return (
+      <SecretDrawHost
+        levels={levels}
+        categories={cats}
+        customAnswers={bank.custom.map((q) => q.answer)}
+        onBack={() => setSecretMode(false)}
+      />
+    )
+  }
 
   /* ---------- SETUP ---------- */
   if (engine.phase === 'setup') {
@@ -167,6 +181,19 @@ export default function DrawApp() {
             </div>
           </div>
         </div>
+
+        <button
+          onClick={() => setSecretMode(true)}
+          className="w-full rounded-2xl border border-emerald-400/40 bg-gradient-to-br from-emerald-900/40 to-[#02133e] p-4 text-left transition active:scale-[0.99]"
+        >
+          <div className="flex items-center gap-2 text-sm font-black text-emerald-200">
+            <Smartphone className="h-4 w-4" /> 🔒 秘密派題模式（手機出題）
+          </div>
+          <p className="mt-1.5 text-xs leading-relaxed text-white/75">
+            每人掃一個專屬 QR，題目直接送到畫家自己部手機 —— 其他人手機一片空白，
+            唔會有人偷望到主持機。領袖畫面只顯示「下一局：N 號玩家」，等佢出到嚟先開始。
+          </p>
+        </button>
 
         <QuestionManager bank="draw" builtIn={DRAW_BANK} custom={bank.custom} onChange={bank.setCustom} />
       </SetupShell>
