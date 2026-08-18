@@ -7,6 +7,65 @@ html, body, #root {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ============ 手機友善基礎 ============ */
+html {
+  /* 防止 iOS 橫置時自動放大字體 */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  /* 避免 iOS Safari 底部工具列遮擋 */
+  padding-bottom: env(safe-area-inset-bottom);
+  overscroll-behavior-y: none;
+}
+
+/* 表單元件：iOS 若字體 < 16px 會自動放大整頁 */
+input, select, textarea {
+  font-size: 16px;
+}
+@media (min-width: 768px) {
+  input, select, textarea {
+    font-size: inherit;
+  }
+}
+
+/* 下拉選單在深色底的可讀性（部分 Android 會用系統白底） */
+select {
+  color: #ffffff;
+  background-color: #0d2050;
+}
+select option {
+  color: #ffffff;
+  background-color: #0d2050;
+}
+
+/* 觸控目標最小尺寸 + 移除點擊高亮 */
+button, [role="button"], a, select, input[type="checkbox"] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+@media (pointer: coarse) {
+  button, [role="button"] {
+    min-height: 40px;
+  }
+  button.min-h-0, [role="button"].min-h-0 {
+    min-height: 0;
+  }
+}
+
+/* 長字串在窄螢幕自動換行，避免撐爆版面 */
+h1, h2, h3, p, span, div, label {
+  overflow-wrap: anywhere;
+}
+
+/* 列印 QR 卡（誰是臥底） */
+@media print {
+  body, html, #root { background: #ffffff !important; }
+  .print\:hidden { display: none !important; }
+}
+
 /* ============ LIGHT THEME GLOBAL OVERRIDES ============ */
 /* Using higher-specificity [data-theme="light"] selectors to override Tailwind dark utilities without touching component source */
 
@@ -82,6 +141,13 @@ html, body, #root {
 [data-theme="light"] .text-white\/30 {
   color: rgba(15,23,42,0.30) !important;
 }
+
+
+/* 補充：淺色主題下較高不透明度的白字 */
+[data-theme="light"] .text-white\/85 { color: rgba(15,23,42,0.85) !important; }
+[data-theme="light"] .text-white\/75 { color: rgba(15,23,42,0.75) !important; }
+[data-theme="light"] .text-blue-100 { color: #1e3a8a !important; }
+[data-theme="light"] .text-blue-200 { color: #1d4ed8 !important; }
 
 /* Borders */
 [data-theme="light"] .border-white\/10 {

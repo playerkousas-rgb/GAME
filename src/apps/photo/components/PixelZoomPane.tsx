@@ -130,7 +130,7 @@ export default function PixelZoomPane({ sourceUrl, options, revealSeed, variant 
             <RevealOriginalOverlay src={sourceUrl} revealed={reveal} />
           </>
         ) : (
-          <div className="grid h-full place-items-center text-sm text-white/40">先上傳圖片</div>
+          <div className="grid h-full place-items-center text-sm text-white/70">先上傳圖片</div>
         )}
       </div>
     )
@@ -142,7 +142,7 @@ export default function PixelZoomPane({ sourceUrl, options, revealSeed, variant 
       <div className="mb-3 flex items-center justify-between gap-3">
         <div>
           <div className="text-sm font-semibold text-white">像素化猜謎（可局部放大）</div>
-          <div className="text-xs text-white/60">這裡顯示的是「真正像素化後」的畫面，不會露出原圖細節。</div>
+          <div className="text-xs text-white/75">這裡顯示的是「真正像素化後」的畫面，不會露出原圖細節。</div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -180,7 +180,7 @@ export default function PixelZoomPane({ sourceUrl, options, revealSeed, variant 
           <button
             type="button"
             onClick={() => setZoom((z) => clamp(z * 1.25, 1, 8))}
-            className="inline-flex items-center gap-2 rounded-xl bg-indigo-500 px-3 py-2 text-xs font-semibold text-white shadow-sm shadow-indigo-500/30 hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-xl bg-indigo-500 px-3 py-2 text-xs font-semibold text-white shadow-sm shadow-indigo-500/30 hover:bg-indigo-400 disabled:cursor-not-allowed disabled:opacity-70"
             title="放大"
             disabled={!sourceUrl}
           >
@@ -220,7 +220,7 @@ export default function PixelZoomPane({ sourceUrl, options, revealSeed, variant 
             <RevealOriginalOverlay src={sourceUrl} revealed={reveal} />
           </>
         ) : (
-          <div className="grid h-full place-items-center p-6 text-center text-sm text-white/60">
+          <div className="grid h-full place-items-center p-6 text-center text-sm text-white/75">
             先上傳一張圖片，就能開始像素化猜謎。
           </div>
         )}

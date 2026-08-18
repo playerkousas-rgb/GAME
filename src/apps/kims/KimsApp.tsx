@@ -24,7 +24,7 @@ type AppPhase = 'home' | 'setup' | 'playing' | 'competition'
 const GAME_MODES = [
   { id: 'kims' as GameMode, title: '金氏遊戲', subtitle: '視覺觀察記憶', icon: '👁️', desc: '物品展示後遮蓋，考驗記憶力', color: 'from-amber-500/20 to-amber-700/10', border: 'border-amber-600/30' },
   { id: 'audio-kims' as GameMode, title: '聽覺金氏遊戲', subtitle: '用耳朵記憶', icon: '🎧', desc: '聆聽聲音序列，考驗聽覺記憶力', color: 'from-violet-500/20 to-violet-700/10', border: 'border-violet-600/30' },
-  { id: 'text-memory' as GameMode, title: '文字記憶', subtitle: '自訂文字卡', icon: '📝', desc: '輸入中文字詞，設定顏色讓成員全屏記憶', color: 'from-rose-500/20 to-rose-700/10', border: 'border-rose-600/30' },
+  { id: 'text-memory' as GameMode, title: '圖案記憶', subtitle: '圖案／圖形卡', icon: '🧠', desc: '大 Emoji 圖案、幾何圖形、自訂相片或文字卡，點選作答', color: 'from-rose-500/20 to-rose-700/10', border: 'border-rose-600/30' },
   { id: 'matching' as GameMode, title: '配對記憶', subtitle: '翻牌配對', icon: '🃏', desc: '翻開卡片找出相同配對', color: 'from-purple-500/20 to-purple-700/10', border: 'border-purple-600/30' },
 ]
 
@@ -109,7 +109,7 @@ function KimsApp() {
       case 'audio-kims': return <AudioKims key={gameKey} config={config} onBack={() => setPhase('home')} onResult={handleGameResult} />
       case 'text-memory': return <TextMemory key={gameKey} config={config} onBack={() => setPhase('home')} onResult={handleGameResult} />
       case 'matching': return <MatchingPairs key={gameKey} config={config} onBack={() => setPhase('home')} onResult={handleGameResult} />
-      default: return <div className="text-center p-8 text-blue-300">敬請期待 🚧<button onClick={() => setPhase('home')} className="block mx-auto mt-4 px-6 py-2 rounded-xl bg-amber-400 text-stone-900 font-bold">返回</button></div>
+      default: return <div className="text-center p-8 text-blue-100">敬請期待 🚧<button onClick={() => setPhase('home')} className="block mx-auto mt-4 px-6 py-2 rounded-xl bg-amber-400 text-stone-900 font-bold">返回</button></div>
     }
   }
 
@@ -120,26 +120,26 @@ function KimsApp() {
         case 'audio-kims': return <AudioKims {...props} />
         case 'text-memory': return <TextMemory {...props} />
         case 'matching': return <MatchingPairs {...props} />
-        default: return <div className="text-center p-8 text-blue-300">敬請期待</div>
+        default: return <div className="text-center p-8 text-blue-100">敬請期待</div>
       }
     }
     return <CompetitionMode key={gameKey} config={config} gameComponent={gameComponent} onBack={() => setPhase('home')} onCompetitionEnd={handleCompetitionEnd} />
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#02133E' }}>
+    <div className="min-h-[100dvh]" style={{ backgroundColor: '#02133E' }}>
       <header className="border-b border-blue-800/20 bg-[#02133E]/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="mx-auto max-w-6xl px-4 py-2.5 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-lg bg-amber-400 flex items-center justify-center text-base font-bold text-stone-900">⚜</div>
             <div>
               <h1 className="text-sm font-bold text-white leading-tight">童軍金氏遊戲</h1>
-              <p className="text-[10px] text-blue-400">Scout System</p>
+              <p className="text-[10px] text-blue-200">Scout System</p>
             </div>
           </div>
-          <nav className="flex items-center gap-2 text-[10px] text-blue-300">
+          <nav className="flex items-center gap-2 text-[10px] text-blue-100">
             {phase !== 'home' && <><span className="hidden md:inline">🎯 {GAME_MODES.find(m => m.id === config.mode)?.title}</span><span className="hidden md:inline">|</span></>}
-            <button onClick={toggleSound} className={`p-1 rounded-lg ${soundEnabled ? 'text-blue-300 hover:text-white' : 'text-blue-600'}`}>{soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}</button>
+            <button onClick={toggleSound} className={`p-1 rounded-lg ${soundEnabled ? 'text-blue-100 hover:text-white' : 'text-blue-100'}`}>{soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}</button>
           </nav>
         </div>
       </header>
@@ -151,7 +151,7 @@ function KimsApp() {
             <div className="rounded-xl border border-blue-800/30 bg-gradient-to-br from-[#02133E] to-[#0a1e4a] p-5 text-center">
               <div className="text-4xl mb-2">🏕️</div>
               <h2 className="text-2xl md:text-3xl font-bold text-white">童軍金氏遊戲指揮台</h2>
-              <p className="text-blue-300 text-xs mt-1 max-w-xl mx-auto">集合視覺、聽覺、文字等多種訓練遊戲</p>
+              <p className="text-blue-100 text-xs mt-1 max-w-xl mx-auto">集合視覺、聽覺、文字等多種訓練遊戲</p>
             </div>
 
             <section>
@@ -162,7 +162,7 @@ function KimsApp() {
                     className={`rounded-xl border p-3 text-left transition-all hover:scale-[1.02] ${mode.border} ${mode.color} hover:border-amber-400/50`}>
                     <div className="text-2xl mb-1">{mode.icon}</div>
                     <div className="font-bold text-white text-xs">{mode.title}</div>
-                    <div className="text-[10px] text-blue-300 mt-0.5">{mode.subtitle}</div>
+                    <div className="text-[10px] text-blue-100 mt-0.5">{mode.subtitle}</div>
                   </button>
                 ))}
               </div>
@@ -175,7 +175,7 @@ function KimsApp() {
                   {scores.map((s, idx) => (
                     <div key={s.team} className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 text-xs ${idx === 0 ? 'bg-amber-900/20 border border-amber-700/20' : 'bg-blue-900/20'}`}>
                       <span className="flex items-center gap-1.5">
-                        <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold ${idx === 0 ? 'bg-amber-400 text-stone-900' : idx === 1 ? 'bg-gray-400 text-stone-900' : idx === 2 ? 'bg-amber-700 text-white' : 'bg-blue-800 text-blue-200'}`}>{idx + 1}</span>
+                        <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${idx === 0 ? 'bg-amber-400 text-stone-900' : idx === 1 ? 'bg-gray-400 text-stone-900' : idx === 2 ? 'bg-amber-700 text-white' : 'bg-blue-800 text-blue-200'}`}>{idx + 1}</span>
                         {s.team}
                       </span>
                       <span className="font-bold text-amber-300">{s.points}</span>
@@ -190,7 +190,7 @@ function KimsApp() {
 
               <div className="rounded-xl border border-blue-800/30 bg-[#02133E]/60 p-3">
                 <h3 className="font-semibold text-white text-xs mb-2 flex items-center gap-1.5"><BookOpen size={14} className="text-amber-400" />使用說明</h3>
-                <ul className="text-[10px] text-blue-300 space-y-1.5">
+                <ul className="text-[10px] text-blue-100 space-y-1.5">
                   <li className="flex items-start gap-1.5"><span className="text-amber-400">1.</span><span>選擇遊戲模式</span></li>
                   <li className="flex items-start gap-1.5"><span className="text-amber-400">2.</span><span>設定難度、限時等參數</span></li>
                   <li className="flex items-start gap-1.5"><span className="text-amber-400">3.</span><span>選個人 / 小隊 / 比賽模式</span></li>
@@ -205,7 +205,7 @@ function KimsApp() {
         {/* SETUP */}
         {phase === 'setup' && (
           <div className="space-y-3">
-            <div className="flex items-center gap-2 text-xs text-blue-300 mb-1">
+            <div className="flex items-center gap-2 text-xs text-blue-100 mb-1">
               <button onClick={() => { setPhase('home'); if (soundEnabled) Sound.click(); }} className="hover:text-white">← 返回</button>
               <span>/</span>
               <span className="text-white">{GAME_MODES.find(m => m.id === config.mode)?.title}</span>
@@ -269,13 +269,13 @@ function KimsApp() {
                   <label className="text-xs text-blue-200 font-medium flex items-center gap-1"><Clock size={12} /> 限時</label>
                   <div className="grid grid-cols-2 gap-1.5">
                     <div>
-                      <span className="text-[10px] text-blue-400">觀察</span>
+                      <span className="text-[10px] text-blue-200">觀察</span>
                       <select value={config.observeSeconds} onChange={e => setConfig(prev => ({ ...prev, observeSeconds: Number(e.target.value) }))} className="w-full rounded border border-blue-700/40 bg-[#0a1e4a] p-1.5 text-xs text-white mt-0.5">
                         <option value={10}>10秒</option><option value={15}>15秒</option><option value={20}>20秒</option><option value={30}>30秒</option><option value={45}>45秒</option><option value={60}>60秒</option>
                       </select>
                     </div>
                     <div>
-                      <span className="text-[10px] text-blue-400">作答</span>
+                      <span className="text-[10px] text-blue-200">作答</span>
                       <select value={config.answerSeconds} onChange={e => setConfig(prev => ({ ...prev, answerSeconds: Number(e.target.value) }))} className="w-full rounded border border-blue-700/40 bg-[#0a1e4a] p-1.5 text-xs text-white mt-0.5">
                         <option value={20}>20秒</option><option value={30}>30秒</option><option value={45}>45秒</option><option value={60}>60秒</option><option value={90}>90秒</option><option value={120}>120秒</option>
                       </select>
@@ -323,7 +323,7 @@ function KimsApp() {
               <div className="grid grid-cols-2 md:grid-cols-5 gap-1.5">
                 {scores.map((s, idx) => (
                   <div key={s.team} className={`rounded-lg px-2 py-1.5 text-center ${idx === 0 ? 'bg-amber-900/20 border border-amber-700/20' : 'bg-blue-900/20'}`}>
-                    <div className="text-[10px] text-blue-300">{s.team}</div>
+                    <div className="text-[10px] text-blue-100">{s.team}</div>
                     <div className="text-sm font-bold text-amber-300">{s.points}</div>
                   </div>
                 ))}
@@ -341,8 +341,8 @@ function KimsApp() {
 
       <footer className="border-t border-blue-800/20 bg-[#02133E]/80 mt-6">
         <div className="mx-auto max-w-6xl px-4 py-3 flex flex-col md:flex-row items-center justify-between gap-1">
-          <div className="text-[10px] text-blue-400">⚜ {COPYRIGHT}</div>
-          <div className="text-[10px] text-blue-500">{BRAND.version}</div>
+          <div className="text-[10px] text-blue-200">⚜ {COPYRIGHT}</div>
+          <div className="text-[10px] text-blue-200">{BRAND.version}</div>
         </div>
       </footer>
     </div>

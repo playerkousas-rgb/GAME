@@ -31,8 +31,8 @@ export default function BankFilters({
     <div className="space-y-3">
       <div>
         <div className="mb-1.5 flex items-center justify-between">
-          <label className="text-xs font-medium text-white/60">🎯 難度（可多選）</label>
-          <span className="text-[10px] text-white/30">符合 {matching} 題</span>
+          <label className="text-xs font-medium text-white/75">🎯 難度（可多選）</label>
+          <span className="text-[10px] text-white/75">符合 {matching} 題</span>
         </div>
         <div className="grid grid-cols-3 gap-1.5">
           {(['easy', 'medium', 'hard'] as QDifficulty[]).map((l) => (
@@ -42,7 +42,7 @@ export default function BankFilters({
               className={`rounded-lg border px-2 py-2 text-xs font-medium transition ${
                 levels.includes(l)
                   ? 'border-amber-400/60 bg-amber-400/15 text-amber-200'
-                  : 'border-white/10 bg-black/20 text-white/35 hover:text-white/60'
+                  : 'border-white/10 bg-black/20 text-white/75 hover:text-white/75'
               }`}
             >
               <span className={`mr-1 inline-block h-1.5 w-1.5 rounded-full ${DIFFICULTY_META[l].dot}`} />
@@ -54,7 +54,7 @@ export default function BankFilters({
 
       <div>
         <div className="mb-1.5 flex items-center justify-between">
-          <label className="text-xs font-medium text-white/60">📂 分類</label>
+          <label className="text-xs font-medium text-white/75">📂 分類</label>
           <button
             onClick={() => onSelected(selected.length === 0 ? categories.map((c) => c.name) : [])}
             className="text-[10px] text-amber-300/70 transition hover:text-amber-200"
@@ -73,18 +73,18 @@ export default function BankFilters({
                   selected.includes(c.name)
                     ? 'border-amber-400/60 bg-amber-400/15 text-amber-200'
                     : on
-                      ? 'border-white/10 bg-white/5 text-white/50 hover:text-white/80'
-                      : 'border-white/5 bg-black/20 text-white/25'
+                      ? 'border-white/10 bg-white/5 text-white/75 hover:text-white/80'
+                      : 'border-white/5 bg-black/20 text-white/75'
                 }`}
               >
                 {c.name}
-                <span className="ml-1 text-[9px] opacity-50">{c.count}</span>
+                <span className="ml-1 text-[10px] opacity-70">{c.count}</span>
               </button>
             )
           })}
         </div>
         {selected.length === 0 && (
-          <p className="mt-1 text-[10px] text-white/25">未選擇 = 使用全部分類</p>
+          <p className="mt-1 text-[10px] text-white/75">未選擇 = 使用全部分類</p>
         )}
       </div>
     </div>

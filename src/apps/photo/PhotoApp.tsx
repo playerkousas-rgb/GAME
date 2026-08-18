@@ -309,7 +309,7 @@ function PhotoApp() {
         <div className="mx-auto flex max-w-2xl flex-col items-center gap-6 px-4 pb-8 pt-12">
           <div className="text-center">
             <h1 className="text-3xl font-black tracking-tight sm:text-4xl">像素化猜謎圖工具</h1>
-            <p className="mt-2 text-sm text-white/40">Scout System · 投影遊戲專用</p>
+            <p className="mt-2 text-sm text-white/70">Scout System · 投影遊戲專用</p>
           </div>
 
           {/* Upload */}
@@ -326,9 +326,9 @@ function PhotoApp() {
           <div className="w-full rounded-xl border border-white/10 bg-white/5 p-4">
             <div className="mb-1 flex items-center justify-between">
               <span className="text-sm font-semibold">🎁 內建題目包</span>
-              <span className="text-[11px] text-white/30">無相片？一鍵生成</span>
+              <span className="text-[11px] text-white/75">無相片？一鍵生成</span>
             </div>
-            <p className="mb-3 text-[11px] text-white/40">即時產生題目圖，同樣支援四種出題方式。</p>
+            <p className="mb-3 text-[11px] text-white/70">即時產生題目圖，同樣支援四種出題方式。</p>
             <div className="grid gap-2 sm:grid-cols-3">
               {DECK_PACKS.map((p) => (
                 <button
@@ -346,13 +346,13 @@ function PhotoApp() {
                       setDeckLoading(null)
                     }
                   }}
-                  className="rounded-xl border border-white/10 bg-black/20 p-3 text-left transition hover:border-indigo-400/40 hover:bg-indigo-500/10 disabled:opacity-40"
+                  className="rounded-xl border border-white/10 bg-black/20 p-3 text-left transition hover:border-indigo-400/40 hover:bg-indigo-500/10 disabled:opacity-60"
                 >
                   <div className="text-lg">{p.emoji}</div>
                   <div className="mt-0.5 text-xs font-bold">
                     {deckLoading === p.id ? '生成中…' : p.name}
                   </div>
-                  <div className="mt-0.5 text-[10px] leading-snug text-white/40">{p.desc}</div>
+                  <div className="mt-0.5 text-[10px] leading-snug text-white/70">{p.desc}</div>
                 </button>
               ))}
             </div>
@@ -361,7 +361,7 @@ function PhotoApp() {
           {/* Mode select */}
           {files.length > 0 && (
             <div className="w-full space-y-3">
-              <div className="text-center text-xs text-white/40">選擇遊戲模式</div>
+              <div className="text-center text-xs text-white/70">選擇遊戲模式</div>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {(['pixel', 'masked', 'warp', 'shuffle'] as GameMode[]).map((m) => (
                   <button
@@ -370,7 +370,7 @@ function PhotoApp() {
                     className={`rounded-xl border p-4 text-center transition ${
                       gameMode === m
                         ? 'border-indigo-400/40 bg-indigo-500/15 text-white ring-1 ring-indigo-400/20'
-                        : 'border-white/10 bg-white/5 text-white/50 hover:bg-white/[0.07] hover:text-white/70'
+                        : 'border-white/10 bg-white/5 text-white/75 hover:bg-white/[0.07] hover:text-white/70'
                     }`}
                   >
                     <div className="mb-1 text-2xl">
@@ -387,7 +387,7 @@ function PhotoApp() {
           {files.length > 0 && gameMode && (
             <div className="w-full rounded-xl border border-white/10 bg-white/5 p-4">
               <div className="mb-3 text-sm font-semibold">總遊戲時間（難度自動按比例降低）</div>
-              <div className="grid grid-cols-5 gap-2">
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
                 {TIME_OPTIONS.map((opt) => (
                   <button
                     key={opt.sec}
@@ -395,7 +395,7 @@ function PhotoApp() {
                     className={`rounded-lg py-2 text-xs font-semibold transition ${
                       totalTime === opt.sec
                         ? 'bg-indigo-500/20 text-indigo-200 ring-1 ring-indigo-400/30'
-                        : 'bg-white/5 text-white/50 hover:bg-white/[0.07] hover:text-white/70'
+                        : 'bg-white/5 text-white/75 hover:bg-white/[0.07] hover:text-white/70'
                     }`}
                   >
                     {opt.label}
@@ -403,12 +403,12 @@ function PhotoApp() {
                 ))}
               </div>
               {totalTime > 0 && (
-                <div className="mt-2 text-[11px] text-white/30">
+                <div className="mt-2 text-[11px] text-white/75">
                   共 {DIFFICULTY_STEPS.length} 級難度，每 {stepInterval.toFixed(1)} 秒自動降一級
                 </div>
               )}
               {totalTime === 0 && (
-                <div className="mt-2 text-[11px] text-white/30">
+                <div className="mt-2 text-[11px] text-white/75">
                   手動模式：需自行點擊「來個提示」降低難度
                 </div>
               )}
@@ -420,14 +420,14 @@ function PhotoApp() {
             <div className="w-full rounded-xl border border-white/10 bg-white/5 p-4">
               <div className="mb-3 flex items-center justify-between">
                 <span className="text-sm font-semibold">玩家設定（可選）</span>
-                <span className="text-[11px] text-white/30">{players.length} 人</span>
+                <span className="text-[11px] text-white/75">{players.length} 人</span>
               </div>
               {players.length > 0 && (
                 <div className="mb-2 space-y-1">
                   {players.map((p) => (
                     <div key={p.id} className="flex items-center justify-between rounded-lg bg-white/[0.03] px-2 py-1.5">
                       <span className="text-xs text-white/70">{p.name}</span>
-                      <button onClick={() => removePlayer(p.id)} className="text-[10px] text-white/20 hover:text-rose-300 transition">
+                      <button onClick={() => removePlayer(p.id)} className="text-[10px] text-white/75 hover:text-rose-300 transition">
                         <X className="h-3 w-3" />
                       </button>
                     </div>
@@ -440,7 +440,7 @@ function PhotoApp() {
                   onChange={(e) => setNewName(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && addPlayer()}
                   placeholder="輸入玩家名稱..."
-                  className="flex-1 rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 text-xs text-white placeholder:text-white/20 outline-none focus:border-indigo-400/40"
+                  className="flex-1 rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 text-xs text-white placeholder:text-white/75 outline-none focus:border-indigo-400/40"
                 />
                 <button
                   onClick={addPlayer}
@@ -467,7 +467,7 @@ function PhotoApp() {
           {files.length > 0 && (
             <button
               onClick={() => setQrOpen(true)}
-              className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-xs text-white/50 transition hover:bg-white/[0.07] hover:text-white/70"
+              className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-xs text-white/75 transition hover:bg-white/[0.07] hover:text-white/70"
             >
               <Smartphone className="h-4 w-4" />
               顯示 QR Code 讓成員加入
@@ -475,7 +475,7 @@ function PhotoApp() {
           )}
 
           {/* Footer */}
-          <div className="mt-4 flex items-center gap-3 text-[11px] text-white/20">
+          <div className="mt-4 flex items-center gap-3 text-[11px] text-white/75">
             <span className="rounded-full border border-white/5 bg-white/[0.03] px-2 py-0.5">{COPYRIGHT_UPPER}</span>
             <button onClick={toggleTheme} className="rounded-full p-1.5 transition hover:bg-white/5">
               {theme === 'dark' ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
@@ -491,9 +491,9 @@ function PhotoApp() {
       {phase === 'ready' && (
         <div className="mx-auto flex max-w-2xl flex-col items-center gap-6 px-4 pb-8 pt-12">
           <div className="text-center">
-            <div className="mb-2 text-sm text-white/40">已準備就緒</div>
+            <div className="mb-2 text-sm text-white/70">已準備就緒</div>
             <h2 className="text-2xl font-black">第 {index + 1} / {files.length} 題</h2>
-            <div className="mt-1 text-xs text-white/30">{currentFile?.name}</div>
+            <div className="mt-1 text-xs text-white/75">{currentFile?.name}</div>
           </div>
 
           {/* Preview */}
@@ -506,12 +506,12 @@ function PhotoApp() {
               <div className="text-center">
                 <div className="text-4xl font-black text-white/80">{MODE_LABELS[gameMode!]}</div>
                 {totalTime > 0 && (
-                  <div className="mt-1 text-xs text-white/40">
+                  <div className="mt-1 text-xs text-white/70">
                     總時間 {totalTime} 秒 · 每 {stepInterval.toFixed(1)} 秒降一級
                   </div>
                 )}
                 {totalTime === 0 && (
-                  <div className="mt-1 text-xs text-white/40">手動模式 · 自行控制難度</div>
+                  <div className="mt-1 text-xs text-white/70">手動模式 · 自行控制難度</div>
                 )}
               </div>
             </div>
@@ -528,13 +528,13 @@ function PhotoApp() {
           <div className="flex gap-3">
             <button
               onClick={() => setPhase('idle')}
-              className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/50 transition hover:bg-white/[0.07]"
+              className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/75 transition hover:bg-white/[0.07]"
             >
               返回設定
             </button>
             <button
               onClick={() => setQrOpen(true)}
-              className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/50 transition hover:bg-white/[0.07]"
+              className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/75 transition hover:bg-white/[0.07]"
             >
               <Smartphone className="h-3.5 w-3.5" /> QR Code
             </button>
@@ -577,7 +577,7 @@ function PhotoApp() {
             {/* Sidebar toggle */}
             <button
               onClick={() => setSidebarOpen((s) => !s)}
-              className={`absolute left-2 top-2 z-10 rounded-lg bg-black/40 p-2 text-white/50 backdrop-blur transition hover:bg-black/60 hover:text-white/80 ${sidebarOpen ? 'opacity-0' : 'opacity-100'}`}
+              className={`absolute left-2 top-2 z-10 rounded-lg bg-black/40 p-2 text-white/75 backdrop-blur transition hover:bg-black/60 hover:text-white/80 ${sidebarOpen ? 'opacity-0' : 'opacity-100'}`}
             >
               <Settings className="h-4 w-4" />
             </button>
@@ -587,7 +587,7 @@ function PhotoApp() {
               <div className="absolute left-2 top-2 z-20 w-56 rounded-xl border border-white/10 bg-black/70 p-3 backdrop-blur-md">
                 <div className="mb-2 flex items-center justify-between">
                   <span className="text-xs font-semibold text-white/70">控制</span>
-                  <button onClick={() => setSidebarOpen(false)} className="text-white/30 hover:text-white/60">
+                  <button onClick={() => setSidebarOpen(false)} className="text-white/75 hover:text-white/75">
                     <X className="h-3.5 w-3.5" />
                   </button>
                 </div>
@@ -605,18 +605,18 @@ function PhotoApp() {
                   </button>
 
                   <div className="flex gap-1.5">
-                    <button onClick={prevQuestion} className="flex-1 rounded-lg bg-white/5 py-1.5 text-[11px] text-white/50 transition hover:bg-white/10">
+                    <button onClick={prevQuestion} className="flex-1 rounded-lg bg-white/5 py-1.5 text-[11px] text-white/75 transition hover:bg-white/10">
                       <ChevronLeft className="mx-auto h-3.5 w-3.5" />
                     </button>
-                    <button onClick={nextQuestion} className="flex-1 rounded-lg bg-white/5 py-1.5 text-[11px] text-white/50 transition hover:bg-white/10">
+                    <button onClick={nextQuestion} className="flex-1 rounded-lg bg-white/5 py-1.5 text-[11px] text-white/75 transition hover:bg-white/10">
                       <ChevronRight className="mx-auto h-3.5 w-3.5" />
                     </button>
-                    <button onClick={shuffleDeck} className="flex-1 rounded-lg bg-white/5 py-1.5 text-[11px] text-white/50 transition hover:bg-white/10">
+                    <button onClick={shuffleDeck} className="flex-1 rounded-lg bg-white/5 py-1.5 text-[11px] text-white/75 transition hover:bg-white/10">
                       <Shuffle className="mx-auto h-3.5 w-3.5" />
                     </button>
                   </div>
 
-                  <button onClick={() => setFullscreenOpen(true)} className="w-full rounded-lg bg-white/5 py-1.5 text-[11px] text-white/50 transition hover:bg-white/10">
+                  <button onClick={() => setFullscreenOpen(true)} className="w-full rounded-lg bg-white/5 py-1.5 text-[11px] text-white/75 transition hover:bg-white/10">
                     <Maximize2 className="mr-1 inline h-3 w-3" /> 瀏覽器全螢幕
                   </button>
 
@@ -627,13 +627,13 @@ function PhotoApp() {
                         setPixelSize((p) => Math.max(4, Math.round(p * 0.82)))
                         setRevealSeed((s) => s + 1)
                       }}
-                      className="w-full rounded-lg bg-white/5 py-1.5 text-[11px] text-white/50 transition hover:bg-white/10"
+                      className="w-full rounded-lg bg-white/5 py-1.5 text-[11px] text-white/75 transition hover:bg-white/10"
                     >
                       來個提示（降低難度）
                     </button>
                   )}
 
-                  <button onClick={() => setPhase('idle')} className="w-full rounded-lg bg-white/5 py-1.5 text-[11px] text-white/30 transition hover:bg-white/10 hover:text-white/50">
+                  <button onClick={() => setPhase('idle')} className="w-full rounded-lg bg-white/5 py-1.5 text-[11px] text-white/75 transition hover:bg-white/10 hover:text-white/75">
                     結束回到設定
                   </button>
                 </div>
@@ -641,10 +641,10 @@ function PhotoApp() {
                 {/* Quick scores */}
                 {players.length > 0 && (
                   <div className="mt-2 border-t border-white/5 pt-2">
-                    <div className="mb-1 text-[10px] text-white/30">計分</div>
+                    <div className="mb-1 text-[10px] text-white/75">計分</div>
                     {sortedPlayers.slice(0, 4).map((p) => (
                       <div key={p.id} className="flex items-center justify-between py-0.5">
-                        <span className="text-[11px] text-white/50">{p.name}</span>
+                        <span className="text-[11px] text-white/75">{p.name}</span>
                         <div className="flex items-center gap-1">
                           <span className="text-xs font-mono text-amber-300">{p.score}</span>
                           <button onClick={() => award(p.id, 1)} className="rounded bg-emerald-500/10 px-1 text-[10px] text-emerald-300 hover:bg-emerald-500/20">+</button>
@@ -663,14 +663,14 @@ function PhotoApp() {
             <div className="shrink-0 border-t border-white/5 bg-black/40 backdrop-blur-md">
               <div className="mx-auto flex max-w-6xl items-center gap-3 px-3 py-2 sm:px-4">
                 {/* Question counter */}
-                <div className="shrink-0 rounded-lg bg-white/5 px-2.5 py-1.5 text-xs font-mono text-white/60">
+                <div className="shrink-0 rounded-lg bg-white/5 px-2.5 py-1.5 text-xs font-mono text-white/75">
                   {index + 1} / {files.length}
                 </div>
 
                 {/* Difficulty bar */}
                 {!revealAnswer && totalTime > 0 && (
                   <div className="hidden flex-1 sm:block">
-                    <div className="mb-0.5 flex items-center justify-between text-[10px] text-white/30">
+                    <div className="mb-0.5 flex items-center justify-between text-[10px] text-white/75">
                       <span>難度自動降低</span>
                       <span>{isLastStep ? '最簡單' : `下一級 ${timeToNext} 秒`}</span>
                     </div>
@@ -688,7 +688,7 @@ function PhotoApp() {
                 )}
 
                 {/* Timer */}
-                <div className="shrink-0 rounded-lg bg-white/5 px-2.5 py-1.5 text-xs font-mono text-white/60">
+                <div className="shrink-0 rounded-lg bg-white/5 px-2.5 py-1.5 text-xs font-mono text-white/75">
                   <Clock className="mr-1 inline h-3 w-3" />
                   {formatTime(gameSeconds)}
                 </div>
@@ -700,7 +700,7 @@ function PhotoApp() {
                   {revealAnswer ? '答案已公布' : '遊戲進行中'}
                 </div>
 
-                <button onClick={() => setShowHUD((h) => !h)} className="shrink-0 rounded-lg bg-white/5 p-1.5 text-white/30 transition hover:bg-white/10 hover:text-white/60">
+                <button onClick={() => setShowHUD((h) => !h)} className="shrink-0 rounded-lg bg-white/5 p-1.5 text-white/75 transition hover:bg-white/10 hover:text-white/75">
                   <Minimize2 className="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -710,7 +710,7 @@ function PhotoApp() {
           {!showHUD && (
             <button
               onClick={() => setShowHUD(true)}
-              className="fixed bottom-2 left-1/2 z-10 -translate-x-1/2 rounded-full bg-black/40 px-3 py-1.5 text-[10px] text-white/30 backdrop-blur transition hover:bg-black/60 hover:text-white/60"
+              className="fixed bottom-2 left-1/2 z-10 -translate-x-1/2 rounded-full bg-black/40 px-3 py-1.5 text-[10px] text-white/75 backdrop-blur transition hover:bg-black/60 hover:text-white/75"
             >
               顯示 HUD
             </button>
@@ -746,8 +746,8 @@ function PhotoApp() {
             >
               {revealAnswer ? '隱藏答案' : '公布答案'}
             </button>
-            <button onClick={nextQuestion} className="rounded-xl bg-white/5 px-4 py-2 text-sm text-white/60 transition hover:bg-white/10">下一題</button>
-            <div className="ml-auto rounded-lg bg-white/5 px-3 py-1.5 text-xs font-mono text-white/40">
+            <button onClick={nextQuestion} className="rounded-xl bg-white/5 px-4 py-2 text-sm text-white/75 transition hover:bg-white/10">下一題</button>
+            <div className="ml-auto rounded-lg bg-white/5 px-3 py-1.5 text-xs font-mono text-white/70">
               {index + 1} / {files.length} · {currentStepLabel}
             </div>
           </div>

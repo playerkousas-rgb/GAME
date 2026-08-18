@@ -17,7 +17,7 @@ export default function RevealOriginalButton({ revealed, setRevealed, disabled }
         (revealed
           ? 'border-emerald-400/30 bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/20'
           : 'border-white/10 bg-white/5 text-white/80 hover:bg-white/10') +
-        (disabled ? ' opacity-50' : '')
+        (disabled ? ' opacity-70' : '')
       }
       title={revealed ? '隱藏原圖' : '顯示原圖（公布答案）'}
     >

@@ -16,13 +16,13 @@ export default function Footer({ compact = false }: { compact?: boolean }) {
   return (
     <footer className="mt-8 border-t border-white/10 bg-black/20">
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-1 px-4 py-4 md:flex-row">
-        <div className="flex items-center gap-2 text-[11px] text-white/40">
+        <div className="flex items-center gap-2 text-[11px] text-white/70">
           <span className="text-amber-400">⚜</span>
           <span>{COPYRIGHT}</span>
-          <span className="text-white/20">·</span>
+          <span className="text-white/75">·</span>
           <span>{BRAND.nameZh}</span>
         </div>
-        <div className="text-[11px] text-white/25">{BRAND.version}</div>
+        <div className="text-[11px] text-white/75">{BRAND.version}</div>
       </div>
     </footer>
   )

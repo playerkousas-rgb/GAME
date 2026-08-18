@@ -32,6 +32,7 @@ export default function KimsGame({ config, uploadedItems = [], allItems, playerN
   const [soundEnabled, setSoundEnabled] = useState(onSoundEnabled)
   const [submitted, setSubmitted] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [showNames, setShowNames] = useState(false)
 
   const allItemsPool = useMemo(() => allItems || [...uploadedItems], [allItems, uploadedItems])
   const filteredItems = useMemo(() => {
@@ -120,9 +121,18 @@ export default function KimsGame({ config, uploadedItems = [], allItems, playerN
 
   const handleSubmit = useCallback(() => { if (!submitted) { setSubmitted(true); if (soundEnabled) Sound.submit(); setPhase('results') }}, [submitted, soundEnabled])
 
-  // 以物品 id 產生穩定亂數，令擺位每輪固定（渲染期間保持純函式）
+  // 手機優先的欄數
+  const gridCols = useMemo(() => {
+    const n = roundItems.length
+    if (n <= 4) return 2
+    if (n <= 9) return 3
+    if (n <= 16) return 4
+    return 5
+  }, [roundItems.length])
+
+  // 以物品 id 產生穩定亂數（配色與輕微傾斜每輪固定）
   const itemPositions = useMemo(() => {
-    const gridCols = Math.min(roundItems.length <= 12 ? 4 : roundItems.length <= 20 ? 5 : 6, 6)
+    const palette = ['#12224f', '#7F1D1D', '#064E3B', '#4C1D95', '#334155', '#0C4A6E', '#78350F', '#1E3A5F']
     const jitter = (key: string, salt: number) => {
       let h = 2166136261 ^ salt
       for (let i = 0; i < key.length; i++) {
@@ -133,10 +143,8 @@ export default function KimsGame({ config, uploadedItems = [], allItems, playerN
     return roundItems.map((item, idx) => {
       const key = String(item?.id ?? idx)
       return {
-        x: (idx % gridCols) * (92 / gridCols) + 4 + (jitter(key, 1) - 0.5) * 6,
-        y: Math.floor(idx / gridCols) * 76 + 20 + (jitter(key, 2) - 0.5) * 10,
-        rotation: (jitter(key, 3) - 0.5) * 6,
-        scale: 0.85 + jitter(key, 4) * 0.3,
+        rotation: (jitter(key, 3) - 0.5) * 4,
+        bg: palette[Math.floor(jitter(key, 5) * palette.length) % palette.length],
       }
     })
   }, [roundItems])
@@ -144,14 +152,14 @@ export default function KimsGame({ config, uploadedItems = [], allItems, playerN
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between rounded-xl bg-[#02133E]/60 border border-blue-800/30 p-2.5">
-        <button onClick={onBack} className="flex items-center gap-1 text-blue-300 hover:text-blue-100 text-xs"><ArrowLeft size={14} /> 返回</button>
+        <button onClick={onBack} className="flex items-center gap-1 text-blue-100 hover:text-blue-100 text-xs"><ArrowLeft size={14} /> 返回</button>
         <div className="flex items-center gap-2 text-xs text-blue-200">
           <span className="font-bold text-amber-300">{score} 分</span>
-          {playerName && (<><span className="text-blue-400">|</span><span className="text-white">{playerName}</span></>)}
+          {playerName && (<><span className="text-blue-200">|</span><span className="text-white">{playerName}</span></>)}
         </div>
         <div className="flex gap-1">
-          <button onClick={toggleFullscreen} className="text-blue-300 hover:text-white p-1">{isFullscreen ? <Minimize size={14} /> : <Maximize size={14} />}</button>
-          <button onClick={() => setSoundEnabled(!soundEnabled)} className="text-blue-300 hover:text-white">{soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}</button>
+          <button onClick={toggleFullscreen} className="text-blue-100 hover:text-white p-1">{isFullscreen ? <Minimize size={14} /> : <Maximize size={14} />}</button>
+          <button onClick={() => setSoundEnabled(!soundEnabled)} className="text-blue-100 hover:text-white">{soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}</button>
         </div>
       </div>
 
@@ -159,7 +167,7 @@ export default function KimsGame({ config, uploadedItems = [], allItems, playerN
         <div className="rounded-2xl border border-blue-800/30 bg-[#02133E]/60 p-6 text-center">
           <div className="text-5xl mb-3">🏕️</div>
           <h2 className="text-xl font-bold text-white">金氏遊戲</h2>
-          <p className="text-blue-300 text-xs mt-1">物品展示後遮蓋，考驗記憶力</p>
+          <p className="text-blue-100 text-xs mt-1">物品展示後遮蓋，考驗記憶力</p>
           {playerName && <div className="mt-2 inline-block rounded-full bg-amber-400/20 px-3 py-0.5 text-xs text-amber-300">🎯 {playerName}</div>}
           <div className="mt-3 flex justify-center gap-4 text-xs text-blue-200">
             <span>📦 {itemsCount} 件</span><span>⏱️ {observeSeconds}s</span><span>✍️ {answerSeconds}s</span>
@@ -169,21 +177,37 @@ export default function KimsGame({ config, uploadedItems = [], allItems, playerN
       )}
 
       {phase === 'observe' && (
-        <div className="rounded-2xl border border-blue-800/30 bg-[#02133E]/60 p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-white">👀 觀察</h2>
-            <div className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-bold ${timer <= 5 ? 'bg-rose-500 text-white animate-pulse' : 'bg-amber-400/80 text-stone-900'}`}>
-              <Timer size={12} /> {timer}s
+        <div className="rounded-2xl border border-blue-700/40 bg-[#081737] p-3 sm:p-4">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold text-white">👀 觀察 · {roundItems.length} 件</h2>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowNames(v => !v)}
+                className="rounded-lg border border-blue-500/50 bg-[#0d2050] px-2.5 py-1 text-[11px] text-blue-100"
+              >
+                {showNames ? '隱藏名稱' : '顯示名稱'}
+              </button>
+              <div className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-bold ${timer <= 5 ? 'bg-rose-500 text-white animate-pulse' : 'bg-amber-400 text-stone-900'}`}>
+                <Timer size={12} /> {timer}s
+              </div>
             </div>
           </div>
-          <div className="relative min-h-[280px] bg-[#0a1e4a]/40 rounded-xl overflow-hidden">
+          <div
+            className="grid gap-2 sm:gap-3"
+            style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0,1fr))` }}
+          >
             {showItems && roundItems.map((item, idx) => {
               const pos = itemPositions[idx]
               return (
-                <div key={item.id} className="absolute flex flex-col items-center gap-0.5 transition-all duration-200"
-                  style={{ left: `${pos.x}%`, top: `${pos.y}px`, transform: `rotate(${pos.rotation}deg) scale(${pos.scale})`, zIndex: idx }}>
-                  {item.imageUrl ? <img src={item.imageUrl} alt={item.name} className="w-10 h-10 object-contain drop-shadow-lg" /> : <span className="text-3xl drop-shadow-lg">{item.emoji}</span>}
-                  <span className="text-[10px] text-blue-200/70 font-light">{item.name}</span>
+                <div
+                  key={item.id}
+                  className="flex aspect-square flex-col items-center justify-center rounded-2xl border border-white/10 p-1 shadow-lg"
+                  style={{ backgroundColor: pos.bg, transform: `rotate(${pos.rotation}deg)` }}
+                >
+                  {item.imageUrl
+                    ? <img src={item.imageUrl} alt={item.name} className="max-h-[70%] max-w-[80%] object-contain drop-shadow-lg" />
+                    : <span className="leading-none drop-shadow-lg" style={{ fontSize: 'clamp(1.7rem, 8vw, 4rem)' }}>{item.emoji}</span>}
+                  {showNames && <span className="mt-1 truncate text-[10px] text-white/85">{item.name}</span>}
                 </div>
               )
             })}
@@ -193,9 +217,9 @@ export default function KimsGame({ config, uploadedItems = [], allItems, playerN
 
       {phase === 'hidden' && (
         <div className="rounded-2xl border border-blue-800/30 bg-[#02133E]/60 p-8 text-center">
-          <ShieldCheck className="mx-auto mb-2 text-blue-300/60" size={36} />
+          <ShieldCheck className="mx-auto mb-2 text-blue-100/60" size={36} />
           <h2 className="text-lg font-bold text-white">🔒 已遮蓋</h2>
-          <p className="text-blue-300/60 text-xs mt-1">準備作答...</p>
+          <p className="text-blue-100/60 text-xs mt-1">準備作答...</p>
         </div>
       )}
 
@@ -206,21 +230,24 @@ export default function KimsGame({ config, uploadedItems = [], allItems, playerN
             <div className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-bold ${timer <= 5 ? 'bg-rose-500 text-white animate-pulse' : 'bg-amber-400/80 text-stone-900'}`}><Timer size={12} /> {timer}s</div>
           </div>
           {config.answerMode === 'input' ? (
-            <textarea value={inputText} onChange={e => setInputText(e.target.value)} placeholder="輸入記得的物品，逗號分隔" className="min-h-32 w-full rounded-xl border border-blue-700/40 bg-[#0a1e4a]/50 p-3 text-sm text-white placeholder-blue-400/50 focus:border-amber-400/50 focus:outline-none" />
+            <textarea value={inputText} onChange={e => setInputText(e.target.value)} placeholder="輸入記得的物品，逗號分隔" className="min-h-32 w-full rounded-xl border border-blue-700/40 bg-[#0a1e4a]/50 p-3 text-sm text-white placeholder-blue-300/80 focus:border-amber-400/50 focus:outline-none" />
           ) : (
-            <div className="grid grid-cols-2 gap-1.5 md:grid-cols-4">
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-6">
               {answerPool.map(item => {
                 const checked = selectedChoices.includes(item.id)
                 return (
                   <button key={item.id} onClick={() => setSelectedChoices(prev => checked ? prev.filter(x => x !== item.id) : [...prev, item.id])}
-                    className={`rounded-lg border px-2 py-1.5 text-xs text-left transition-all ${checked ? 'border-amber-300/60 bg-amber-300/10 text-amber-200' : 'border-blue-700/20 bg-[#0a1e4a]/30 text-blue-200 hover:bg-blue-800/20'}`}>
-                    {item.imageUrl ? <img src={item.imageUrl} alt={item.name} className="w-4 h-4 inline-block mr-1" /> : <span className="mr-0.5">{item.emoji}</span>}{item.name}
+                    className={`flex aspect-square flex-col items-center justify-center gap-1 rounded-xl border-2 p-1 transition active:scale-95 ${checked ? 'border-amber-400 bg-amber-400/25' : 'border-blue-600/40 bg-[#0d2050]'}`}>
+                    {item.imageUrl
+                      ? <img src={item.imageUrl} alt={item.name} className="max-h-[55%] max-w-[80%] object-contain" />
+                      : <span style={{ fontSize: 'clamp(1.4rem, 6vw, 2.4rem)', lineHeight: 1 }}>{item.emoji}</span>}
+                    <span className={`w-full truncate px-0.5 text-center text-[10px] ${checked ? 'text-amber-100' : 'text-blue-100'}`}>{item.name}</span>
                   </button>
                 )
               })}
             </div>
           )}
-          <button onClick={handleSubmit} disabled={submitted} className={`mt-3 w-full rounded-xl py-2.5 text-xs font-bold ${submitted ? 'bg-blue-900/30 text-blue-500' : 'bg-amber-400 text-stone-900 hover:bg-amber-300'}`}>
+          <button onClick={handleSubmit} disabled={submitted} className={`mt-3 w-full rounded-xl py-2.5 text-xs font-bold ${submitted ? 'bg-blue-900/30 text-blue-200' : 'bg-amber-400 text-stone-900 hover:bg-amber-300'}`}>
             {submitted ? '已提交' : '📤 提交'}
           </button>
         </div>
@@ -241,7 +268,7 @@ export default function KimsGame({ config, uploadedItems = [], allItems, playerN
             <div className="text-sm font-bold text-white mt-1">+{result.score} 分</div>
           </div>
           <div className="mb-3">
-            <button onClick={() => setShowAnswers(!showAnswers)} className="text-xs text-blue-300 hover:text-blue-100 flex items-center gap-1"><Info size={12} />{showAnswers ? '隱藏' : '顯示'}答案</button>
+            <button onClick={() => setShowAnswers(!showAnswers)} className="text-xs text-blue-100 hover:text-blue-100 flex items-center gap-1"><Info size={12} />{showAnswers ? '隱藏' : '顯示'}答案</button>
             {showAnswers && <div className="mt-1 flex flex-wrap gap-1">{roundItems.map(item => <span key={item.id} className="rounded-full bg-blue-900/40 px-2 py-0.5 text-[10px] text-blue-200">{item.emoji} {item.name}</span>)}</div>}
           </div>
           <div className="flex gap-2">
