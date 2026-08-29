@@ -110,7 +110,7 @@ function KimsApp() {
       case 'kims': return <KimsGame key={gameKey} config={config} allItems={activeItems} onBack={() => setPhase('home')} onResult={handleGameResult} onSoundEnabled={soundEnabled} />
       case 'audio-kims': return <AudioKims key={gameKey} config={config} onBack={() => setPhase('home')} onResult={handleGameResult} />
       case 'text-memory': return <TextMemory key={gameKey} config={config} onBack={() => setPhase('home')} onResult={handleGameResult} />
-      case 'matching': return <MatchingPairs key={gameKey} config={config} onBack={() => setPhase('home')} onResult={handleGameResult} />
+      case 'matching': return <MatchingPairs key={gameKey} config={config} allItems={activeItems} onBack={() => setPhase('home')} onResult={handleGameResult} />
       default: return <div className="text-center p-8 muted">敬請期待 🚧<button onClick={() => setPhase('home')} className="mt-4 mx-auto block rounded-xl bg-amber-400 px-6 py-2 font-bold text-stone-900">返回</button></div>
     }
   }
@@ -121,7 +121,7 @@ function KimsApp() {
         case 'kims': return <KimsGame {...props} allItems={activeItems} onSoundEnabled={soundEnabled} />
         case 'audio-kims': return <AudioKims {...props} />
         case 'text-memory': return <TextMemory {...props} />
-        case 'matching': return <MatchingPairs {...props} />
+        case 'matching': return <MatchingPairs {...props} allItems={activeItems} />
         default: return <div className="text-center p-8 muted">敬請期待</div>
       }
     }

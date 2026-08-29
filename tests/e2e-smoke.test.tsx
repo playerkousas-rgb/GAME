@@ -521,6 +521,92 @@ describe('誰是臥底 — 玩家手機卡', () => {
 
 /* ================= 返回主頁 ================= */
 
+/* ================= 功能介紹 + 示範模式（MOCK） ================= */
+
+describe('功能介紹 + 示範模式（MOCK）', () => {
+  it('玩法介紹：開啟 modal → 內容完整 → 關閉', async () => {
+    await renderAt('/draw')
+    clickText('玩法介紹')
+    expect(screen.getByRole('dialog', { name: /玩法介紹/ })).toBeTruthy()
+    expect(screen.getByText('🎯 玩法')).toBeTruthy()
+    expect(screen.getByText('📱 秘密派題模式')).toBeTruthy()
+    clickText('明白了')
+    expect(screen.queryByRole('dialog', { name: /玩法介紹/ })).toBeNull()
+  })
+
+  it('猜猜畫畫示範：自動出題 → 自動猜中 → 結束示範後可正常操作', async () => {
+    await renderAt('/draw')
+    clickText('🎬 觀看示範')
+    expect(screen.getByText('準備開始…')).toBeTruthy()
+    toPlaying()
+    // 示範字幕列
+    expect(screen.getByText('🎬 示範')).toBeTruthy()
+    // 示範 bot 每 ~6.8s 自動答一題
+    tick(7000, 1000)
+    expect(screen.getByText('2 / 10')).toBeTruthy()
+    tick(7000, 1000)
+    expect(screen.getByText('3 / 10')).toBeTruthy()
+    // 結束示範 → 遊戲仍可正常操作
+    fireEvent.click(screen.getByRole('button', { name: '結束' }))
+    expect(screen.queryByText('🎬 示範')).toBeNull()
+    clickText('答對了')
+    expect(screen.getByText('4 / 10')).toBeTruthy()
+  })
+
+  it('金氏遊戲示範：觀察 → 遮蓋 → 自動作答 → 結果', async () => {
+    await renderAt('/kims')
+    clickText('視覺觀察記憶')
+    clickText('初級')
+    clickText('個人')
+    clickText('開始遊戲')
+    clickText('🎬 觀看示範')
+    expect(screen.getByText('🎬 示範')).toBeTruthy()
+    tick(4000, 500)
+    expect(screen.getByText('🔒 已遮蓋')).toBeTruthy()
+    tick(2000, 500)
+    expect(screen.getByText('✍️ 回答')).toBeTruthy()
+    tick(6000, 500)
+    expect(screen.getByText('📊 結果')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: '結束' }))
+    expect(screen.queryByText('🎬 示範')).toBeNull()
+  })
+
+  it('EMOJI 示範：自動輸入正確答案 → 自動進下一題', async () => {
+    await renderAt('/emoji')
+    clickText('🎬 觀看示範')
+    toPlaying()
+    expect(screen.getByText('🎬 示範')).toBeTruthy()
+    tick(6000, 1000)
+    expect(screen.getByText('2 / 15')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: '結束' }))
+    expect(screen.queryByText('🎬 示範')).toBeNull()
+  })
+
+  it('像素化示範：內建包 → 像素化 → 公布 → 回設定', async () => {
+    await renderAt('/photo')
+    clickText('🎬 觀看示範')
+    await act(async () => {})
+    tick(9000, 1000)
+    expect(screen.getByText('1 / 12')).toBeTruthy()
+    tick(12000, 1000)
+    tick(7000, 1000)
+    expect(screen.getByText('🎁 內建題目包')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: '結束' }))
+  })
+
+  it('誰是臥底示範：QR → 主持台 → 換局', async () => {
+    await renderAt('/undercover')
+    clickText('🎬 觀看示範')
+    tick(3000, 1000)
+    expect(screen.getByText('全部掃完，進入主持台')).toBeTruthy()
+    tick(3000, 1000)
+    expect(screen.getByText('本輪第')).toBeTruthy()
+    expect(screen.getByText('🎬 示範')).toBeTruthy()
+    tick(7000, 1000)
+    expect(screen.getByText('第 2 局：成員按發言順序依次描述')).toBeTruthy()
+  })
+})
+
 describe('返回主頁', () => {
   it('遊戲設定頁可返回主頁', async () => {
     await renderAt('/draw')
@@ -532,3 +618,4 @@ describe('返回主頁', () => {
     expect(screen.getAllByText('Scout System', { exact: false }).length).toBeGreaterThan(0)
   })
 })
+

@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2026 Scout System. All rights reserved.
  */
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Play,
   Eye,
@@ -25,6 +25,34 @@ import WarpPane from './components/WarpPane'
 import ShuffleTilesPane from './components/ShuffleTilesPane'
 import CountdownOverlay from './components/CountdownOverlay'
 import FullscreenStage from './components/FullscreenStage'
+import { DemoCaption, GameIntro, IntroDemoButtons, type IntroSection } from '../../components/GameIntro'
+
+const PHOTO_INTRO: IntroSection[] = [
+  {
+    title: '🎯 玩法（投影遊戲）',
+    items: [
+      '四種出題方式：▦ 像素化、◎ 局部放大、〜 變形扭曲、⊞ 切割打亂。',
+      '上傳相片或用內建題目包；難度隨時間自動降低，越來越易認。',
+      '隊員喊出答案，主持按「公布答案」，由輪到的玩家得分。',
+    ],
+  },
+  {
+    title: '🎛️ 操作',
+    items: [
+      '遊戲開始後控制側欄自動收合——按左上角齒輪可再展開。',
+      '側欄內：公布/隱藏答案、上一題/下一題/洗牌、瀏覽器全螢幕。',
+      '手動模式（總時間 0）可自己控制像素大小。',
+    ],
+  },
+  {
+    title: '📦 題目與玩家',
+    items: [
+      '內建 3 包：Emoji 大圖、文字卡、色塊圖形（各 12–40 題）。',
+      '相片可無限上傳；玩家名稱加入後可計分、看排行榜。',
+      '💡 首次使用建議按「🎬 觀看示範」，30 秒看懂整個流程。',
+    ],
+  },
+]
 import Leaderboard from './components/Leaderboard'
 import QRCodeModal from './components/QRCodeModal'
 import { PageHeader, SoundToggle, ThemeToggle } from '../../components/ui'
@@ -113,6 +141,11 @@ function PhotoApp() {
   const [fullscreenOpen, setFullscreenOpen] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [, setSessionId] = useState<string | null>(null)
+
+  /* ---------- 示範模式（MOCK） ---------- */
+  const [demoMode, setDemoMode] = useState(false)
+  const [demoCaption, setDemoCaption] = useState('')
+  const [introOpen, setIntroOpen] = useState(false)
 
   const currentFile = files[index] ?? null
   const sourceUrl = useObjectUrl(currentFile)
@@ -259,6 +292,57 @@ function PhotoApp() {
     setPhase('countdown')
   }
 
+  /* 示範模式：內建包 → 像素化 → 公布 → 下一題 → 結束 */
+  const demoIdleUsedRef = useRef(false)
+
+  const startDemo = useCallback(() => {
+    demoIdleUsedRef.current = false
+    setDemoMode(true)
+    setDemoCaption('🎬 示範開始——載入內建「Emoji 大圖」包')
+    generateDeck('emoji', 12)
+      .then((generated) => {
+        setGameMode('pixel')
+        setPlaylist(generated)
+      })
+      .catch(() => setDemoCaption('示範題目生成失敗，請重試'))
+  }, [])
+
+  useEffect(() => {
+    if (!demoMode) return
+    if (phase === 'idle' && files.length > 0 && !demoIdleUsedRef.current) {
+      demoIdleUsedRef.current = true
+      setDemoCaption('示範會自動選擇「像素化」')
+      const t = setTimeout(() => selectMode('pixel'), 1200)
+      return () => clearTimeout(t)
+    }
+    if (phase === 'ready') {
+      setDemoCaption('已選「▦ 像素化」——3 秒後自動開始')
+      const t = setTimeout(() => startGame(), 1600)
+      return () => clearTimeout(t)
+    }
+    if (phase === 'countdown') {
+      setDemoCaption('倒數 3、2、1……')
+    }
+    if (phase === 'playing' || phase === 'revealed') {
+      if (index === 0) {
+        setDemoCaption('第一題以重度像素化開始——隊員輪流喊答案')
+        const t1 = setTimeout(() => {
+          setDemoCaption("主持按「公布答案」——原圖顯示")
+          reveal()
+        }, 3500)
+        const t2 = setTimeout(() => nextQuestion(), 6800)
+        return () => { clearTimeout(t1); clearTimeout(t2) }
+      }
+      setDemoCaption('進入下一題——難度自動降低，越來越易認')
+      const t = setTimeout(() => {
+        setRevealAnswer(false)
+        setPhase('idle')
+        setDemoCaption('🎉 示範完成！上傳自己的相片或用內建題目包開始遊戲')
+      }, 3000)
+      return () => clearTimeout(t)
+    }
+  }, [demoMode, phase, index, files.length])
+
   function addPlayer() {
     if (!newName.trim()) return
     setPlayers((prev) => [...prev, createPlayer(newName)])
@@ -327,6 +411,21 @@ function PhotoApp() {
               hint="拖曳或點擊上傳圖片（支援多張）"
             />
           </div>
+
+          {/* 功能介紹 + 示範模式 */}
+          <IntroDemoButtons
+            onIntro={() => setIntroOpen(true)}
+            onDemo={startDemo}
+            className="w-full"
+          />
+          <GameIntro
+            open={introOpen}
+            onClose={() => setIntroOpen(false)}
+            emoji="🖼️"
+            title="像素化猜謎圖"
+            tagline="Scout System · 投影遊戲專用"
+            sections={PHOTO_INTRO}
+          />
 
           {/* 內建題目包 — 毋須上傳即可開玩 */}
           <div className="w-full rounded-xl border border-white/10 bg-white/5 p-4">
@@ -764,6 +863,8 @@ function PhotoApp() {
           </div>
         </div>
       </FullscreenStage>
+
+      {demoMode && <DemoCaption text={demoCaption} onExit={() => setDemoMode(false)} />}
 
       {/* Toast */}
       {toast && (

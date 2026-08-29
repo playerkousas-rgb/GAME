@@ -12,6 +12,34 @@ import { Sound } from '../hooks/useSound'
 import { TEXT_PACKS, packWords } from '../../../data/textPacks'
 import { EMOJI_PACKS, SHAPES, SHAPE_COLORS, type ShapeKind } from '../data/symbols'
 import ShapeGlyph from './ShapeGlyph'
+import { DemoCaption, GameIntro, type IntroSection } from '../../../components/GameIntro'
+
+const TEXT_INTRO: IntroSection[] = [
+  {
+    title: '🎯 玩法',
+    items: [
+      '先顯示一組圖案卡（Emoji／幾何圖形／相片／文字），記憶後自動遮蓋。',
+      '作答可「點選」（混有干擾項）或「打字」輸入記得的圖案。',
+      '系統計算正確／錯誤／遺漏，換算準確率與勳章。',
+    ],
+  },
+  {
+    title: '🃏 四種卡型',
+    items: [
+      '圖案卡：大 Emoji，最直觀；圖形卡：形狀＋顏色記憶。',
+      '相片卡：上傳自己的相片當題目（完全自訂）。',
+      '文字卡：傳統中文字卡，可換字色底色。',
+    ],
+  },
+  {
+    title: '✏️ 題庫與自訂',
+    items: [
+      '內建多組 Emoji 包、幾何圖形、文字包，可自訂展示秒數與卡片數。',
+      '相片卡可無限上傳，適合用隊旗、地圖、營地照片考隊員。',
+      '💡 首次使用建議按「🎬 觀看示範」，15 秒看懂整個流程。',
+    ],
+  },
+]
 
 interface Props {
   config: GameConfig
@@ -82,6 +110,11 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
 
   const [picked, setPicked] = useState<string[]>([])
   const [inputText, setInputText] = useState('')
+
+  /* ---------- 示範模式（MOCK） ---------- */
+  const [demoMode, setDemoMode] = useState(false)
+  const [demoCaption, setDemoCaption] = useState('')
+  const [introOpen, setIntroOpen] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const difficulty = config.difficulty
@@ -347,6 +380,48 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
     if (soundEnabled) Sound.submit()
     setPhase('results')
   }, [submitted, soundEnabled])
+
+  /* 示範模式：快進走完整流程 */
+  const submitRef = useRef(handleSubmit)
+  useEffect(() => { submitRef.current = handleSubmit })
+
+  const startDemo = useCallback(() => {
+    setDemoMode(true)
+    setDemoCaption('🎬 示範開始')
+    if (cards.length === 0) loadEmojiPack(EMOJI_PACKS[0].id)
+  }, [cards.length, loadEmojiPack])
+
+  useEffect(() => {
+    if (demoMode && phase === 'setup' && cards.length > 0) startGame()
+  }, [demoMode, phase, cards.length, startGame])
+
+  useEffect(() => {
+    if (!demoMode) return
+    if (phase === 'observe') {
+      setDemoCaption(`記住這 ${cards.length} 張卡（示範縮短觀察時間）`)
+      const t = setTimeout(() => setPhase('hidden'), 3200)
+      return () => clearTimeout(t)
+    }
+    if (phase === 'hidden') {
+      setDemoCaption('遮蓋了！現在全憑記憶')
+    }
+    if (phase === 'answer') {
+      setDemoCaption(answerMode === 'type' ? '輸入記得的圖案（逗號分隔）→ 提交' : '點選記得的圖案——選項區混入了干擾項')
+      const t1 = setTimeout(() => {
+        if (answerMode === 'type') {
+          setInputText(cards.map((c) => c.name).slice(0, Math.max(2, cards.length - 1)).join('、'))
+        } else {
+          setPicked(cards.slice(0, Math.max(2, cards.length - 1)).map((c) => c.id))
+        }
+        setDemoCaption('示範：故意漏記一張，示範「遺漏」如何計分')
+      }, 2600)
+      const t2 = setTimeout(() => submitRef.current(), 4600)
+      return () => { clearTimeout(t1); clearTimeout(t2) }
+    }
+    if (phase === 'results') {
+      setDemoCaption('🎉 示範完成——正確／錯誤／遺漏自動計分。按「結束」回到正常遊戲')
+    }
+  }, [demoMode, phase, answerMode, cards])
 
   const usePick = answerMode === 'pick' && kind !== 'image'
 
@@ -677,6 +752,22 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
           >
             🚀 開始（{observeSeconds}s 展示）
           </button>
+
+          <div className="flex gap-2">
+            <button
+              onClick={startDemo}
+              className="flex-1 rounded-xl border border-indigo-400/40 bg-indigo-500/15 py-2.5 text-sm font-bold text-indigo-200 transition hover:bg-indigo-500/25"
+            >
+              🎬 觀看示範
+            </button>
+            <button
+              onClick={() => setIntroOpen(true)}
+              className="flex-1 rounded-xl border border-white/15 bg-white/5 py-2.5 text-sm font-bold text-white/90 transition hover:bg-white/10"
+            >
+              📖 玩法介紹
+            </button>
+          </div>
+          <GameIntro open={introOpen} onClose={() => setIntroOpen(false)} emoji="🧠" title="圖案記憶" tagline="展示 → 遮蓋 → 靠記憶作答" sections={TEXT_INTRO} />
         </div>
       )}
 
@@ -920,6 +1011,8 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
           </div>
         </div>
       )}
+
+      {demoMode && phase !== 'setup' && <DemoCaption text={demoCaption} onExit={() => setDemoMode(false)} />}
     </div>
   )
 }

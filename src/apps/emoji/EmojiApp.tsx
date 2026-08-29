@@ -2,11 +2,12 @@
  * EMOJI 猜謎 — 看 emoji 組合猜詞語
  * Copyright (c) 2026 Scout System. All rights reserved.
  */
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Lightbulb, Sparkles, Send } from 'lucide-react'
 import QuestionManager from '../../components/QuestionManager'
 import BankFilters from '../../components/BankFilters'
 import SetupShell from '../../components/SetupShell'
+import { DemoCaption, type IntroSection } from '../../components/GameIntro'
 import { TimerRing, CountdownScreen, SummaryScreen, TeamBar } from '../../components/RoundUI'
 import { PlayHeader, OptionGroup, Section, CopyrightMark } from '../../components/ui'
 import { EMOJI_BANK } from '../../data/emojiBank'
@@ -18,6 +19,33 @@ import { DIFFICULTY_META, type QDifficulty } from '../../shared/questionBank'
 
 const TIME_OPTIONS = [20, 30, 45, 60, 0]
 const COUNT_OPTIONS = [10, 15, 20, 30]
+
+const EMOJI_INTRO: IntroSection[] = [
+  {
+    title: '🎯 玩法',
+    items: [
+      '螢幕顯示一組 Emoji，代表一個詞語、電影、成語或地方。',
+      '「輸入模式」：隊員直接打答案，系統自動判對錯，錯答不進頁。',
+      '「主持模式」：全屏投影 Emoji，隊員口頭搶答，主持按鍵公布答案與計分。',
+      '卡住可看提示（部分題目有），或放棄並公布答案。',
+    ],
+  },
+  {
+    title: '⌨️ 操作與快捷鍵',
+    items: [
+      '輸入模式：打完答案按 Enter 或「作答」；✦ 鈕 = 放棄並公布。',
+      '主持模式：空白鍵 = 公布/答對、→ = 跳過、F = 全屏、P = 暫停。',
+    ],
+  },
+  {
+    title: '✏️ 題庫與自訂題目',
+    items: [
+      `內建 ${EMOJI_BANK.length} 題，可按難度／分類篩選。`,
+      '「題目管理」可加入自訂題目（Emoji＋答案）或批次匯入，只存於本裝置。',
+      '💡 首次使用建議按「🎬 觀看示範」，30 秒看懂整個流程。',
+    ],
+  },
+]
 
 /** 正規化答案以便比對（移除空白與標點、統一大小寫） */
 function norm(s: string) {
@@ -38,6 +66,10 @@ export default function EmojiApp() {
   const [feedback, setFeedback] = useState<'none' | 'wrong'>('none')
   const [revealed, setRevealed] = useState(false)
   const [showHint, setShowHint] = useState(false)
+
+  /* ---------- 示範模式（MOCK） ---------- */
+  const [demoMode, setDemoMode] = useState(false)
+  const [demoCaption, setDemoCaption] = useState('')
 
   useEffect(() => GameSound.setEnabled(soundOn), [soundOn])
 
@@ -89,6 +121,43 @@ export default function EmojiApp() {
     engine.begin(bank.draw({ levels, categories: cats, count }))
   }, [bank, levels, cats, count, engine, teamState])
 
+  /* 示範模式：自動走一輪 */
+  const submitRef = useRef(submitGuess)
+  const nextRef = useRef(nextQuestion)
+  useEffect(() => { submitRef.current = submitGuess; nextRef.current = nextQuestion })
+
+  const startDemo = useCallback(() => {
+    setDemoMode(true)
+    setDemoCaption('🎬 示範開始——3 秒倒數後自動進行')
+    start()
+  }, [start])
+
+  useEffect(() => {
+    if (!demoMode || engine.phase !== 'playing') return
+    if (inputMode) {
+      setDemoCaption('看這組 Emoji，猜猜它代表什麼詞語')
+      const t1 = setTimeout(() => {
+        setGuess(engine.current?.answer ?? '')
+        setDemoCaption('示範模式自動輸入正確答案……')
+      }, 2600)
+      const t2 = setTimeout(() => submitRef.current(), 4200)
+      return () => { clearTimeout(t1); clearTimeout(t2) }
+    }
+    setDemoCaption('全屏投影 Emoji——隊員口頭搶答')
+    const t1 = setTimeout(() => {
+      setRevealed(true)
+      setDemoCaption('有人喊出答案！主持按「猜中了」計分')
+    }, 3000)
+    const t2 = setTimeout(() => nextRef.current('correct'), 5500)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+  }, [demoMode, engine.phase, engine.idx, inputMode, engine.current])
+
+  useEffect(() => {
+    if (demoMode && engine.phase === 'summary') {
+      setDemoCaption('🎉 示範完成——流程就是這樣！按「結束」再開始你自己的遊戲')
+    }
+  }, [demoMode, engine.phase])
+
   /* 鍵盤（非輸入模式） */
   useEffect(() => {
     if (engine.phase !== 'playing' || inputMode) return
@@ -138,6 +207,7 @@ export default function EmojiApp() {
         canStart={matching > 0}
         startLabel={`開始（抽 ${Math.min(count, matching)} 題）`}
         onStart={start}
+        intro={{ sections: EMOJI_INTRO, onDemo: startDemo }}
       >
         <div className="grid gap-4 md:grid-cols-2">
           <Section icon={<span>🎯</span>} title="題目篩選">
@@ -201,7 +271,14 @@ export default function EmojiApp() {
     )
   }
 
-  if (engine.phase === 'countdown') return <CountdownScreen n={engine.countdown} />
+  if (engine.phase === 'countdown') {
+    return (
+      <>
+        <CountdownScreen n={engine.countdown} />
+        {demoMode && <DemoCaption text={demoCaption} onExit={() => setDemoMode(false)} />}
+      </>
+    )
+  }
 
   if (engine.phase === 'summary') {
     return (
@@ -215,6 +292,7 @@ export default function EmojiApp() {
             teamState.resetScores()
           }}
         />
+        {demoMode && <DemoCaption text={demoCaption} onExit={() => setDemoMode(false)} />}
       </div>
     )
   }
@@ -377,6 +455,7 @@ export default function EmojiApp() {
         </div>
       )}
 
+      {demoMode && <DemoCaption text={demoCaption} onExit={() => setDemoMode(false)} />}
       <CopyrightMark />
     </div>
   )

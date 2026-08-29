@@ -3,6 +3,33 @@ import { Timer, Medal, ArrowLeft, Info, CheckCircle2, XCircle, HelpCircle, Volum
 import { GameConfig, GameResult, AudioClip } from '../types'
 import { shuffleArray } from '../data/items'
 import { Sound, playSoundEffect, SOUND_LIBRARY, SoundItem } from '../hooks/useSound'
+import { DemoCaption, GameIntro, type IntroSection } from '../../../components/GameIntro'
+
+const AUDIO_INTRO: IntroSection[] = [
+  {
+    title: '🎧 玩法',
+    items: [
+      '系統依序播放一組聲音（動物叫、自然聲、樂器……），可重播。',
+      '聽完後，從選項格（混有干擾項）點選你聽到的聲音，提交計分。',
+      '正確／錯誤／遺漏自動統計，換算準確率與勳章。',
+    ],
+  },
+  {
+    title: '⚙️ 可調參數',
+    items: [
+      '初級 4 題、中級 6 題、高級 8 題；作答時間隨難度縮短。',
+      '每題作答時可點小喇叭重聽。',
+    ],
+  },
+  {
+    title: '📦 聲音庫與自訂',
+    items: [
+      '內建 90+ 聲音（動物、自然、樂器、日常）。',
+      '可上傳自己的音效檔案（自訂聲音）混入題庫，本裝置保存。',
+      '💡 首次使用建議按「🎬 聆聽示範」，15 秒看懂整個流程。',
+    ],
+  },
+]
 
 interface Props {
   config: GameConfig
@@ -28,6 +55,11 @@ export default function AudioKims({ config, playerName, onBack, onResult }: Prop
   const [submitted, setSubmitted] = useState(false)
   const [uploadedAudio, setUploadedAudio] = useState<AudioClip[]>([])
   const [nowPlaying, setNowPlaying] = useState<string | null>(null)
+
+  /* ---------- 示範模式（MOCK） ---------- */
+  const [demoMode, setDemoMode] = useState(false)
+  const [demoCaption, setDemoCaption] = useState('')
+  const [introOpen, setIntroOpen] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
   const difficulty = config.difficulty
@@ -205,6 +237,37 @@ export default function AudioKims({ config, playerName, onBack, onResult }: Prop
     setPhase('results')
   }, [submitted, soundEnabled])
 
+  /* 示範模式：快進走完整流程（聆聽→作答→結果） */
+  const submitRef = useRef(handleSubmit)
+  useEffect(() => { submitRef.current = handleSubmit })
+
+  const startDemo = useCallback(() => {
+    setDemoMode(true)
+    setDemoCaption('🎬 示範開始——仔細聆聽！')
+    initGame()
+  }, [initGame])
+
+  useEffect(() => {
+    if (!demoMode) return
+    if (phase === 'listening') {
+      setDemoCaption('系統依序播放本輪所有聲音（示範縮短聆聽時間）')
+      const t = setTimeout(() => setPhase('answering'), 3500)
+      return () => clearTimeout(t)
+    }
+    if (phase === 'answering') {
+      setDemoCaption('從選項中點選聽到的聲音——選項區混入了干擾項')
+      const t1 = setTimeout(() => {
+        setSelectedChoices(roundSounds.slice(0, Math.max(2, roundSounds.length - 1)).map(s => s.id))
+        setDemoCaption('示範：故意漏選一個，示範「遺漏」如何計分')
+      }, 2600)
+      const t2 = setTimeout(() => submitRef.current(), 4600)
+      return () => { clearTimeout(t1); clearTimeout(t2) }
+    }
+    if (phase === 'results') {
+      setDemoCaption('🎉 示範完成——正確／錯誤／遺漏自動計分。按「結束」回到正常遊戲')
+    }
+  }, [demoMode, phase, roundSounds])
+
   return (
     <div className="space-y-4">
       {/* Hidden audio element for file playback */}
@@ -260,7 +323,12 @@ export default function AudioKims({ config, playerName, onBack, onResult }: Prop
             )}
           </div>
 
-          <button onClick={initGame} className="w-full rounded-xl bg-amber-400 py-3 font-bold text-stone-900 hover:bg-amber-300 text-sm">🎧 開始聆聽</button>
+          <div className="flex gap-2">
+            <button onClick={initGame} className="flex-1 rounded-xl bg-amber-400 py-3 font-bold text-stone-900 hover:bg-amber-300 text-sm">🎧 開始聆聽</button>
+            <button onClick={startDemo} className="rounded-xl border border-indigo-400/40 bg-indigo-500/15 px-4 py-3 text-indigo-200 hover:bg-indigo-500/25 font-bold text-sm">🎬 聆聽示範</button>
+            <button onClick={() => setIntroOpen(true)} className="rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-white/90 hover:bg-white/10 font-bold text-sm">📖 玩法介紹</button>
+          </div>
+          <GameIntro open={introOpen} onClose={() => setIntroOpen(false)} emoji="🎧" title="聽覺金氏遊戲" tagline="用耳朵記憶聲音" sections={AUDIO_INTRO} />
         </div>
       )}
 
@@ -381,6 +449,8 @@ export default function AudioKims({ config, playerName, onBack, onResult }: Prop
           </div>
         </div>
       )}
+
+      {demoMode && phase !== 'setup' && <DemoCaption text={demoCaption} onExit={() => setDemoMode(false)} />}
     </div>
   )
 }

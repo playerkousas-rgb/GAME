@@ -2,13 +2,14 @@
  * 猜猜畫畫 — 一人看題作畫，其他人猜
  * Copyright (c) 2026 Scout System. All rights reserved.
  */
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Eye, EyeOff, Lightbulb, Smartphone } from 'lucide-react'
 import DrawCanvas from './DrawCanvas'
 import SecretDrawHost from './SecretDrawHost'
 import QuestionManager from '../../components/QuestionManager'
 import BankFilters from '../../components/BankFilters'
 import SetupShell from '../../components/SetupShell'
+import { DemoCaption, type IntroSection } from '../../components/GameIntro'
 import { TimerRing, CountdownScreen, ActionButtons, SummaryScreen, TeamBar } from '../../components/RoundUI'
 import { PlayHeader, OptionGroup, Section, CopyrightMark } from '../../components/ui'
 import { DRAW_BANK } from '../../data/drawBank'
@@ -21,6 +22,40 @@ import { DIFFICULTY_META, type QDifficulty } from '../../shared/questionBank'
 const TIME_OPTIONS = [60, 90, 120, 180, 0]
 const COUNT_OPTIONS = [5, 10, 15, 20]
 
+const DRAW_INTRO: IntroSection[] = [
+  {
+    title: '🎯 玩法',
+    items: [
+      '一名隊員擔任「畫家」，只有他看得到題目（可隱藏防止偷看）。',
+      '畫家只能畫圖——不可寫字、講話或做手勢。',
+      '其他隊員在限時內喊出答案，猜中由主持按「答對了」。',
+      '答不出按「跳過」；可設定隊伍計分，輪流作答。',
+    ],
+  },
+  {
+    title: '⌨️ 操作與快捷鍵',
+    items: [
+      '空白鍵 = 答對、→ = 跳過、H = 顯示/隱藏題目、P = 暫停。',
+      '「+10s / -10s」可現場調整每題時間；每題倒數到自動跳過。',
+    ],
+  },
+  {
+    title: '📱 秘密派題模式',
+    items: [
+      '每人掃一個專屬 QR，題目直接送到畫家自己的手機，其他人一片空白。',
+      '適合人多場合——主持機永遠不會有人看到題目。',
+    ],
+  },
+  {
+    title: '✏️ 題庫與自訂題目',
+    items: [
+      `內建 ${DRAW_BANK.length} 題，可按難度／分類篩選。`,
+      '「題目管理」可加入自訂題目或批次匯入，只存於本裝置。',
+      '💡 首次使用建議按「🎬 觀看示範」，30 秒看懂整個流程。',
+    ],
+  },
+]
+
 export default function DrawApp() {
   const bank = useQuestionBank('draw', DRAW_BANK)
   const teamState = useTeams()
@@ -29,6 +64,10 @@ export default function DrawApp() {
   const [seconds, setSeconds] = useState(90)
   const [count, setCount] = useState(10)
   const [soundOn, setSoundOn] = useState(true)
+
+  /* ---------- 示範模式（MOCK） ---------- */
+  const [demoMode, setDemoMode] = useState(false)
+  const [demoCaption, setDemoCaption] = useState('')
   const [showWord, setShowWord] = useState(true)
   const [showHint, setShowHint] = useState(false)
   const [full, setFull] = useState(false)
@@ -67,6 +106,34 @@ export default function DrawApp() {
     teamState.resetScores()
     engine.begin(bank.draw({ levels, categories: cats, count }))
   }, [bank, levels, cats, count, engine, teamState])
+
+  /* 示範模式：自動走一輪（畫家出題 → 猜中） */
+  const outcomeRef = useRef(handleOutcome)
+  useEffect(() => { outcomeRef.current = handleOutcome })
+
+  const startDemo = useCallback(() => {
+    setDemoMode(true)
+    setDemoCaption('🎬 示範開始——3 秒倒數後自動進行')
+    start()
+  }, [start])
+
+  useEffect(() => {
+    if (!demoMode || engine.phase !== 'playing') return
+    setDemoCaption(`畫家的題目是「${engine.current?.answer}」，立即動筆（示範略過真正繪畫）`)
+    const t1 = setTimeout(() => {
+      setDemoCaption('猜題者圍住畫布大聲喊答案——猜中時主持按「答對了」')
+    }, 3200)
+    const t2 = setTimeout(() => {
+      outcomeRef.current(engine.idx % 3 === 2 ? 'pass' : 'correct')
+    }, 6800)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+  }, [demoMode, engine.phase, engine.idx, engine.current])
+
+  useEffect(() => {
+    if (demoMode && engine.phase === 'summary') {
+      setDemoCaption('🎉 示範完成——流程就是這樣！按「結束」再開始你自己的遊戲')
+    }
+  }, [demoMode, engine.phase])
 
   /* 鍵盤快捷鍵 */
   useEffect(() => {
@@ -129,6 +196,7 @@ export default function DrawApp() {
         canStart={matching > 0}
         startLabel={`開始（抽 ${Math.min(count, matching)} 題）`}
         onStart={start}
+        intro={{ sections: DRAW_INTRO, onDemo: startDemo }}
       >
         <div className="grid gap-4 md:grid-cols-2">
           <Section icon={<span>🎯</span>} title="題目篩選">
@@ -182,7 +250,14 @@ export default function DrawApp() {
   }
 
   /* ---------- COUNTDOWN ---------- */
-  if (engine.phase === 'countdown') return <CountdownScreen n={engine.countdown} />
+  if (engine.phase === 'countdown') {
+    return (
+      <>
+        <CountdownScreen n={engine.countdown} />
+        {demoMode && <DemoCaption text={demoCaption} onExit={() => setDemoMode(false)} />}
+      </>
+    )
+  }
 
   /* ---------- SUMMARY ---------- */
   if (engine.phase === 'summary') {
@@ -197,6 +272,7 @@ export default function DrawApp() {
             teamState.resetScores()
           }}
         />
+        {demoMode && <DemoCaption text={demoCaption} onExit={() => setDemoMode(false)} />}
       </div>
     )
   }
@@ -288,6 +364,7 @@ export default function DrawApp() {
           </div>
         </div>
       )}
+      {demoMode && <DemoCaption text={demoCaption} onExit={() => setDemoMode(false)} />}
       <CopyrightMark />
     </div>
   )

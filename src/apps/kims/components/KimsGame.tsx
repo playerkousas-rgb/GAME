@@ -3,6 +3,33 @@ import { Timer, ShieldCheck, Medal, ArrowLeft, Info, CheckCircle2, XCircle, Help
 import { Item, GameConfig, GameResult } from '../types'
 import { DISTRACTORS, shuffleArray, normalizeText } from '../data/items'
 import { Sound } from '../hooks/useSound'
+import { DemoCaption, GameIntro, type IntroSection } from '../../../components/GameIntro'
+
+const KIMS_INTRO: IntroSection[] = [
+  {
+    title: '🎯 玩法',
+    items: [
+      '物品（Emoji／圖形／相片）展示一段時間後自動遮蓋。',
+      '靠記憶作答：「選擇模式」點選記得的物品（混有干擾項），或「輸入模式」打字輸入。',
+      '系統計算正確／錯誤／遺漏，換算準確率與勳章積分。',
+    ],
+  },
+  {
+    title: '⚙️ 可調參數',
+    items: [
+      '物品數量、觀察秒數、作答秒數——愈多愈難。',
+      '選擇模式可開關「干擾項」；輸入模式不設干擾，考驗拼寫記憶。',
+    ],
+  },
+  {
+    title: '📦 物品庫與自訂',
+    items: [
+      '主頁「物品庫」內建 90+ 童軍主題物品，分 25+ 類。',
+      '可自行新增自訂物品（Emoji＋名稱，含「自訂」分類），本裝置保存。',
+      '💡 首次使用建議按「🎬 觀看示範」，15 秒看懂整個流程。',
+    ],
+  },
+]
 
 interface Props {
   config: GameConfig
@@ -33,6 +60,11 @@ export default function KimsGame({ config, uploadedItems = [], allItems, playerN
   const [submitted, setSubmitted] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [showNames, setShowNames] = useState(false)
+
+  /* ---------- 示範模式（MOCK） ---------- */
+  const [demoMode, setDemoMode] = useState(false)
+  const [demoCaption, setDemoCaption] = useState('')
+  const [introOpen, setIntroOpen] = useState(false)
 
   const allItemsPool = useMemo(() => allItems || [...uploadedItems], [allItems, uploadedItems])
   const filteredItems = useMemo(() => {
@@ -125,6 +157,49 @@ export default function KimsGame({ config, uploadedItems = [], allItems, playerN
 
   const handleSubmit = useCallback(() => { if (!submitted) { setSubmitted(true); if (soundEnabled) Sound.submit(); setPhase('results') }}, [submitted, soundEnabled])
 
+  /* 示範模式：快進走完整流程（觀察→遮蓋→作答→結果） */
+  const submitRef = useRef(handleSubmit)
+  useEffect(() => { submitRef.current = handleSubmit })
+
+  const startDemo = useCallback(() => {
+    setDemoMode(true)
+    setDemoCaption('🎬 示範開始——物品出現，努力記住！')
+    startGame()
+  }, [startGame])
+
+  useEffect(() => {
+    if (!demoMode) return
+    if (phase === 'observe') {
+      const t = setTimeout(() => { setShowItems(false); setPhase('hidden') }, 3200)
+      return () => clearTimeout(t)
+    }
+    if (phase === 'hidden') {
+      setDemoCaption('遮蓋了！現在全憑記憶')
+      const t = setTimeout(() => setPhase('answer'), 1600)
+      return () => clearTimeout(t)
+    }
+    if (phase === 'answer') {
+      setDemoCaption(config.answerMode === 'input' ? '輸入記得的物品（逗號分隔）→ 提交' : '點選記得的物品——選項區混入了干擾項')
+      const t1 = setTimeout(() => {
+        if (config.answerMode === 'input') {
+          setInputText(roundItems.map(i => i.name).slice(0, Math.max(2, roundItems.length - 1)).join('、'))
+        } else {
+          const correctIds = answerPool
+            .filter(i => roundItems.some(r => r.id === i.id))
+            .slice(0, Math.max(2, roundItems.length - 1))
+            .map(i => i.id)
+          setSelectedChoices(correctIds)
+        }
+        setDemoCaption('示範：故意漏記一件，示範「遺漏」如何計分')
+      }, 2600)
+      const t2 = setTimeout(() => submitRef.current(), 4600)
+      return () => { clearTimeout(t1); clearTimeout(t2) }
+    }
+    if (phase === 'results') {
+      setDemoCaption('🎉 示範完成——正確／錯誤／遺漏自動計分。按「結束」回到正常遊戲')
+    }
+  }, [demoMode, phase, config.answerMode, roundItems, answerPool])
+
   // 手機優先的欄數
   const gridCols = useMemo(() => {
     const n = roundItems.length
@@ -176,7 +251,12 @@ export default function KimsGame({ config, uploadedItems = [], allItems, playerN
           <div className="mt-3 flex justify-center gap-4 text-xs text-white/60">
             <span>📦 {itemsCount} 件</span><span>⏱️ {observeSeconds}s</span><span>✍️ {answerSeconds}s</span>
           </div>
-          <button onClick={startGame} className="mt-5 px-8 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold text-sm">🚀 開始</button>
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+            <button onClick={startGame} className="px-8 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold text-sm">🚀 開始</button>
+            <button onClick={startDemo} className="px-4 py-2.5 rounded-xl border border-indigo-400/40 bg-indigo-500/15 text-indigo-200 hover:bg-indigo-500/25 font-bold text-sm">🎬 觀看示範</button>
+            <button onClick={() => setIntroOpen(true)} className="px-4 py-2.5 rounded-xl border border-white/15 bg-white/5 text-white/90 hover:bg-white/10 font-bold text-sm">📖 玩法介紹</button>
+          </div>
+          <GameIntro open={introOpen} onClose={() => setIntroOpen(false)} emoji="🏕️" title="金氏遊戲" tagline="物品展示後遮蓋，考驗記憶力" sections={KIMS_INTRO} />
         </div>
       )}
 
@@ -281,6 +361,8 @@ export default function KimsGame({ config, uploadedItems = [], allItems, playerN
           </div>
         </div>
       )}
+
+      {demoMode && phase !== 'setup' && <DemoCaption text={demoCaption} onExit={() => setDemoMode(false)} />}
     </div>
   )
 }

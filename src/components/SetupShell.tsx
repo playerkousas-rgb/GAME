@@ -6,7 +6,16 @@ import { type ReactNode, useState } from 'react'
 import { Play, Plus, X, Users } from 'lucide-react'
 import type { Team } from '../shared/useTeams'
 import Footer from './Footer'
+import { GameIntro, IntroDemoButtons, type IntroSection } from './GameIntro'
 import { PageHeader, SoundToggle, ThemeToggle, Section, Collapsible, StatBox, StartButton } from './ui'
+
+export interface ShellIntro {
+  tagline?: string
+  sections: IntroSection[]
+  /** 提供即顯示「🎬 觀看示範」按鈕 */
+  onDemo?: () => void
+  demoLabel?: string
+}
 
 interface Props {
   emoji: string
@@ -22,15 +31,18 @@ interface Props {
   canStart: boolean
   startLabel?: string
   onStart: () => void
+  /** 功能介紹 + 示範模式入口 */
+  intro?: ShellIntro
   children: ReactNode
 }
 
 export default function SetupShell({
   emoji, title, subtitle, howTo, stats,
   teams, onAddTeam, onRemoveTeam,
-  soundOn, onSound, canStart, startLabel = '開始遊戲', onStart, children,
+  soundOn, onSound, canStart, startLabel = '開始遊戲', onStart, intro, children,
 }: Props) {
   const [newTeam, setNewTeam] = useState('')
+  const [introOpen, setIntroOpen] = useState(false)
 
   const addTeam = () => {
     if (!newTeam.trim()) return
@@ -107,6 +119,25 @@ export default function SetupShell({
             </button>
           </div>
         </Section>
+
+        {/* 功能介紹 + 示範模式 */}
+        {intro && (
+          <IntroDemoButtons
+            onIntro={() => setIntroOpen(true)}
+            onDemo={intro.onDemo}
+            demoLabel={intro.demoLabel}
+          />
+        )}
+        {intro && (
+          <GameIntro
+            open={introOpen}
+            onClose={() => setIntroOpen(false)}
+            emoji={emoji}
+            title={title}
+            tagline={intro.tagline}
+            sections={intro.sections}
+          />
+        )}
 
         {/* 開始（底部吸附，手機好撳） */}
         <StartButton onClick={onStart} disabled={!canStart} sticky>

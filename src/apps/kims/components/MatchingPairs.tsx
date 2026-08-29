@@ -1,5 +1,25 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { Timer, ArrowLeft, Star, Volume2, VolumeX } from 'lucide-react'
+import { DemoCaption, GameIntro, type IntroSection } from '../../../components/GameIntro'
+
+const MATCH_INTRO: IntroSection[] = [
+  {
+    title: '🎯 玩法',
+    items: [
+      '所有卡片蓋著，每次翻兩張：相同就配對成功並加分，不同則蓋回去。',
+      `限時內配對愈多、嘗試次數愈少，分數愈高（配對 +20 起，少嘗試再加碼）。`,
+      '全部配對成功提前結束，結算會顯示配對數、嘗試次數與評級。',
+    ],
+  },
+  {
+    title: '⚙️ 難度',
+    items: [
+      '初級 6 對（120 秒）、中級 10 對（180 秒）、高級 15 對（300 秒）。',
+      '卡片取自童軍贴纸庫——包含你在物品庫加的自訂物品。',
+      '💡 首次使用建議按「🎬 觀看示範」，看示範 bot 如何翻牌。',
+    ],
+  },
+]
 import { GameConfig, GameResult } from '../types'
 import { STICKER_LIBRARY, shuffleArray } from '../data/items'
 import { Sound } from '../hooks/useSound'
@@ -9,6 +29,8 @@ interface Props {
   playerName?: string
   onBack: () => void
   onResult: (result: GameResult) => void
+  /** 完整物品庫（含自訂）；未提供時用內建贴纸庫 */
+  allItems?: { id: string; name: string; emoji: string }[]
 }
 
 interface Card {
@@ -20,7 +42,7 @@ interface Card {
   matched: boolean
 }
 
-export default function MatchingPairs({ config, playerName, onBack }: Props) {
+export default function MatchingPairs({ config, playerName, onBack, allItems }: Props) {
   const [phase, setPhase] = useState<'setup' | 'playing' | 'results'>('setup')
   const [cards, setCards] = useState<Card[]>([])
   const [flippedIds, setFlippedIds] = useState<string[]>([])
@@ -31,6 +53,11 @@ export default function MatchingPairs({ config, playerName, onBack }: Props) {
   const [isChecking, setIsChecking] = useState(false)
   const [soundEnabled, setSoundEnabled] = useState(true)
   const [submitted, setSubmitted] = useState(false)
+
+  /* ---------- 示範模式（MOCK） ---------- */
+  const [demoMode, setDemoMode] = useState(false)
+  const [demoCaption, setDemoCaption] = useState('')
+  const [introOpen, setIntroOpen] = useState(false)
 
   const pairCount = useMemo(() => {
     if (config.difficulty === 'easy') return 6
@@ -45,7 +72,8 @@ export default function MatchingPairs({ config, playerName, onBack }: Props) {
   }, [config.difficulty])
 
   const initGame = useCallback(() => {
-    const selected = shuffleArray(STICKER_LIBRARY).slice(0, pairCount)
+    const pool = allItems && allItems.length > 0 ? allItems : STICKER_LIBRARY
+    const selected = shuffleArray(pool).slice(0, pairCount)
     const cardPairs: Card[] = []
     selected.forEach(item => {
       cardPairs.push({
@@ -75,7 +103,7 @@ export default function MatchingPairs({ config, playerName, onBack }: Props) {
     setTimer(timeLimit)
     setSubmitted(false)
     if (soundEnabled) Sound.gameStart()
-  }, [pairCount, timeLimit, soundEnabled])
+  }, [pairCount, timeLimit, soundEnabled, allItems])
 
   useEffect(() => {
     if (phase !== 'playing') return
@@ -148,6 +176,36 @@ export default function MatchingPairs({ config, playerName, onBack }: Props) {
     }
   }
 
+  /* 示範模式：bot 自動翻牌（示範中完美配對，目的是展示機制） */
+  const startDemo = useCallback(() => {
+    setDemoMode(true)
+    setDemoCaption('🎬 示範開始——每次翻兩張，相同即配對')
+    initGame()
+  }, [initGame])
+
+  useEffect(() => {
+    if (!demoMode || phase !== 'playing') return
+    const iv = setInterval(() => {
+      if (isChecking || flippedIds.length >= 2) return
+      const first = flippedIds.length === 1 ? cards.find(c => c.id === flippedIds[0]) : undefined
+      const target = first
+        ? cards.find(c => !c.flipped && !c.matched && c.pairId === first.pairId)
+        : cards.find(c => !c.flipped && !c.matched)
+      if (target) {
+        if (flippedIds.length === 0) setDemoCaption('翻第一張……')
+        else setDemoCaption('再翻一張相同的——配對成功，加分！')
+        handleCardClick(target.id)
+      }
+    }, 1100)
+    return () => clearInterval(iv)
+  }, [demoMode, phase, isChecking, flippedIds, cards])
+
+  useEffect(() => {
+    if (demoMode && phase === 'results') {
+      setDemoCaption('🎉 示範完成——這就是配對記憶。按「結束」回到正常遊戲')
+    }
+  }, [demoMode, phase])
+
   const result = useMemo((): GameResult => ({
     correct: matchedPairs,
     wrong: attempts - matchedPairs,
@@ -196,9 +254,14 @@ export default function MatchingPairs({ config, playerName, onBack }: Props) {
             <span>🎯 {pairCount} 對</span>
             <span>⏱️ {timeLimit} 秒限時</span>
           </div>
-          <button onClick={initGame} className="mt-6 px-8 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold text-lg transition-all hover:scale-105 active:scale-95">
-            🃏 開始遊戲
-          </button>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+            <button onClick={initGame} className="px-8 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold text-lg transition-all hover:scale-105 active:scale-95">
+              🃏 開始遊戲
+            </button>
+            <button onClick={startDemo} className="px-4 py-3 rounded-xl border border-indigo-400/40 bg-indigo-500/15 text-indigo-200 hover:bg-indigo-500/25 font-bold text-sm">🎬 觀看示範</button>
+            <button onClick={() => setIntroOpen(true)} className="px-4 py-3 rounded-xl border border-white/15 bg-white/5 text-white/90 hover:bg-white/10 font-bold text-sm">📖 玩法介紹</button>
+          </div>
+          <GameIntro open={introOpen} onClose={() => setIntroOpen(false)} emoji="🧠" title="配對記憶" tagline="翻開卡片，找出相同的配對" sections={MATCH_INTRO} />
         </div>
       )}
 
@@ -267,6 +330,8 @@ export default function MatchingPairs({ config, playerName, onBack }: Props) {
           </div>
         </div>
       )}
+
+      {demoMode && phase !== 'setup' && <DemoCaption text={demoCaption} onExit={() => setDemoMode(false)} />}
     </div>
   )
 }

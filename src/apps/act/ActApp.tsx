@@ -2,11 +2,12 @@
  * 大電視 — 全屏出題 + 計時，演員看題做動作，隊友猜
  * Copyright (c) 2026 Scout System. All rights reserved.
  */
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Lightbulb, EyeOff, Eye } from 'lucide-react'
 import QuestionManager from '../../components/QuestionManager'
 import BankFilters from '../../components/BankFilters'
 import SetupShell from '../../components/SetupShell'
+import { DemoCaption, type IntroSection } from '../../components/GameIntro'
 import { TimerRing, CountdownScreen, ActionButtons, SummaryScreen, TeamBar } from '../../components/RoundUI'
 import { PlayHeader, OptionGroup, Section, CopyrightMark } from '../../components/ui'
 import { ACT_BANK } from '../../data/actBank'
@@ -19,6 +20,33 @@ import { DIFFICULTY_META, type QDifficulty } from '../../shared/questionBank'
 const TIME_OPTIONS = [30, 45, 60, 90, 0]
 const COUNT_OPTIONS = [5, 10, 15, 20, 30]
 
+const ACT_INTRO: IntroSection[] = [
+  {
+    title: '🎯 玩法',
+    items: [
+      '題目以超大字顯示在大電視，只有面向螢幕的隊員看得到。',
+      '「演員」背向電視（或由主持讀題），只能用身體動作演繹。',
+      '不可出聲、不可說出題目中的任何字；隊友大聲喊出猜想。',
+      '猜中由主持按「答對了」自動進下一題；卡住按「跳過」。',
+    ],
+  },
+  {
+    title: '⌨️ 操作與快捷鍵',
+    items: [
+      '空白鍵 = 答對、→ = 跳過、B = 遮蔽題目、F = 全屏、P = 暫停。',
+      '每題倒數計時，時間到自動進下一題，全部完成自動結算。',
+    ],
+  },
+  {
+    title: '✏️ 題庫與自訂題目',
+    items: [
+      `內建 ${ACT_BANK.length} 題，可先按難度／分類篩選。`,
+      '下方「題目管理」可加入自訂題目或批次匯入，只存於本裝置。',
+      '💡 首次使用建議按「🎬 觀看示範」，30 秒看懂整個流程。',
+    ],
+  },
+]
+
 export default function ActApp() {
   const bank = useQuestionBank('act', ACT_BANK)
   const teamState = useTeams()
@@ -30,6 +58,10 @@ export default function ActApp() {
   const [full, setFull] = useState(false)
   const [blurred, setBlurred] = useState(false)
   const [showHint, setShowHint] = useState(false)
+
+  /* ---------- 示範模式（MOCK） ---------- */
+  const [demoMode, setDemoMode] = useState(false)
+  const [demoCaption, setDemoCaption] = useState('')
 
   useEffect(() => GameSound.setEnabled(soundOn), [soundOn])
 
@@ -59,6 +91,36 @@ export default function ActApp() {
     teamState.resetScores()
     engine.begin(bank.draw({ levels, categories: cats, count }))
   }, [bank, levels, cats, count, engine, teamState])
+
+  /* 示範模式：自動走一輪（看題 → 遮蔽 → 猜中） */
+  const outcomeRef = useRef(handleOutcome)
+  useEffect(() => { outcomeRef.current = handleOutcome })
+
+  const startDemo = useCallback(() => {
+    setDemoMode(true)
+    setDemoCaption('🎬 示範開始——3 秒倒數後自動進行')
+    start()
+  }, [start])
+
+  useEffect(() => {
+    if (!demoMode || engine.phase !== 'playing') return
+    setBlurred(false)
+    setDemoCaption(`本題：只有面向大電視的隊員看得到，「演員」背向螢幕看隊友` )
+    const t1 = setTimeout(() => {
+      setBlurred(true)
+      setDemoCaption('主持遮蔽題目——演員只能用動作演繹，隊友大聲猜')
+    }, 3000)
+    const t2 = setTimeout(() => {
+      outcomeRef.current(engine.idx % 3 === 2 ? 'pass' : 'correct')
+    }, 6500)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+  }, [demoMode, engine.phase, engine.idx])
+
+  useEffect(() => {
+    if (demoMode && engine.phase === 'summary') {
+      setDemoCaption('🎉 示範完成——流程就是這樣！按「結束」再開始你自己的遊戲')
+    }
+  }, [demoMode, engine.phase])
 
   /* 鍵盤 + 全屏請求 */
   useEffect(() => {
@@ -107,6 +169,7 @@ export default function ActApp() {
         canStart={matching > 0}
         startLabel={`開始（抽 ${Math.min(count, matching)} 題）`}
         onStart={start}
+        intro={{ sections: ACT_INTRO, onDemo: startDemo }}
       >
         <div className="grid gap-4 md:grid-cols-2">
           <Section icon={<span>🎯</span>} title="題目篩選">
@@ -151,11 +214,18 @@ export default function ActApp() {
     )
   }
 
-  if (engine.phase === 'countdown') return <CountdownScreen n={engine.countdown} />
+  if (engine.phase === 'countdown') {
+    return (
+      <>
+        <CountdownScreen n={engine.countdown} />
+        {demoMode && <DemoCaption text={demoCaption} onExit={() => setDemoMode(false)} />}
+      </>
+    )
+  }
 
   if (engine.phase === 'summary') {
     return (
-      <div className="ss-page">
+      <div className="ss-page relative">
         <SummaryScreen
           log={engine.log}
           teams={teamState.teams}
@@ -165,6 +235,7 @@ export default function ActApp() {
             teamState.resetScores()
           }}
         />
+        {demoMode && <DemoCaption text={demoCaption} onExit={() => setDemoMode(false)} />}
       </div>
     )
   }
@@ -253,6 +324,7 @@ export default function ActApp() {
         </div>
       )}
 
+      {demoMode && <DemoCaption text={demoCaption} onExit={() => setDemoMode(false)} />}
       <CopyrightMark />
     </div>
   )
