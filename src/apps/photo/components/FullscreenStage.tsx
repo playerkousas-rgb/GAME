@@ -40,7 +40,7 @@ export default function FullscreenStage({ open, title, onClose, children }: Prop
   )
 
   return (
-    <div className={shellClass}>
+    <div className={shellClass} aria-hidden={!open || undefined}>
       <div ref={stageRef} className="h-full w-full">
         <div className="flex h-full flex-col">
           <div className="flex items-center justify-between gap-3 border-b border-white/10 bg-white/5 px-4 py-3">
@@ -59,7 +59,8 @@ export default function FullscreenStage({ open, title, onClose, children }: Prop
               <X className="h-4 w-4" /> 關閉
             </button>
           </div>
-          <div className="min-h-0 flex-1 p-4">{children}</div>
+          {/* 關閉時不渲染內容：避免隱藏畫面重複的按鈕殘留在 DOM 與輔助工具樹 */}
+          <div className="min-h-0 flex-1 p-4">{open ? children : null}</div>
         </div>
       </div>
     </div>

@@ -587,6 +587,7 @@ function PhotoApp() {
             {/* Sidebar toggle */}
             <button
               onClick={() => setSidebarOpen((s) => !s)}
+              aria-label="顯示/隱藏控制"
               className={`absolute left-2 top-2 z-10 rounded-lg bg-black/40 p-2 text-white/75 backdrop-blur transition hover:bg-black/60 hover:text-white/80 ${sidebarOpen ? 'opacity-0' : 'opacity-100'}`}
             >
               <Settings className="h-4 w-4" />

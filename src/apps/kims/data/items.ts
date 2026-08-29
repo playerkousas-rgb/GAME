@@ -59,7 +59,6 @@ export const DEFAULT_BUILT_IN_ITEMS: Item[] = [
   { id: 'umbrella', name: '雨傘', emoji: '☂️', category: '日常', level: 'easy', builtIn: true },
   { id: 'glasses', name: '眼鏡', emoji: '👓', category: '日常', level: 'easy', builtIn: true },
   { id: 'shoe', name: '行山鞋', emoji: '🥾', category: '服裝', level: 'easy', builtIn: true },
-  { id: 'glove', name: '手套', emoji: '🧤', category: '服裝', level: 'easy', builtIn: true },
   { id: 'towel', name: '毛巾', emoji: '🧻', category: '衛生', level: 'easy', builtIn: true },
   { id: 'comb', name: '梳', emoji: '🪮', category: '衛生', level: 'easy', builtIn: true },
   { id: 'bell', name: '鈴', emoji: '🔔', category: '訊號', level: 'easy', builtIn: true },
@@ -93,7 +92,6 @@ export const DEFAULT_BUILT_IN_ITEMS: Item[] = [
 
   // ===== 擴充：高級 =====
   { id: 'sextant', name: '六分儀', emoji: '🧿', category: '定向', level: 'hard', builtIn: true },
-  { id: 'altimeter', name: '高度計', emoji: '📊', category: '定向', level: 'hard', builtIn: true },
   { id: 'crampon', name: '冰爪', emoji: '🥶', category: '登山', level: 'hard', builtIn: true },
   { id: 'harness', name: '安全帶', emoji: '🦺', category: '攀登', level: 'hard', builtIn: true },
   { id: 'helmet', name: '安全帽', emoji: '⛑️', category: '攀登', level: 'hard', builtIn: true },

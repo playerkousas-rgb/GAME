@@ -311,6 +311,7 @@ export default function EmojiApp() {
               }}
               className="min-h-12 rounded-xl bg-white/10 px-4 text-sm muted transition hover:bg-white/15"
               title="放棄並公布答案"
+              aria-label="放棄並公布答案"
             >
               <Sparkles className="h-4 w-4" />
             </button>

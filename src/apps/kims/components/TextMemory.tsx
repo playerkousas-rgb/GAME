@@ -103,19 +103,23 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
     return () => document.removeEventListener('fullscreenchange', handler)
   }, [])
 
-  /* 觀察倒數 */
+  /* 觀察倒數（遮蓋→作答的過渡獨立處理，避免被 phase 變更的 cleanup 取消） */
   useEffect(() => {
-    if (phase !== 'observe') return
-    if (timer <= 0) {
-      if (soundEnabled) Sound.submit()
-      const toHidden = window.setTimeout(() => setPhase('hidden'), 0)
+    if (phase !== 'observe' && phase !== 'hidden') return
+    if (phase === 'hidden') {
       const toAnswer = window.setTimeout(() => {
         setPhase('answer')
         setTimer(config.answerSeconds)
       }, 1500)
       return () => {
-        window.clearTimeout(toHidden)
         window.clearTimeout(toAnswer)
+      }
+    }
+    if (timer <= 0) {
+      if (soundEnabled) Sound.submit()
+      const toHidden = window.setTimeout(() => setPhase('hidden'), 0)
+      return () => {
+        window.clearTimeout(toHidden)
       }
     }
     if (timer <= 5 && timer > 0 && soundEnabled) Sound.tick()

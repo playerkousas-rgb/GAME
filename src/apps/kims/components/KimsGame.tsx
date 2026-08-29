@@ -59,15 +59,19 @@ export default function KimsGame({ config, uploadedItems = [], allItems, playerN
   }, [])
 
   useEffect(() => {
-    if (phase !== 'observe' && phase !== 'answer') return
+    if (phase !== 'observe' && phase !== 'answer' && phase !== 'hidden') return
+    // 遮蓋完 1.5 秒緩衝後進入作答（獨立 effect 段，避免被 phase 變更的 cleanup 取消）
+    if (phase === 'hidden') {
+      const toAnswer = window.setTimeout(() => { setAnimating(false); setPhase('answer'); setTimer(answerSeconds) }, 1500)
+      return () => { window.clearTimeout(toAnswer) }
+    }
     if (timer <= 5 && timer > 0 && soundEnabled) Sound.tick()
     if (timer <= 0) {
       // 以 timeout 延後，避免在 effect 內同步 setState
       if (phase === 'observe') {
         if (soundEnabled) Sound.submit()
         const toHidden = window.setTimeout(() => { setPhase('hidden'); setShowItems(false); setAnimating(true) }, 0)
-        const toAnswer = window.setTimeout(() => { setAnimating(false); setPhase('answer'); setTimer(answerSeconds) }, 1500)
-        return () => { window.clearTimeout(toHidden); window.clearTimeout(toAnswer) }
+        return () => { window.clearTimeout(toHidden) }
       }
       if (submitted) return
       const t = window.setTimeout(() => {
