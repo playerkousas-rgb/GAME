@@ -14,6 +14,7 @@ import {
   Printer, Settings2, ArrowLeft, Check, Sparkles, BookOpen, Lock, Wand2, Flag, ListOrdered,
 } from 'lucide-react'
 import QRCode from '../../components/QRCode'
+import { PageHeader, ThemeToggle } from '../../components/ui'
 import { WORD_CATEGORIES, type WordPair } from './data/wordPairs'
 import PairManager from './components/PairManager'
 import {
@@ -119,7 +120,7 @@ export default function UndercoverApp() {
     return (
       <Shell>
         <div className="mx-auto w-full max-w-2xl space-y-4">
-          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#0a2260] to-[#02133e] p-5 text-center">
+          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-400/10 to-transparent p-5 text-center">
             <div className="text-4xl">🕵️</div>
             <h1 className="mt-1 text-2xl font-black text-white">誰是臥底</h1>
             <p className="mt-1 text-xs text-white/75">
@@ -354,7 +355,7 @@ export default function UndercoverApp() {
     return (
       <Shell>
         <div className="mx-auto w-full max-w-2xl space-y-4 text-center">
-          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#0a2260] to-[#02133e] p-8">
+          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-400/10 to-transparent p-8">
             <Flag className="mx-auto h-14 w-14 text-amber-300" />
             <h1 className="mt-3 text-2xl font-black text-white">整輪玩完！</h1>
             <p className="mt-2 text-sm leading-relaxed text-white/75">
@@ -384,7 +385,7 @@ export default function UndercoverApp() {
     <Shell>
       <div className="mx-auto w-full max-w-3xl space-y-4">
         {/* 局數 */}
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#0a2260] to-[#02133e] p-5 text-center">
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-400/10 to-transparent p-5 text-center">
           <div className="text-xs text-white/75">本輪第</div>
           <div
             className="my-1 font-black leading-none text-amber-300"
@@ -520,7 +521,7 @@ export default function UndercoverApp() {
                   className={`flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-xs ${
                     r.round === round
                       ? 'border-amber-400 bg-amber-400/15'
-                      : 'border-white/10 bg-[#0d2050]'
+                      : 'border-white/10 bg-black/20'
                   }`}
                 >
                   <span className="w-8 shrink-0 text-left font-black text-amber-300">{r.round}.</span>
@@ -573,7 +574,17 @@ export default function UndercoverApp() {
 /* ---------- 小組件 ---------- */
 
 function Shell({ children }: { children: React.ReactNode }) {
-  return <div className="min-h-[100dvh] bg-[#02133e] px-4 pb-24 pt-5 text-white">{children}</div>
+  return (
+    <div className="ss-page flex flex-col">
+      <PageHeader
+        emoji="🕵️"
+        title="誰是臥底"
+        subtitle="Who Is The Undercover"
+        actions={<ThemeToggle />}
+      />
+      <div className="mx-auto w-full max-w-6xl flex-1 px-4 pb-8 pt-4">{children}</div>
+    </div>
+  )
 }
 
 function Section({

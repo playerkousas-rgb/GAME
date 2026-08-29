@@ -6,10 +6,6 @@ import {
   Play,
   Eye,
   EyeOff,
-  Volume2,
-  VolumeX,
-  Sun,
-  Moon,
   Settings,
   X,
   Shuffle,
@@ -31,7 +27,7 @@ import CountdownOverlay from './components/CountdownOverlay'
 import FullscreenStage from './components/FullscreenStage'
 import Leaderboard from './components/Leaderboard'
 import QRCodeModal from './components/QRCodeModal'
-import { useTheme } from '../../context/useTheme'
+import { PageHeader, SoundToggle, ThemeToggle } from '../../components/ui'
 import { COPYRIGHT_UPPER } from '../../shared/brand'
 import { DECK_PACKS, generateDeck } from './lib/generatedDeck'
 import { Sound } from './lib/sound'
@@ -83,9 +79,7 @@ function formatTime(totalSec: number) {
 
 /* ==================== APP ==================== */
 function PhotoApp() {
-  const { theme, toggle: toggleTheme } = useTheme()
-
-  /* --- Core --- */
+    /* --- Core --- */
   const [files, setFiles] = useState<File[]>([])
   const [deckLoading, setDeckLoading] = useState<string | null>(null)
   const [index, setIndex] = useState(0)
@@ -306,10 +300,22 @@ function PhotoApp() {
 
       {/* ==================== SETUP SCREEN ==================== */}
       {phase === 'idle' && (
-        <div className="mx-auto flex max-w-2xl flex-col items-center gap-6 px-4 pb-8 pt-12">
+        <div className="flex min-h-dvh flex-col">
+          <PageHeader
+            emoji="🖼️"
+            title="像素化猜謎圖"
+            subtitle="Photo Guessing Game"
+            actions={
+              <>
+                <SoundToggle on={soundOn} onToggle={setSoundOn} />
+                <ThemeToggle />
+              </>
+            }
+          />
+          <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center gap-6 px-4 pb-8 pt-8">
           <div className="text-center">
-            <h1 className="text-3xl font-black tracking-tight sm:text-4xl">像素化猜謎圖工具</h1>
-            <p className="mt-2 text-sm text-white/70">Scout System · 投影遊戲專用</p>
+            <h1 className="text-3xl font-black tracking-tight sm:text-4xl">像素化猜謎圖</h1>
+            <p className="mt-2 text-sm muted">Scout System · 投影遊戲專用</p>
           </div>
 
           {/* Upload */}
@@ -456,7 +462,7 @@ function PhotoApp() {
           {files.length > 0 && gameMode && (
             <button
               onClick={startGame}
-              className="w-full rounded-2xl bg-indigo-500 py-4 text-lg font-black text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-400 active:scale-[0.98]"
+              className="btn-primary w-full !py-4 !text-lg"
             >
               <Play className="mr-2 inline h-5 w-5" />
               開始遊戲
@@ -474,24 +480,27 @@ function PhotoApp() {
             </button>
           )}
 
-          {/* Footer */}
-          <div className="mt-4 flex items-center gap-3 text-[11px] text-white/75">
-            <span className="rounded-full border border-white/5 bg-white/[0.03] px-2 py-0.5">{COPYRIGHT_UPPER}</span>
-            <button onClick={toggleTheme} className="rounded-full p-1.5 transition hover:bg-white/5">
-              {theme === 'dark' ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
-            </button>
-            <button onClick={() => setSoundOn((s) => !s)} className="rounded-full p-1.5 transition hover:bg-white/5">
-              {soundOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
-            </button>
-          </div>
+        </div>
         </div>
       )}
 
       {/* ==================== READY SCREEN ==================== */}
       {phase === 'ready' && (
-        <div className="mx-auto flex max-w-2xl flex-col items-center gap-6 px-4 pb-8 pt-12">
+        <div className="flex min-h-dvh flex-col">
+          <PageHeader
+            emoji="🖼️"
+            title="像素化猜謎圖"
+            subtitle="Photo Guessing Game"
+            actions={
+              <>
+                <SoundToggle on={soundOn} onToggle={setSoundOn} />
+                <ThemeToggle />
+              </>
+            }
+          />
+          <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center gap-6 px-4 pb-8 pt-8">
           <div className="text-center">
-            <div className="mb-2 text-sm text-white/70">已準備就緒</div>
+            <div className="mb-2 text-sm muted">已準備就緒</div>
             <h2 className="text-2xl font-black">第 {index + 1} / {files.length} 題</h2>
             <div className="mt-1 text-xs text-white/75">{currentFile?.name}</div>
           </div>
@@ -519,7 +528,7 @@ function PhotoApp() {
 
           <button
             onClick={startGame}
-            className="w-full max-w-sm rounded-2xl bg-indigo-500 py-4 text-lg font-black text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-400 active:scale-[0.98]"
+            className="btn-primary w-full max-w-sm !py-4 !text-lg"
           >
             <Play className="mr-2 inline h-5 w-5" />
             開始遊戲
@@ -528,16 +537,17 @@ function PhotoApp() {
           <div className="flex gap-3">
             <button
               onClick={() => setPhase('idle')}
-              className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/75 transition hover:bg-white/[0.07]"
+              className="btn-ghost px-4 py-2 text-xs"
             >
               返回設定
             </button>
             <button
               onClick={() => setQrOpen(true)}
-              className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/75 transition hover:bg-white/[0.07]"
+              className="btn-ghost px-4 py-2 text-xs"
             >
               <Smartphone className="h-3.5 w-3.5" /> QR Code
             </button>
+          </div>
           </div>
         </div>
       )}

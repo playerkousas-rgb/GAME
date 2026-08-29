@@ -3,25 +3,25 @@
  * Copyright (c) 2026 Scout System. All rights reserved.
  */
 import { useCallback, useEffect, useState } from 'react'
-import { Pause, Plus, Minus, Maximize2, Minimize2, Lightbulb, Sparkles, Send } from 'lucide-react'
+import { Lightbulb, Sparkles, Send } from 'lucide-react'
 import QuestionManager from '../../components/QuestionManager'
 import BankFilters from '../../components/BankFilters'
 import SetupShell from '../../components/SetupShell'
 import { TimerRing, CountdownScreen, SummaryScreen, TeamBar } from '../../components/RoundUI'
+import { PlayHeader, OptionGroup, Section, CopyrightMark } from '../../components/ui'
 import { EMOJI_BANK } from '../../data/emojiBank'
 import { useQuestionBank } from '../../shared/useQuestionBank'
 import { useRoundEngine } from '../../shared/useRoundEngine'
 import { useTeams } from '../../shared/useTeams'
 import { GameSound } from '../../shared/gameSound'
 import { DIFFICULTY_META, type QDifficulty } from '../../shared/questionBank'
-import { COPYRIGHT_UPPER } from '../../shared/brand'
 
 const TIME_OPTIONS = [20, 30, 45, 60, 0]
 const COUNT_OPTIONS = [10, 15, 20, 30]
 
 /** 正規化答案以便比對（移除空白與標點、統一大小寫） */
 function norm(s: string) {
-  return s.toLowerCase().replace(/[\s·・、，,。.!！?？'"'"()（）\-—_]/g, '')
+  return s.toLowerCase().replace(/[\s·・、，,。.!！?？'""()（）\-—_]/g, '')
 }
 
 export default function EmojiApp() {
@@ -140,7 +140,7 @@ export default function EmojiApp() {
         onStart={start}
       >
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <Section icon={<span>🎯</span>} title="題目篩選">
             <BankFilters
               levels={levels}
               onLevels={setLevels}
@@ -149,68 +149,51 @@ export default function EmojiApp() {
               onSelected={setCats}
               matching={matching}
             />
-          </div>
-          <div className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4">
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-white/75">🎮 遊戲模式</label>
-              <div className="grid grid-cols-2 gap-1.5">
-                <button
-                  onClick={() => setInputMode(true)}
-                  className={`rounded-lg border p-2.5 text-left transition ${
-                    inputMode ? 'border-amber-400/60 bg-amber-400/15' : 'border-white/10 bg-black/20 hover:bg-white/5'
-                  }`}
-                >
-                  <div className="text-xs font-bold">⌨️ 輸入模式</div>
-                  <div className="mt-0.5 text-[10px] text-white/70">打字作答，自動判分</div>
-                </button>
-                <button
-                  onClick={() => setInputMode(false)}
-                  className={`rounded-lg border p-2.5 text-left transition ${
-                    !inputMode ? 'border-amber-400/60 bg-amber-400/15' : 'border-white/10 bg-black/20 hover:bg-white/5'
-                  }`}
-                >
-                  <div className="text-xs font-bold">📽️ 主持模式</div>
-                  <div className="mt-0.5 text-[10px] text-white/70">投影搶答，人手計分</div>
-                </button>
-              </div>
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-white/75">⏱️ 每題時間</label>
-              <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-5">
-                {TIME_OPTIONS.map((s) => (
+          </Section>
+
+          <Section icon={<span>⏱️</span>} title="遊戲節奏">
+            <div className="space-y-3">
+              <div>
+                <div className="mb-1.5 text-xs font-medium muted">🎮 遊戲模式</div>
+                <div className="grid grid-cols-2 gap-1.5">
                   <button
-                    key={s}
-                    onClick={() => setSeconds(s)}
-                    className={`rounded-lg border py-2 text-xs font-medium transition ${
-                      seconds === s
-                        ? 'border-amber-400/60 bg-amber-400/15 text-amber-200'
-                        : 'border-white/10 bg-black/20 text-white/70 hover:text-white/70'
-                    }`}
+                    type="button"
+                    onClick={() => setInputMode(true)}
+                    className={`chip !justify-start !p-3 text-left ${inputMode ? 'chip-on' : ''}`}
                   >
-                    {s === 0 ? '手動' : `${s}秒`}
+                    <div>
+                      <div className="text-xs font-bold">⌨️ 輸入模式</div>
+                      <div className="mt-0.5 text-[10px] font-normal muted">打字作答，自動判分</div>
+                    </div>
                   </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-white/75">🎲 題目數量</label>
-              <div className="grid grid-cols-4 gap-1.5">
-                {COUNT_OPTIONS.map((c) => (
                   <button
-                    key={c}
-                    onClick={() => setCount(c)}
-                    className={`rounded-lg border py-2 text-xs font-medium transition ${
-                      count === c
-                        ? 'border-amber-400/60 bg-amber-400/15 text-amber-200'
-                        : 'border-white/10 bg-black/20 text-white/70 hover:text-white/70'
-                    }`}
+                    type="button"
+                    onClick={() => setInputMode(false)}
+                    className={`chip !justify-start !p-3 text-left ${!inputMode ? 'chip-on' : ''}`}
                   >
-                    {c}
+                    <div>
+                      <div className="text-xs font-bold">📽️ 主持模式</div>
+                      <div className="mt-0.5 text-[10px] font-normal muted">投影搶答，人手計分</div>
+                    </div>
                   </button>
-                ))}
+                </div>
               </div>
+              <OptionGroup
+                label="每題時間"
+                value={seconds}
+                onChange={setSeconds}
+                cols={5}
+                options={TIME_OPTIONS.map((s) => ({ value: s, label: s === 0 ? '手動' : `${s}秒` }))}
+              />
+              <OptionGroup
+                label="題目數量"
+                value={count}
+                onChange={setCount}
+                cols={4}
+                options={COUNT_OPTIONS.map((c) => ({ value: c, label: `${c} 題` }))}
+              />
             </div>
-          </div>
+          </Section>
         </div>
 
         <QuestionManager bank="emoji" builtIn={EMOJI_BANK} custom={bank.custom} onChange={bank.setCustom} />
@@ -222,7 +205,7 @@ export default function EmojiApp() {
 
   if (engine.phase === 'summary') {
     return (
-      <div className="min-h-[100dvh] bg-[#02133e] text-white">
+      <div className="ss-page">
         <SummaryScreen
           log={engine.log}
           teams={teamState.teams}
@@ -243,34 +226,18 @@ export default function EmojiApp() {
 
   return (
     <div className={`flex flex-col bg-[#02133e] text-white ${full ? 'fixed inset-0 z-50' : 'min-h-[100dvh]'}`}>
-      <div className="flex items-center gap-3 border-b border-white/10 px-4 py-2">
-        <span className="text-lg">🧩</span>
-        <span className="rounded-lg bg-white/10 px-2.5 py-1 text-xs font-bold tabular-nums">
-          {Math.min(engine.idx + 1, engine.queue.length)} / {engine.queue.length}
-        </span>
-        <span className="rounded-lg bg-emerald-500/15 px-2.5 py-1 text-xs font-bold text-emerald-300 tabular-nums">
-          ✓ {engine.stats.correct}
-        </span>
-        {q && <span className={`hidden text-[11px] sm:inline ${DIFFICULTY_META[q.level].color}`}>{q.category}</span>}
-        <div className="ml-auto flex items-center gap-1">
-          <button onClick={() => engine.setPaused((p) => !p)} className="rounded-lg p-2 text-white/70 transition hover:bg-white/10 hover:text-white">
-            <Pause className="h-4 w-4" />
-          </button>
-          {seconds > 0 && (
-            <>
-              <button onClick={() => engine.addTime(-10)} className="rounded-lg p-2 text-white/70 transition hover:bg-white/10 hover:text-white">
-                <Minus className="h-4 w-4" />
-              </button>
-              <button onClick={() => engine.addTime(10)} className="rounded-lg p-2 text-white/70 transition hover:bg-white/10 hover:text-white">
-                <Plus className="h-4 w-4" />
-              </button>
-            </>
-          )}
-          <button onClick={() => setFull((f) => !f)} className="rounded-lg p-2 text-white/70 transition hover:bg-white/10 hover:text-white">
-            {full ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-          </button>
-        </div>
-      </div>
+      <PlayHeader
+        emoji="🧩"
+        progress={`${Math.min(engine.idx + 1, engine.queue.length)} / ${engine.queue.length}`}
+        score={engine.stats.correct}
+        meta={q && <span className={DIFFICULTY_META[q.level].color}>{q.category}</span>}
+        onPause={() => engine.setPaused((p) => !p)}
+        full={full}
+        onToggleFull={() => setFull((f) => !f)}
+        timed={seconds > 0}
+        onTimeMinus={() => engine.addTime(-10)}
+        onTimePlus={() => engine.addTime(10)}
+      />
 
       {/* Emoji 題面 */}
       <div className="relative grid min-h-0 flex-1 place-items-center px-4 py-4">
@@ -281,19 +248,20 @@ export default function EmojiApp() {
 
           {revealed ? (
             <div className="mt-6 animate-[pulse_0.6s_ease-out_1]">
-              <div className="text-[10px] uppercase tracking-widest text-white/75">答案</div>
+              <div className="text-[10px] uppercase tracking-widest muted">答案</div>
               <div className="text-4xl font-black text-emerald-300 md:text-6xl">{q?.answer}</div>
             </div>
           ) : (
-            <div className="mt-6 text-sm text-white/75">
+            <div className="mt-6 text-sm muted">
               {q ? `${[...q.answer].length} 個字` : ''}
             </div>
           )}
 
           {q?.hint && !revealed && (
             <button
+              type="button"
               onClick={() => setShowHint((h) => !h)}
-              className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/25 px-4 py-2 text-sm text-white/70 transition hover:text-amber-200"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/25 px-4 py-2 text-sm muted transition hover:text-amber-200"
             >
               <Lightbulb className="h-4 w-4" />
               {showHint ? q.hint : '顯示提示'}
@@ -306,7 +274,7 @@ export default function EmojiApp() {
         </div>
 
         {teamState.teams.length > 0 && (
-          <div className="absolute bottom-2 left-4">
+          <div className="absolute bottom-2 left-4 max-w-[60vw]">
             <TeamBar teams={teamState.teams} active={teamState.active} onActive={teamState.setActive} />
           </div>
         )}
@@ -315,31 +283,33 @@ export default function EmojiApp() {
       {/* 操作區 */}
       <div className="border-t border-white/10 p-3">
         {inputMode && !revealed ? (
-          <div className="mx-auto flex max-w-xl gap-2">
+          <div className="mx-auto flex max-w-xl flex-wrap gap-2">
             <input
               autoFocus
               value={guess}
               onChange={(e) => setGuess(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && submitGuess()}
               placeholder="輸入答案後按 Enter..."
-              className={`flex-1 rounded-xl border-2 bg-black/30 px-4 py-3 text-lg outline-none transition ${
+              className={`min-w-0 flex-1 rounded-xl border-2 bg-black/30 px-4 py-3 text-lg outline-none transition ${
                 feedback === 'wrong'
                   ? 'animate-[shake_0.4s] border-rose-500 text-rose-200'
                   : 'border-white/10 focus:border-amber-400/60'
               }`}
             />
             <button
+              type="button"
               onClick={submitGuess}
-              className="flex items-center gap-1.5 rounded-xl bg-amber-400 px-5 py-3 font-bold text-stone-900 transition hover:bg-amber-300"
+              className="flex min-h-12 items-center gap-1.5 rounded-xl bg-amber-400 px-5 font-bold text-stone-900 transition hover:bg-amber-300"
             >
               <Send className="h-4 w-4" /> 作答
             </button>
             <button
+              type="button"
               onClick={() => {
                 setRevealed(true)
                 GameSound.reveal()
               }}
-              className="rounded-xl bg-white/10 px-4 py-3 text-sm text-white/75 transition hover:bg-white/15"
+              className="min-h-12 rounded-xl bg-white/10 px-4 text-sm muted transition hover:bg-white/15"
               title="放棄並公布答案"
             >
               <Sparkles className="h-4 w-4" />
@@ -350,20 +320,22 @@ export default function EmojiApp() {
             {!revealed ? (
               <>
                 <button
+                  type="button"
                   onClick={() => {
                     setRevealed(true)
                     GameSound.reveal()
                   }}
-                  className="rounded-2xl bg-indigo-500 py-4 text-lg font-black text-white transition hover:bg-indigo-400 active:scale-[0.98]"
+                  className="min-h-14 rounded-2xl bg-indigo-500 text-lg font-black text-white transition hover:bg-indigo-400 active:scale-[0.98]"
                 >
                   ✨ 公布答案
                 </button>
                 <button
+                  type="button"
                   onClick={() => {
                     GameSound.skip()
                     nextQuestion('pass')
                   }}
-                  className="rounded-2xl bg-white/10 py-4 text-lg font-black text-white/70 transition hover:bg-white/15 active:scale-[0.98]"
+                  className="min-h-14 rounded-2xl bg-white/10 text-lg font-black text-white/70 transition hover:bg-white/15 active:scale-[0.98]"
                 >
                   ⤼ 跳過
                 </button>
@@ -371,14 +343,16 @@ export default function EmojiApp() {
             ) : (
               <>
                 <button
+                  type="button"
                   onClick={() => nextQuestion('correct')}
-                  className="rounded-2xl bg-emerald-500 py-4 text-lg font-black text-white transition hover:bg-emerald-400 active:scale-[0.98]"
+                  className="min-h-14 rounded-2xl bg-emerald-500 text-lg font-black text-white transition hover:bg-emerald-400 active:scale-[0.98]"
                 >
                   ✓ 猜中了（加分）
                 </button>
                 <button
+                  type="button"
                   onClick={() => nextQuestion('pass')}
-                  className="rounded-2xl bg-white/10 py-4 text-lg font-black text-white/70 transition hover:bg-white/15 active:scale-[0.98]"
+                  className="min-h-14 rounded-2xl bg-white/10 text-lg font-black text-white/70 transition hover:bg-white/15 active:scale-[0.98]"
                 >
                   ✗ 無人猜中
                 </button>
@@ -386,7 +360,7 @@ export default function EmojiApp() {
             )}
           </div>
         )}
-        <p className="mt-2 text-center text-[10px] text-white/75">
+        <p className="mt-2 text-center text-[10px] muted-2">
           {inputMode ? 'Enter = 作答 · ✨ = 放棄並看答案' : '空白鍵 = 公布/答對 · → = 跳過 · F = 全屏 · P = 暫停'}
         </p>
       </div>
@@ -395,14 +369,14 @@ export default function EmojiApp() {
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/80 backdrop-blur">
           <div className="text-center">
             <p className="mb-4 text-5xl font-black">⏸ 已暫停</p>
-            <button onClick={() => engine.setPaused(false)} className="rounded-xl bg-amber-400 px-6 py-3 font-bold text-stone-900">
+            <button onClick={() => engine.setPaused(false)} className="btn-primary">
               繼續遊戲
             </button>
           </div>
         </div>
       )}
 
-      <div className="pointer-events-none fixed bottom-1 right-2 text-[10px] text-white/10">{COPYRIGHT_UPPER}</div>
+      <CopyrightMark />
     </div>
   )
 }

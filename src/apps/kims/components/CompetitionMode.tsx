@@ -127,16 +127,16 @@ export default function CompetitionMode({ config, gameComponent, onBack, onCompe
   return (
     <div className="space-y-4">
       {/* 頂欄 */}
-      <div className="flex items-center justify-between rounded-xl bg-[#02133E]/80 border border-blue-800/50 p-3">
-        <button onClick={phase === 'leaderboard' ? handleBackToLobby : onBack} className="flex items-center gap-1 text-blue-100 hover:text-blue-100 text-sm">
+      <div className="flex items-center justify-between rounded-xl bg-white/5 border border-white/15 p-3">
+        <button onClick={phase === 'leaderboard' ? handleBackToLobby : onBack} className="flex items-center gap-1 text-white/70 hover:text-white/70 text-sm">
           <ArrowLeft size={16} /> 返回
         </button>
-        <div className="flex items-center gap-2 text-sm text-blue-200">
+        <div className="flex items-center gap-2 text-sm text-white/60">
           <Crown size={14} className="text-amber-400" />
           <span>🏆 比賽模式</span>
           {phase === 'playing' && (
             <>
-              <span className="text-blue-200">|</span>
+              <span className="text-white/60">|</span>
               <span className="text-white">
                 {currentPlayerIndex + 1} / {activeCompetitors.length}
               </span>
@@ -145,7 +145,7 @@ export default function CompetitionMode({ config, gameComponent, onBack, onCompe
         </div>
         <button
           onClick={() => setSoundEnabled(!soundEnabled)}
-          className="text-blue-100 hover:text-white"
+          className="text-white/70 hover:text-white"
           title={soundEnabled ? '關閉音效' : '開啟音效'}
         >
           {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
@@ -154,16 +154,16 @@ export default function CompetitionMode({ config, gameComponent, onBack, onCompe
 
       {/* 大廳 - 玩家註冊 */}
       {phase === 'lobby' && (
-        <div className="rounded-2xl border border-blue-800/40 bg-[#02133E]/80 p-6">
+        <div className="rounded-2xl border border-white/15 bg-white/5 p-6">
           <div className="text-center mb-6">
             <div className="text-5xl mb-2">🏆</div>
             <h2 className="text-2xl font-bold text-white">比賽大廳</h2>
-            <p className="text-blue-100 text-sm mt-1">加入玩家後開始 Kahoot! 風格比賽</p>
+            <p className="text-white/70 text-sm mt-1">加入玩家後開始 Kahoot! 風格比賽</p>
           </div>
 
           {/* 新增玩家 */}
-          <div className="bg-[#0a1e4a]/60 rounded-xl border border-blue-700/30 p-4 mb-4">
-            <h3 className="text-sm font-medium text-blue-200 mb-3 flex items-center gap-2">
+          <div className="bg-black/20 rounded-xl border border-white/10 p-4 mb-4">
+            <h3 className="text-sm font-medium text-white/60 mb-3 flex items-center gap-2">
               <UserPlus size={16} className="text-amber-400" />
               新增玩家
             </h3>
@@ -173,13 +173,13 @@ export default function CompetitionMode({ config, gameComponent, onBack, onCompe
                 onChange={e => setNewPlayerName(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && addPlayer()}
                 placeholder="玩家名稱"
-                className="rounded-lg border border-blue-700 bg-[#02133E] p-2.5 text-white placeholder-blue-500 focus:border-amber-400 focus:outline-none"
+                className="rounded-lg border border-white/15 bg-[#02133e] p-2.5 text-white placeholder:text-white/40 focus:border-amber-400 focus:outline-none"
               />
               <input
                 value={newTeamName}
                 onChange={e => setNewTeamName(e.target.value)}
                 placeholder="所屬小隊 (可選)"
-                className="rounded-lg border border-blue-700 bg-[#02133E] p-2.5 text-white placeholder-blue-500 focus:border-amber-400 focus:outline-none"
+                className="rounded-lg border border-white/15 bg-[#02133e] p-2.5 text-white placeholder:text-white/40 focus:border-amber-400 focus:outline-none"
               />
               <button
                 onClick={addPlayer}
@@ -192,25 +192,25 @@ export default function CompetitionMode({ config, gameComponent, onBack, onCompe
 
           {/* 玩家列表 */}
           <div className="space-y-2 mb-4">
-            <h3 className="text-sm font-medium text-blue-100 flex items-center gap-2">
+            <h3 className="text-sm font-medium text-white/70 flex items-center gap-2">
               <Users size={14} /> 已加入玩家 ({activeCompetitors.length})
             </h3>
             {activeCompetitors.length === 0 && (
-              <p className="text-sm text-blue-200 text-center py-4">尚未有玩家加入</p>
+              <p className="text-sm text-white/60 text-center py-4">尚未有玩家加入</p>
             )}
             {activeCompetitors.map((c, idx) => (
-              <div key={c.id} className="flex items-center justify-between rounded-lg bg-[#0a1e4a]/40 border border-blue-800/30 px-3 py-2.5">
+              <div key={c.id} className="flex items-center justify-between rounded-lg bg-black/40 border border-white/10 px-3 py-2.5">
                 <div className="flex items-center gap-3">
                   <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
                     idx === 0 ? 'bg-amber-400 text-stone-900' :
-                    idx === 1 ? 'bg-gray-400 text-stone-900' :
-                    idx === 2 ? 'bg-amber-700 text-white' : 'bg-blue-800 text-blue-200'
+                    idx === 1 ? 'bg-slate-400 text-stone-900' :
+                    idx === 2 ? 'bg-amber-700 text-white' : 'bg-white/10 text-white/60'
                   }`}>
                     {idx + 1}
                   </span>
                   <div>
                     <span className="text-sm font-medium text-white">{c.name || '未命名'}</span>
-                    {c.teamName && <span className="text-xs text-blue-200 ml-2">({c.teamName})</span>}
+                    {c.teamName && <span className="text-xs text-white/60 ml-2">({c.teamName})</span>}
                   </div>
                 </div>
                 <button
@@ -226,7 +226,7 @@ export default function CompetitionMode({ config, gameComponent, onBack, onCompe
 
           {/* 快捷加入 */}
           <details className="mb-4">
-            <summary className="text-sm text-blue-200 cursor-pointer hover:text-blue-200">
+            <summary className="text-sm text-white/60 cursor-pointer hover:text-white/60">
               📋 快速填滿示範玩家
             </summary>
             <div className="mt-2 grid grid-cols-2 gap-2">
@@ -240,7 +240,7 @@ export default function CompetitionMode({ config, gameComponent, onBack, onCompe
                     })
                     Sound.playerJoin()
                   }}
-                  className="text-left text-sm text-blue-100 hover:text-white hover:bg-blue-800/30 rounded-lg px-3 py-1.5 border border-blue-800/20"
+                  className="text-left text-sm text-white/70 hover:text-white hover:bg-white/10 rounded-lg px-3 py-1.5 border border-white/10"
                 >
                   + {name}
                 </button>
@@ -255,7 +255,7 @@ export default function CompetitionMode({ config, gameComponent, onBack, onCompe
             className={`w-full rounded-xl py-3.5 font-bold text-lg transition-all flex items-center justify-center gap-2 ${
               activeCompetitors.length >= 2
                 ? 'bg-amber-400 text-stone-900 hover:bg-amber-300 hover:scale-[1.01]'
-                : 'bg-blue-900/50 text-blue-200 cursor-not-allowed'
+                : 'bg-black/35 text-white/60 cursor-not-allowed'
             }`}
           >
             <Play size={20} />
@@ -269,10 +269,10 @@ export default function CompetitionMode({ config, gameComponent, onBack, onCompe
         <div>
           {/* 轉場提示 */}
           {isTransitioning ? (
-            <div className="rounded-2xl border border-blue-800/40 bg-[#02133E]/80 p-12 text-center">
+            <div className="rounded-2xl border border-white/15 bg-white/5 p-12 text-center">
               <div className="text-4xl mb-3 animate-bounce">🔄</div>
               <h2 className="text-xl font-bold text-white">準備下一位玩家…</h2>
-              <p className="text-blue-100 mt-2">請將裝置傳給 {competitors[currentPlayerIndex + 1]?.name}</p>
+              <p className="text-white/70 mt-2">請將裝置傳給 {competitors[currentPlayerIndex + 1]?.name}</p>
               <div className="mt-3 text-2xl font-bold text-amber-400">
                 {competitors[currentPlayerIndex + 1]?.name}
               </div>
@@ -292,7 +292,7 @@ export default function CompetitionMode({ config, gameComponent, onBack, onCompe
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-xs text-blue-200">目前分數</div>
+                    <div className="text-xs text-white/60">目前分數</div>
                     <div className="text-lg font-bold text-amber-400">{currentPlayer?.score || 0}</div>
                   </div>
                 </div>
@@ -317,11 +317,11 @@ export default function CompetitionMode({ config, gameComponent, onBack, onCompe
 
       {/* 最終排行榜 */}
       {phase === 'leaderboard' && (
-        <div className="rounded-2xl border border-blue-800/40 bg-[#02133E]/80 p-6">
+        <div className="rounded-2xl border border-white/15 bg-white/5 p-6">
           <div className="text-center mb-6">
             <div className="text-5xl mb-2">🏆</div>
             <h2 className="text-2xl font-bold text-white">最終排行榜</h2>
-            <p className="text-blue-100 text-sm mt-1">比賽結束！以下是所有玩家的成績</p>
+            <p className="text-white/70 text-sm mt-1">比賽結束！以下是所有玩家的成績</p>
           </div>
 
           {/* 頒獎台 */}
@@ -331,7 +331,7 @@ export default function CompetitionMode({ config, gameComponent, onBack, onCompe
               <div className="text-center">
                 <div className="text-2xl mb-1">🥈</div>
                 <div className="text-sm font-bold text-white">{sortedCompetitors[1].name}</div>
-                <div className="text-xs text-blue-100">{sortedCompetitors[1].teamName}</div>
+                <div className="text-xs text-white/70">{sortedCompetitors[1].teamName}</div>
                 <div className="bg-gray-600 rounded-t-lg px-4 pt-3 pb-2 mt-1" style={{ height: 60 }}>
                   <div className="text-lg font-bold text-white">{sortedCompetitors[1].score}</div>
                 </div>
@@ -354,7 +354,7 @@ export default function CompetitionMode({ config, gameComponent, onBack, onCompe
               <div className="text-center">
                 <div className="text-2xl mb-1">🥉</div>
                 <div className="text-sm font-bold text-white">{sortedCompetitors[2].name}</div>
-                <div className="text-xs text-blue-100">{sortedCompetitors[2].teamName}</div>
+                <div className="text-xs text-white/70">{sortedCompetitors[2].teamName}</div>
                 <div className="bg-amber-800 rounded-t-lg px-4 pt-3 pb-2 mt-1" style={{ height: 45 }}>
                   <div className="text-lg font-bold text-white">{sortedCompetitors[2].score}</div>
                 </div>
@@ -368,27 +368,27 @@ export default function CompetitionMode({ config, gameComponent, onBack, onCompe
               <div key={c.id} className={`flex items-center justify-between rounded-xl px-4 py-3 ${
                 idx === 0 ? 'bg-amber-900/30 border border-amber-600/30' :
                 idx === 1 ? 'bg-gray-800/30 border border-gray-600/30' :
-                idx === 2 ? 'bg-amber-900/20 border border-amber-700/20' :
-                'bg-blue-900/20 border border-blue-800/20'
+                idx === 2 ? 'bg-amber-400/10 border border-amber-400/30' :
+                'bg-black/20 border border-white/10'
               }`}>
                 <div className="flex items-center gap-3">
                   <span className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold ${
                     idx === 0 ? 'bg-amber-400 text-stone-900' :
-                    idx === 1 ? 'bg-gray-400 text-stone-900' :
+                    idx === 1 ? 'bg-slate-400 text-stone-900' :
                     idx === 2 ? 'bg-amber-700 text-white' :
-                    'bg-blue-800 text-blue-200'
+                    'bg-white/10 text-white/60'
                   }`}>
                     {idx + 1}
                   </span>
                   <div>
                     <div className="text-sm font-medium text-white">{c.name}</div>
-                    <div className="text-xs text-blue-200">{c.teamName}</div>
+                    <div className="text-xs text-white/60">{c.teamName}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="text-right">
                     <div className="text-lg font-bold text-amber-400">{c.score}</div>
-                    <div className="text-xs text-blue-200">{c.accuracy}% 準確</div>
+                    <div className="text-xs text-white/60">{c.accuracy}% 準確</div>
                   </div>
                   {idx === 0 && <Crown size={18} className="text-amber-400" />}
                 </div>
@@ -397,28 +397,28 @@ export default function CompetitionMode({ config, gameComponent, onBack, onCompe
           </div>
 
           {/* 詳細統計 */}
-          <div className="mt-6 rounded-xl bg-[#0a1e4a]/50 border border-blue-800/30 p-4">
-            <h3 className="text-sm font-medium text-blue-200 mb-3 flex items-center gap-2">
+          <div className="mt-6 rounded-xl bg-black/25 border border-white/10 p-4">
+            <h3 className="text-sm font-medium text-white/60 mb-3 flex items-center gap-2">
               <Star size={14} className="text-amber-400" />
               詳細統計
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-center">
-              <div className="bg-blue-900/30 rounded-lg p-2">
-                <div className="text-xs text-blue-200">參賽者</div>
+              <div className="bg-black/25 rounded-lg p-2">
+                <div className="text-xs text-white/60">參賽者</div>
                 <div className="text-lg font-bold text-white">{sortedCompetitors.length}</div>
               </div>
-              <div className="bg-blue-900/30 rounded-lg p-2">
-                <div className="text-xs text-blue-200">最高分</div>
+              <div className="bg-black/25 rounded-lg p-2">
+                <div className="text-xs text-white/60">最高分</div>
                 <div className="text-lg font-bold text-amber-400">{sortedCompetitors[0]?.score || 0}</div>
               </div>
-              <div className="bg-blue-900/30 rounded-lg p-2">
-                <div className="text-xs text-blue-200">平均分</div>
+              <div className="bg-black/25 rounded-lg p-2">
+                <div className="text-xs text-white/60">平均分</div>
                 <div className="text-lg font-bold text-white">
                   {Math.round(sortedCompetitors.reduce((a, c) => a + c.score, 0) / sortedCompetitors.length)}
                 </div>
               </div>
-              <div className="bg-blue-900/30 rounded-lg p-2">
-                <div className="text-xs text-blue-200">平均準確率</div>
+              <div className="bg-black/25 rounded-lg p-2">
+                <div className="text-xs text-white/60">平均準確率</div>
                 <div className="text-lg font-bold text-emerald-400">
                   {Math.round(sortedCompetitors.reduce((a, c) => a + c.accuracy, 0) / sortedCompetitors.length)}%
                 </div>

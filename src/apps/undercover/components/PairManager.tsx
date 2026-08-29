@@ -74,7 +74,7 @@ export default function PairManager({ pairs, onChange, onlyCustom, onOnlyCustom 
             onChange={(e) => setCiv(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && add()}
             placeholder="例：菠蘿包"
-            className="w-full rounded-lg border border-emerald-400/40 bg-[#0d2050] px-3 py-2.5 text-white placeholder-white/40"
+            className="w-full rounded-lg border border-emerald-400/40 bg-black/20 px-3 py-2.5 text-white placeholder:text-white/40"
           />
         </div>
         <div>
@@ -84,7 +84,7 @@ export default function PairManager({ pairs, onChange, onlyCustom, onOnlyCustom 
             onChange={(e) => setUnd(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && add()}
             placeholder="例：雞尾包"
-            className="w-full rounded-lg border border-rose-400/40 bg-[#0d2050] px-3 py-2.5 text-white placeholder-white/40"
+            className="w-full rounded-lg border border-rose-400/40 bg-black/20 px-3 py-2.5 text-white placeholder:text-white/40"
           />
         </div>
       </div>
@@ -107,7 +107,7 @@ export default function PairManager({ pairs, onChange, onlyCustom, onOnlyCustom 
       </div>
 
       {bulkOpen && (
-        <div className="rounded-xl border border-white/15 bg-[#0d2050] p-3">
+        <div className="rounded-xl border border-white/15 bg-black/20 p-3">
           <div className="mb-1.5 text-[11px] text-white/75">
             每行一對，用 <code className="rounded bg-black/40 px-1 text-amber-200">|</code> 分隔：
             <br />
@@ -118,7 +118,7 @@ export default function PairManager({ pairs, onChange, onlyCustom, onOnlyCustom 
             onChange={(e) => setBulk(e.target.value)}
             rows={5}
             placeholder={'菠蘿包 | 雞尾包\n奶茶 | 咖啡\n帳篷 | 天幕'}
-            className="w-full rounded-lg border border-white/20 bg-[#02133e] p-2.5 text-white placeholder-white/35"
+            className="w-full rounded-lg border border-white/20 bg-[#02133e] p-2.5 text-white placeholder:text-white/35"
           />
           <button
             onClick={importBulk}
@@ -144,7 +144,7 @@ export default function PairManager({ pairs, onChange, onlyCustom, onOnlyCustom 
             {pairs.map((p) => (
               <div
                 key={p.id}
-                className="flex items-center gap-2 rounded-lg border border-white/10 bg-[#0d2050] px-3 py-2"
+                className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/20 px-3 py-2"
               >
                 <span className="flex-1 truncate text-sm text-emerald-200">{p.civilian}</span>
                 <span className="text-white/40">↔</span>
