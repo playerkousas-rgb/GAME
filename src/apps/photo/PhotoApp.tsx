@@ -1,15 +1,11 @@
 /**
  * Copyright (c) 2026 Scout System. All rights reserved.
  */
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Play,
   Eye,
   EyeOff,
-  Volume2,
-  VolumeX,
-  Sun,
-  Moon,
   Settings,
   X,
   Shuffle,
@@ -29,9 +25,37 @@ import WarpPane from './components/WarpPane'
 import ShuffleTilesPane from './components/ShuffleTilesPane'
 import CountdownOverlay from './components/CountdownOverlay'
 import FullscreenStage from './components/FullscreenStage'
+import { DemoCaption, GameIntro, IntroDemoButtons, type IntroSection } from '../../components/GameIntro'
+
+const PHOTO_INTRO: IntroSection[] = [
+  {
+    title: '🎯 玩法（投影遊戲）',
+    items: [
+      '四種出題方式：▦ 像素化、◎ 局部放大、〜 變形扭曲、⊞ 切割打亂。',
+      '上傳相片或用內建題目包；難度隨時間自動降低，越來越易認。',
+      '隊員喊出答案，主持按「公布答案」，由輪到的玩家得分。',
+    ],
+  },
+  {
+    title: '🎛️ 操作',
+    items: [
+      '遊戲開始後控制側欄自動收合——按左上角齒輪可再展開。',
+      '側欄內：公布/隱藏答案、上一題/下一題/洗牌、瀏覽器全螢幕。',
+      '手動模式（總時間 0）可自己控制像素大小。',
+    ],
+  },
+  {
+    title: '📦 題目與玩家',
+    items: [
+      '內建 3 包：Emoji 大圖、文字卡、色塊圖形（各 12–40 題）。',
+      '相片可無限上傳；玩家名稱加入後可計分、看排行榜。',
+      '💡 首次使用建議按「🎬 觀看示範」，30 秒看懂整個流程。',
+    ],
+  },
+]
 import Leaderboard from './components/Leaderboard'
 import QRCodeModal from './components/QRCodeModal'
-import { useTheme } from '../../context/useTheme'
+import { PageHeader, SoundToggle, ThemeToggle } from '../../components/ui'
 import { COPYRIGHT_UPPER } from '../../shared/brand'
 import { DECK_PACKS, generateDeck } from './lib/generatedDeck'
 import { Sound } from './lib/sound'
@@ -83,9 +107,7 @@ function formatTime(totalSec: number) {
 
 /* ==================== APP ==================== */
 function PhotoApp() {
-  const { theme, toggle: toggleTheme } = useTheme()
-
-  /* --- Core --- */
+    /* --- Core --- */
   const [files, setFiles] = useState<File[]>([])
   const [deckLoading, setDeckLoading] = useState<string | null>(null)
   const [index, setIndex] = useState(0)
@@ -119,6 +141,11 @@ function PhotoApp() {
   const [fullscreenOpen, setFullscreenOpen] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [, setSessionId] = useState<string | null>(null)
+
+  /* ---------- 示範模式（MOCK） ---------- */
+  const [demoMode, setDemoMode] = useState(false)
+  const [demoCaption, setDemoCaption] = useState('')
+  const [introOpen, setIntroOpen] = useState(false)
 
   const currentFile = files[index] ?? null
   const sourceUrl = useObjectUrl(currentFile)
@@ -265,6 +292,57 @@ function PhotoApp() {
     setPhase('countdown')
   }
 
+  /* 示範模式：內建包 → 像素化 → 公布 → 下一題 → 結束 */
+  const demoIdleUsedRef = useRef(false)
+
+  const startDemo = useCallback(() => {
+    demoIdleUsedRef.current = false
+    setDemoMode(true)
+    setDemoCaption('🎬 示範開始——載入內建「Emoji 大圖」包')
+    generateDeck('emoji', 12)
+      .then((generated) => {
+        setGameMode('pixel')
+        setPlaylist(generated)
+      })
+      .catch(() => setDemoCaption('示範題目生成失敗，請重試'))
+  }, [])
+
+  useEffect(() => {
+    if (!demoMode) return
+    if (phase === 'idle' && files.length > 0 && !demoIdleUsedRef.current) {
+      demoIdleUsedRef.current = true
+      setDemoCaption('示範會自動選擇「像素化」')
+      const t = setTimeout(() => selectMode('pixel'), 1200)
+      return () => clearTimeout(t)
+    }
+    if (phase === 'ready') {
+      setDemoCaption('已選「▦ 像素化」——3 秒後自動開始')
+      const t = setTimeout(() => startGame(), 1600)
+      return () => clearTimeout(t)
+    }
+    if (phase === 'countdown') {
+      setDemoCaption('倒數 3、2、1……')
+    }
+    if (phase === 'playing' || phase === 'revealed') {
+      if (index === 0) {
+        setDemoCaption('第一題以重度像素化開始——隊員輪流喊答案')
+        const t1 = setTimeout(() => {
+          setDemoCaption("主持按「公布答案」——原圖顯示")
+          reveal()
+        }, 3500)
+        const t2 = setTimeout(() => nextQuestion(), 6800)
+        return () => { clearTimeout(t1); clearTimeout(t2) }
+      }
+      setDemoCaption('進入下一題——難度自動降低，越來越易認')
+      const t = setTimeout(() => {
+        setRevealAnswer(false)
+        setPhase('idle')
+        setDemoCaption('🎉 示範完成！上傳自己的相片或用內建題目包開始遊戲')
+      }, 3000)
+      return () => clearTimeout(t)
+    }
+  }, [demoMode, phase, index, files.length])
+
   function addPlayer() {
     if (!newName.trim()) return
     setPlayers((prev) => [...prev, createPlayer(newName)])
@@ -306,10 +384,22 @@ function PhotoApp() {
 
       {/* ==================== SETUP SCREEN ==================== */}
       {phase === 'idle' && (
-        <div className="mx-auto flex max-w-2xl flex-col items-center gap-6 px-4 pb-8 pt-12">
+        <div className="flex min-h-dvh flex-col">
+          <PageHeader
+            emoji="🖼️"
+            title="像素化猜謎圖"
+            subtitle="Photo Guessing Game"
+            actions={
+              <>
+                <SoundToggle on={soundOn} onToggle={setSoundOn} />
+                <ThemeToggle />
+              </>
+            }
+          />
+          <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center gap-6 px-4 pb-8 pt-8">
           <div className="text-center">
-            <h1 className="text-3xl font-black tracking-tight sm:text-4xl">像素化猜謎圖工具</h1>
-            <p className="mt-2 text-sm text-white/70">Scout System · 投影遊戲專用</p>
+            <h1 className="text-3xl font-black tracking-tight sm:text-4xl">像素化猜謎圖</h1>
+            <p className="mt-2 text-sm muted">Scout System · 投影遊戲專用</p>
           </div>
 
           {/* Upload */}
@@ -321,6 +411,21 @@ function PhotoApp() {
               hint="拖曳或點擊上傳圖片（支援多張）"
             />
           </div>
+
+          {/* 功能介紹 + 示範模式 */}
+          <IntroDemoButtons
+            onIntro={() => setIntroOpen(true)}
+            onDemo={startDemo}
+            className="w-full"
+          />
+          <GameIntro
+            open={introOpen}
+            onClose={() => setIntroOpen(false)}
+            emoji="🖼️"
+            title="像素化猜謎圖"
+            tagline="Scout System · 投影遊戲專用"
+            sections={PHOTO_INTRO}
+          />
 
           {/* 內建題目包 — 毋須上傳即可開玩 */}
           <div className="w-full rounded-xl border border-white/10 bg-white/5 p-4">
@@ -456,7 +561,7 @@ function PhotoApp() {
           {files.length > 0 && gameMode && (
             <button
               onClick={startGame}
-              className="w-full rounded-2xl bg-indigo-500 py-4 text-lg font-black text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-400 active:scale-[0.98]"
+              className="btn-primary w-full !py-4 !text-lg"
             >
               <Play className="mr-2 inline h-5 w-5" />
               開始遊戲
@@ -474,24 +579,27 @@ function PhotoApp() {
             </button>
           )}
 
-          {/* Footer */}
-          <div className="mt-4 flex items-center gap-3 text-[11px] text-white/75">
-            <span className="rounded-full border border-white/5 bg-white/[0.03] px-2 py-0.5">{COPYRIGHT_UPPER}</span>
-            <button onClick={toggleTheme} className="rounded-full p-1.5 transition hover:bg-white/5">
-              {theme === 'dark' ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
-            </button>
-            <button onClick={() => setSoundOn((s) => !s)} className="rounded-full p-1.5 transition hover:bg-white/5">
-              {soundOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
-            </button>
-          </div>
+        </div>
         </div>
       )}
 
       {/* ==================== READY SCREEN ==================== */}
       {phase === 'ready' && (
-        <div className="mx-auto flex max-w-2xl flex-col items-center gap-6 px-4 pb-8 pt-12">
+        <div className="flex min-h-dvh flex-col">
+          <PageHeader
+            emoji="🖼️"
+            title="像素化猜謎圖"
+            subtitle="Photo Guessing Game"
+            actions={
+              <>
+                <SoundToggle on={soundOn} onToggle={setSoundOn} />
+                <ThemeToggle />
+              </>
+            }
+          />
+          <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center gap-6 px-4 pb-8 pt-8">
           <div className="text-center">
-            <div className="mb-2 text-sm text-white/70">已準備就緒</div>
+            <div className="mb-2 text-sm muted">已準備就緒</div>
             <h2 className="text-2xl font-black">第 {index + 1} / {files.length} 題</h2>
             <div className="mt-1 text-xs text-white/75">{currentFile?.name}</div>
           </div>
@@ -519,7 +627,7 @@ function PhotoApp() {
 
           <button
             onClick={startGame}
-            className="w-full max-w-sm rounded-2xl bg-indigo-500 py-4 text-lg font-black text-white shadow-lg shadow-indigo-500/20 transition hover:bg-indigo-400 active:scale-[0.98]"
+            className="btn-primary w-full max-w-sm !py-4 !text-lg"
           >
             <Play className="mr-2 inline h-5 w-5" />
             開始遊戲
@@ -528,16 +636,17 @@ function PhotoApp() {
           <div className="flex gap-3">
             <button
               onClick={() => setPhase('idle')}
-              className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/75 transition hover:bg-white/[0.07]"
+              className="btn-ghost px-4 py-2 text-xs"
             >
               返回設定
             </button>
             <button
               onClick={() => setQrOpen(true)}
-              className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-xs text-white/75 transition hover:bg-white/[0.07]"
+              className="btn-ghost px-4 py-2 text-xs"
             >
               <Smartphone className="h-3.5 w-3.5" /> QR Code
             </button>
+          </div>
           </div>
         </div>
       )}
@@ -577,6 +686,7 @@ function PhotoApp() {
             {/* Sidebar toggle */}
             <button
               onClick={() => setSidebarOpen((s) => !s)}
+              aria-label="顯示/隱藏控制"
               className={`absolute left-2 top-2 z-10 rounded-lg bg-black/40 p-2 text-white/75 backdrop-blur transition hover:bg-black/60 hover:text-white/80 ${sidebarOpen ? 'opacity-0' : 'opacity-100'}`}
             >
               <Settings className="h-4 w-4" />
@@ -753,6 +863,8 @@ function PhotoApp() {
           </div>
         </div>
       </FullscreenStage>
+
+      {demoMode && <DemoCaption text={demoCaption} onExit={() => setDemoMode(false)} />}
 
       {/* Toast */}
       {toast && (

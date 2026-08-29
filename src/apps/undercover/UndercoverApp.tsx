@@ -14,8 +14,37 @@ import {
   Printer, Settings2, ArrowLeft, Check, Sparkles, BookOpen, Lock, Wand2, Flag, ListOrdered,
 } from 'lucide-react'
 import QRCode from '../../components/QRCode'
+import { PageHeader, ThemeToggle } from '../../components/ui'
 import { WORD_CATEGORIES, type WordPair } from './data/wordPairs'
 import PairManager from './components/PairManager'
+import { DemoCaption, GameIntro, IntroDemoButtons, type IntroSection } from '../../components/GameIntro'
+
+const UC_INTRO: IntroSection[] = [
+  {
+    title: '🎯 玩法',
+    items: [
+      '所有人拿到同一個詞，只有一人是「臥底」——拿到相近但不一樣的詞（或白卡）。',
+      '按發言順序描述自己的詞，既不能講出詞也不能太明顯。',
+      '每局結束投票淘汰一人：投中臥底，平民勝；臥底存活到底則臥底勝。',
+    ],
+  },
+  {
+    title: '📱 兩種角色',
+    items: [
+      '主持台（本機）：產生 QR、私密查看平民/臥底詞、控制局數。',
+      '玩家手機卡：掃自己的座位 QR，長按卡片看身分；每局進度自動同步。',
+    ],
+  },
+  {
+    title: '✏️ 題庫與自訂',
+    items: [
+      '內建多組童軍主題詞對（食物、裝備、活動、動物……），可按分類篩選。',
+      '「詞對管理」可加入自己的詞對（平民詞＋臥底詞），本裝置保存。',
+      '可開「只用自訂」只用隊伍自己的詞。',
+      '💡 首次使用建議按「🎬 觀看示範」，看完整主持流程。',
+    ],
+  },
+]
 import {
   buildPool, buildSeatUrl, dealRound, estimateUrlLength, makeSecret, maxBlanks, maxUndercovers,
   MAX_URL_LENGTH, previewRounds, ROLE_EMOJI, ROLE_LABEL, ROUND_OPTIONS, suggestCounts,
@@ -73,6 +102,55 @@ export default function UndercoverApp() {
   const [secret, setSecret] = useState(makeSecret)
   const [round, setRound] = useState(1)
   const [showAnswer, setShowAnswer] = useState(false)
+
+  /* ---------- 示範模式（MOCK） ---------- */
+  const [demoMode, setDemoMode] = useState(false)
+  const [demoCaption, setDemoCaption] = useState('')
+  const [introOpen, setIntroOpen] = useState(false)
+
+  const startDemo = useCallback(() => {
+    setDemoMode(true)
+    setDemoCaption('🎬 示範開始——以主持視角走完整流程')
+  }, [])
+
+  useEffect(() => {
+    if (!demoMode) return
+    if (phase === 'setup') {
+      const t = setTimeout(() => {
+        setDemoCaption('產生座位 QR——真遊戲時每人只掃一次')
+        setPhase('qr')
+      }, 1800)
+      return () => clearTimeout(t)
+    }
+    if (phase === 'qr') {
+      setDemoCaption('玩家逐一掃描 QR（示範直接跳過）')
+      const t = setTimeout(() => {
+        setPhase('play')
+        setDemoCaption('進入主持台——第 1 局身分已派定')
+      }, 2600)
+      return () => clearTimeout(t)
+    }
+    if (phase === 'play' && round <= rounds) {
+      setDemoCaption(`第 ${round} 局：成員按發言順序依次描述`)
+      const t1 = setTimeout(() => {
+        setShowAnswer(true)
+        setDemoCaption('主持私密查看答案——平民詞 vs 臥底詞（成員勿看）')
+      }, 3000)
+      const t2 = setTimeout(() => {
+        setShowAnswer(false)
+        setRound((r) => r + 1)
+        setDemoCaption(
+          round >= rounds
+            ? '🎉 全部局數完成——投票、淘汰、換局，就是這樣一輪接一輪'
+            : `進入第 ${round + 1} 局——所有玩家重新獲得新身分`,
+        )
+      }, 6500)
+      return () => { clearTimeout(t1); clearTimeout(t2) }
+    }
+    if (phase === 'play' && round > rounds) {
+      setDemoCaption('🎉 示範完成！玩家在自己的手機掃 QR 就能看身分')
+    }
+  }, [demoMode, phase, round, rounds])
   const [bigQr, setBigQr] = useState<number | null>(null)
   const [previewOpen, setPreviewOpen] = useState(false)
 
@@ -119,7 +197,7 @@ export default function UndercoverApp() {
     return (
       <Shell>
         <div className="mx-auto w-full max-w-2xl space-y-4">
-          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#0a2260] to-[#02133e] p-5 text-center">
+          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-400/10 to-transparent p-5 text-center">
             <div className="text-4xl">🕵️</div>
             <h1 className="mt-1 text-2xl font-black text-white">誰是臥底</h1>
             <p className="mt-1 text-xs text-white/75">
@@ -256,6 +334,20 @@ export default function UndercoverApp() {
             </div>
           )}
 
+          <IntroDemoButtons
+            onIntro={() => setIntroOpen(true)}
+            onDemo={startDemo}
+            className="mb-3"
+          />
+          <GameIntro
+            open={introOpen}
+            onClose={() => setIntroOpen(false)}
+            emoji="🕵️"
+            title="誰是臥底"
+            tagline="詞語派對遊戲 — 主持台 + 玩家手機卡"
+            sections={UC_INTRO}
+          />
+
           <button
             onClick={() => setPhase('qr')}
             disabled={qrTooDense}
@@ -265,6 +357,7 @@ export default function UndercoverApp() {
             產生 {players} 個 QR Code
           </button>
         </div>
+        {demoMode && <DemoCaption text={demoCaption} onExit={() => setDemoMode(false)} />}
       </Shell>
     )
   }
@@ -343,6 +436,7 @@ export default function UndercoverApp() {
             </div>
           </div>
         )}
+        {demoMode && <DemoCaption text={demoCaption} onExit={() => setDemoMode(false)} />}
       </Shell>
     )
   }
@@ -354,7 +448,7 @@ export default function UndercoverApp() {
     return (
       <Shell>
         <div className="mx-auto w-full max-w-2xl space-y-4 text-center">
-          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#0a2260] to-[#02133e] p-8">
+          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-400/10 to-transparent p-8">
             <Flag className="mx-auto h-14 w-14 text-amber-300" />
             <h1 className="mt-3 text-2xl font-black text-white">整輪玩完！</h1>
             <p className="mt-2 text-sm leading-relaxed text-white/75">
@@ -376,6 +470,7 @@ export default function UndercoverApp() {
             返回第 {rounds} 局
           </button>
         </div>
+        {demoMode && <DemoCaption text={demoCaption} onExit={() => setDemoMode(false)} />}
       </Shell>
     )
   }
@@ -384,7 +479,7 @@ export default function UndercoverApp() {
     <Shell>
       <div className="mx-auto w-full max-w-3xl space-y-4">
         {/* 局數 */}
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#0a2260] to-[#02133e] p-5 text-center">
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-400/10 to-transparent p-5 text-center">
           <div className="text-xs text-white/75">本輪第</div>
           <div
             className="my-1 font-black leading-none text-amber-300"
@@ -520,7 +615,7 @@ export default function UndercoverApp() {
                   className={`flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-xs ${
                     r.round === round
                       ? 'border-amber-400 bg-amber-400/15'
-                      : 'border-white/10 bg-[#0d2050]'
+                      : 'border-white/10 bg-black/20'
                   }`}
                 >
                   <span className="w-8 shrink-0 text-left font-black text-amber-300">{r.round}.</span>
@@ -566,6 +661,7 @@ export default function UndercoverApp() {
           中途加減人數需要「開新牌局」並重新派 QR
         </p>
       </div>
+      {demoMode && <DemoCaption text={demoCaption} onExit={() => setDemoMode(false)} />}
     </Shell>
   )
 }
@@ -573,7 +669,17 @@ export default function UndercoverApp() {
 /* ---------- 小組件 ---------- */
 
 function Shell({ children }: { children: React.ReactNode }) {
-  return <div className="min-h-[100dvh] bg-[#02133e] px-4 pb-24 pt-5 text-white">{children}</div>
+  return (
+    <div className="ss-page flex flex-col">
+      <PageHeader
+        emoji="🕵️"
+        title="誰是臥底"
+        subtitle="Who Is The Undercover"
+        actions={<ThemeToggle />}
+      />
+      <div className="mx-auto w-full max-w-6xl flex-1 px-4 pb-8 pt-4">{children}</div>
+    </div>
+  )
 }
 
 function Section({

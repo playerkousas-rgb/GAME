@@ -12,6 +12,34 @@ import { Sound } from '../hooks/useSound'
 import { TEXT_PACKS, packWords } from '../../../data/textPacks'
 import { EMOJI_PACKS, SHAPES, SHAPE_COLORS, type ShapeKind } from '../data/symbols'
 import ShapeGlyph from './ShapeGlyph'
+import { DemoCaption, GameIntro, type IntroSection } from '../../../components/GameIntro'
+
+const TEXT_INTRO: IntroSection[] = [
+  {
+    title: '🎯 玩法',
+    items: [
+      '先顯示一組圖案卡（Emoji／幾何圖形／相片／文字），記憶後自動遮蓋。',
+      '作答可「點選」（混有干擾項）或「打字」輸入記得的圖案。',
+      '系統計算正確／錯誤／遺漏，換算準確率與勳章。',
+    ],
+  },
+  {
+    title: '🃏 四種卡型',
+    items: [
+      '圖案卡：大 Emoji，最直觀；圖形卡：形狀＋顏色記憶。',
+      '相片卡：上傳自己的相片當題目（完全自訂）。',
+      '文字卡：傳統中文字卡，可換字色底色。',
+    ],
+  },
+  {
+    title: '✏️ 題庫與自訂',
+    items: [
+      '內建多組 Emoji 包、幾何圖形、文字包，可自訂展示秒數與卡片數。',
+      '相片卡可無限上傳，適合用隊旗、地圖、營地照片考隊員。',
+      '💡 首次使用建議按「🎬 觀看示範」，15 秒看懂整個流程。',
+    ],
+  },
+]
 
 interface Props {
   config: GameConfig
@@ -82,6 +110,11 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
 
   const [picked, setPicked] = useState<string[]>([])
   const [inputText, setInputText] = useState('')
+
+  /* ---------- 示範模式（MOCK） ---------- */
+  const [demoMode, setDemoMode] = useState(false)
+  const [demoCaption, setDemoCaption] = useState('')
+  const [introOpen, setIntroOpen] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const difficulty = config.difficulty
@@ -103,19 +136,23 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
     return () => document.removeEventListener('fullscreenchange', handler)
   }, [])
 
-  /* 觀察倒數 */
+  /* 觀察倒數（遮蓋→作答的過渡獨立處理，避免被 phase 變更的 cleanup 取消） */
   useEffect(() => {
-    if (phase !== 'observe') return
-    if (timer <= 0) {
-      if (soundEnabled) Sound.submit()
-      const toHidden = window.setTimeout(() => setPhase('hidden'), 0)
+    if (phase !== 'observe' && phase !== 'hidden') return
+    if (phase === 'hidden') {
       const toAnswer = window.setTimeout(() => {
         setPhase('answer')
         setTimer(config.answerSeconds)
       }, 1500)
       return () => {
-        window.clearTimeout(toHidden)
         window.clearTimeout(toAnswer)
+      }
+    }
+    if (timer <= 0) {
+      if (soundEnabled) Sound.submit()
+      const toHidden = window.setTimeout(() => setPhase('hidden'), 0)
+      return () => {
+        window.clearTimeout(toHidden)
       }
     }
     if (timer <= 5 && timer > 0 && soundEnabled) Sound.tick()
@@ -344,6 +381,48 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
     setPhase('results')
   }, [submitted, soundEnabled])
 
+  /* 示範模式：快進走完整流程 */
+  const submitRef = useRef(handleSubmit)
+  useEffect(() => { submitRef.current = handleSubmit })
+
+  const startDemo = useCallback(() => {
+    setDemoMode(true)
+    setDemoCaption('🎬 示範開始')
+    if (cards.length === 0) loadEmojiPack(EMOJI_PACKS[0].id)
+  }, [cards.length, loadEmojiPack])
+
+  useEffect(() => {
+    if (demoMode && phase === 'setup' && cards.length > 0) startGame()
+  }, [demoMode, phase, cards.length, startGame])
+
+  useEffect(() => {
+    if (!demoMode) return
+    if (phase === 'observe') {
+      setDemoCaption(`記住這 ${cards.length} 張卡（示範縮短觀察時間）`)
+      const t = setTimeout(() => setPhase('hidden'), 3200)
+      return () => clearTimeout(t)
+    }
+    if (phase === 'hidden') {
+      setDemoCaption('遮蓋了！現在全憑記憶')
+    }
+    if (phase === 'answer') {
+      setDemoCaption(answerMode === 'type' ? '輸入記得的圖案（逗號分隔）→ 提交' : '點選記得的圖案——選項區混入了干擾項')
+      const t1 = setTimeout(() => {
+        if (answerMode === 'type') {
+          setInputText(cards.map((c) => c.name).slice(0, Math.max(2, cards.length - 1)).join('、'))
+        } else {
+          setPicked(cards.slice(0, Math.max(2, cards.length - 1)).map((c) => c.id))
+        }
+        setDemoCaption('示範：故意漏記一張，示範「遺漏」如何計分')
+      }, 2600)
+      const t2 = setTimeout(() => submitRef.current(), 4600)
+      return () => { clearTimeout(t1); clearTimeout(t2) }
+    }
+    if (phase === 'results') {
+      setDemoCaption('🎉 示範完成——正確／錯誤／遺漏自動計分。按「結束」回到正常遊戲')
+    }
+  }, [demoMode, phase, answerMode, cards])
+
   const usePick = answerMode === 'pick' && kind !== 'image'
 
   /* ---------- 卡片渲染 ---------- */
@@ -392,27 +471,27 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between rounded-xl border border-blue-700/40 bg-[#0a1b45] p-2.5">
-        <button onClick={onBack} className="flex items-center gap-1 text-sm text-blue-100 hover:text-white">
+      <div className="flex items-center justify-between rounded-xl border border-white/15 bg-white/5 p-2.5">
+        <button onClick={onBack} className="flex items-center gap-1 text-sm text-white/70 hover:text-white">
           <ArrowLeft size={16} /> 返回
         </button>
-        <div className="flex items-center gap-2 text-xs text-blue-100">
+        <div className="flex items-center gap-2 text-xs text-white/70">
           <Shapes size={14} />
           <span>圖案記憶</span>
           {playerName && (
             <>
-              <span className="text-blue-100">|</span>
+              <span className="text-white/70">|</span>
               <span className="text-white">{playerName}</span>
             </>
           )}
-          <span className="text-blue-100">|</span>
+          <span className="text-white/70">|</span>
           <span className="font-bold text-amber-300">{score} 分</span>
         </div>
         <div className="flex gap-1">
-          <button onClick={toggleFullscreen} className="p-1 text-blue-100 hover:text-white">
+          <button onClick={toggleFullscreen} className="p-1 text-white/70 hover:text-white">
             {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
           </button>
-          <button onClick={() => setSoundEnabled(!soundEnabled)} className="p-1 text-blue-100 hover:text-white">
+          <button onClick={() => setSoundEnabled(!soundEnabled)} className="p-1 text-white/70 hover:text-white">
             {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
           </button>
         </div>
@@ -420,11 +499,11 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
 
       {/* ============ SETUP ============ */}
       {phase === 'setup' && (
-        <div className="rounded-2xl border border-blue-700/40 bg-[#081737] p-4 sm:p-5">
+        <div className="rounded-2xl border border-white/15 bg-black/30 p-4 sm:p-5">
           <div className="mb-4 text-center">
             <div className="text-4xl">🧠</div>
             <h2 className="text-xl font-bold text-white">圖案記憶遊戲</h2>
-            <p className="mt-0.5 text-xs text-blue-100">
+            <p className="mt-0.5 text-xs text-white/70">
               用圖案卡代替文字，投影或手機都清晰易睇
             </p>
             {playerName && (
@@ -447,20 +526,20 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
                 className={`rounded-xl border p-3 text-left transition ${
                   kind === m.id
                     ? 'border-amber-400 bg-amber-400/15'
-                    : 'border-blue-600/40 bg-[#0d2050] active:scale-95'
+                    : 'border-white/15 bg-black/25 active:scale-95'
                 }`}
               >
                 <div className="flex items-center gap-1.5 text-sm font-bold text-white">
                   <span className="text-amber-300">{m.icon}</span>
                   {m.label}
                 </div>
-                <div className="mt-0.5 text-[10px] text-blue-200">{m.desc}</div>
+                <div className="mt-0.5 text-[10px] text-white/60">{m.desc}</div>
               </button>
             ))}
           </div>
 
           {/* 各類型內容產生器 */}
-          <div className="mb-3 rounded-xl border border-blue-600/40 bg-[#0d2050] p-3">
+          <div className="mb-3 rounded-xl border border-white/15 bg-black/25 p-3">
             {kind === 'emoji' && (
               <>
                 <div className="mb-2 text-xs font-semibold text-white">
@@ -471,7 +550,7 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
                     <button
                       key={p.id}
                       onClick={() => loadEmojiPack(p.id)}
-                      className="rounded-xl border border-blue-600/50 bg-[#02133E] px-2 py-3 text-center text-xs text-blue-100 transition hover:border-amber-400/60 hover:text-white active:scale-95"
+                      className="rounded-xl border border-white/20 bg-[#02133e] px-2 py-3 text-center text-xs text-white/70 transition hover:border-amber-400/60 hover:text-white active:scale-95"
                     >
                       <div className="text-2xl">{p.emoji}</div>
                       <div className="mt-1 font-semibold">{p.name}</div>
@@ -483,7 +562,7 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
 
             {kind === 'shape' && (
               <div className="text-center">
-                <div className="mb-2 text-xs text-blue-100">
+                <div className="mb-2 text-xs text-white/70">
                   隨機產生「形狀＋顏色」卡，考記形又要記色
                 </div>
                 <button
@@ -497,7 +576,7 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
 
             {kind === 'image' && (
               <div className="text-center">
-                <div className="mb-2 text-xs text-blue-100">上傳自己的相片做記憶卡（最多 {maxCards} 張）</div>
+                <div className="mb-2 text-xs text-white/70">上傳自己的相片做記憶卡（最多 {maxCards} 張）</div>
                 <input
                   ref={fileRef}
                   type="file"
@@ -512,7 +591,7 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
                 >
                   <ImageIcon size={16} className="mr-1.5 inline" /> 選擇相片
                 </button>
-                <div className="mt-2 text-[10px] text-blue-200">相片卡作答會用打字模式</div>
+                <div className="mt-2 text-[10px] text-white/60">相片卡作答會用打字模式</div>
               </div>
             )}
 
@@ -525,7 +604,7 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
                       key={p.id}
                       onClick={() => loadTextPack(p.id)}
                       title={p.desc}
-                      className="rounded-lg border border-blue-600/50 bg-[#02133E] px-2.5 py-2 text-[11px] text-blue-100 transition hover:border-amber-400/60 hover:text-white"
+                      className="rounded-lg border border-white/20 bg-[#02133e] px-2.5 py-2 text-[11px] text-white/70 transition hover:border-amber-400/60 hover:text-white"
                     >
                       {p.emoji} {p.name}
                     </button>
@@ -537,7 +616,7 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
                     onChange={(e) => setCharInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && addTextCard()}
                     placeholder="輸入字詞"
-                    className="flex-1 rounded-lg border border-blue-600/50 bg-[#02133E] px-3 py-2.5 text-sm text-white placeholder-blue-300/70"
+                    className="flex-1 rounded-lg border border-white/20 bg-[#02133e] px-3 py-2.5 text-sm text-white placeholder:text-white/40"
                   />
                   <button
                     onClick={addTextCard}
@@ -549,7 +628,7 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
                 </div>
                 <div className="mt-2 grid grid-cols-2 gap-2">
                   <div>
-                    <div className="text-[10px] text-blue-200">文字顏色</div>
+                    <div className="text-[10px] text-white/60">文字顏色</div>
                     <div className="mt-1 flex flex-wrap gap-1.5">
                       {TEXT_COLORS.map((c) => (
                         <button
@@ -565,7 +644,7 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
                     </div>
                   </div>
                   <div>
-                    <div className="text-[10px] text-blue-200">背景顏色</div>
+                    <div className="text-[10px] text-white/60">背景顏色</div>
                     <div className="mt-1 flex flex-wrap gap-1.5">
                       {BG_PALETTE.map((v) => (
                         <button
@@ -586,7 +665,7 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
 
           {/* 展示 / 作答方式 */}
           <div className="mb-3 grid grid-cols-2 gap-2">
-            <div className="rounded-xl border border-blue-600/40 bg-[#0d2050] p-3">
+            <div className="rounded-xl border border-white/15 bg-black/25 p-3">
               <div className="mb-1.5 text-xs font-semibold text-white">展示方式</div>
               <div className="grid grid-cols-2 gap-1.5">
                 {(['grid', 'sequence'] as const).map((d) => (
@@ -596,7 +675,7 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
                     className={`rounded-lg border py-2 text-xs font-medium ${
                       display === d
                         ? 'border-amber-400 bg-amber-400/15 text-amber-200'
-                        : 'border-blue-600/40 bg-[#02133E] text-blue-100'
+                        : 'border-white/15 bg-[#02133e] text-white/70'
                     }`}
                   >
                     {d === 'grid' ? '一次過全部' : '逐張大圖'}
@@ -604,7 +683,7 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
                 ))}
               </div>
             </div>
-            <div className="rounded-xl border border-blue-600/40 bg-[#0d2050] p-3">
+            <div className="rounded-xl border border-white/15 bg-black/25 p-3">
               <div className="mb-1.5 text-xs font-semibold text-white">作答方式</div>
               <div className="grid grid-cols-2 gap-1.5">
                 {(['pick', 'type'] as const).map((a) => (
@@ -615,7 +694,7 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
                     className={`rounded-lg border py-2 text-xs font-medium disabled:opacity-60 ${
                       answerMode === a
                         ? 'border-amber-400 bg-amber-400/15 text-amber-200'
-                        : 'border-blue-600/40 bg-[#02133E] text-blue-100'
+                        : 'border-white/15 bg-[#02133e] text-white/70'
                     }`}
                   >
                     {a === 'pick' ? '圖案點選' : '打字'}
@@ -628,7 +707,7 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
           {/* 已選卡片 */}
           <div className="mb-3">
             <div className="mb-1.5 flex items-center justify-between">
-              <span className="text-xs text-blue-100">
+              <span className="text-xs text-white/70">
                 已建立 <b className="text-white">{cards.length}</b> / {maxCards} 張
               </span>
               <div className="flex gap-3">
@@ -668,11 +747,27 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
             onClick={startGame}
             disabled={cards.length === 0}
             className={`w-full rounded-xl py-3.5 text-base font-bold ${
-              cards.length > 0 ? 'bg-amber-400 text-stone-900 active:scale-[0.99]' : 'bg-blue-900/50 text-blue-100'
+              cards.length > 0 ? 'bg-amber-400 text-stone-900 active:scale-[0.99]' : 'bg-black/35 text-white/70'
             }`}
           >
             🚀 開始（{observeSeconds}s 展示）
           </button>
+
+          <div className="flex gap-2">
+            <button
+              onClick={startDemo}
+              className="flex-1 rounded-xl border border-indigo-400/40 bg-indigo-500/15 py-2.5 text-sm font-bold text-indigo-200 transition hover:bg-indigo-500/25"
+            >
+              🎬 觀看示範
+            </button>
+            <button
+              onClick={() => setIntroOpen(true)}
+              className="flex-1 rounded-xl border border-white/15 bg-white/5 py-2.5 text-sm font-bold text-white/90 transition hover:bg-white/10"
+            >
+              📖 玩法介紹
+            </button>
+          </div>
+          <GameIntro open={introOpen} onClose={() => setIntroOpen(false)} emoji="🧠" title="圖案記憶" tagline="展示 → 遮蓋 → 靠記憶作答" sections={TEXT_INTRO} />
         </div>
       )}
 
@@ -680,7 +775,7 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
       {phase === 'observe' && (
         <div
           className="fixed inset-0 z-50 flex flex-col"
-          style={{ backgroundColor: display === 'sequence' ? cards[currentIndex]?.bgColor || '#02133E' : '#02133E' }}
+          style={{ backgroundColor: display === 'sequence' ? cards[currentIndex]?.bgColor || 'var(--ss-bg)' : 'var(--ss-bg)' }}
         >
           <div className="flex items-center justify-between bg-black/40 px-4 py-2.5">
             <button
@@ -778,16 +873,16 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
 
       {/* ============ HIDDEN ============ */}
       {phase === 'hidden' && (
-        <div className="rounded-2xl border border-blue-700/40 bg-[#081737] p-8 text-center">
-          <ShieldCheck className="mx-auto mb-2 text-blue-200" size={40} />
+        <div className="rounded-2xl border border-white/15 bg-black/30 p-8 text-center">
+          <ShieldCheck className="mx-auto mb-2 text-white/60" size={40} />
           <h2 className="text-lg font-bold text-white">🔒 已遮蓋</h2>
-          <p className="mt-1 text-xs text-blue-100">準備作答…</p>
+          <p className="mt-1 text-xs text-white/70">準備作答…</p>
         </div>
       )}
 
       {/* ============ ANSWER ============ */}
       {phase === 'answer' && (
-        <div className="rounded-2xl border border-blue-700/40 bg-[#081737] p-4">
+        <div className="rounded-2xl border border-white/15 bg-black/30 p-4">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-white">
               ✍️ {usePick ? '點選你記得出現過的圖案' : '輸入你記得的內容'}
@@ -803,7 +898,7 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
 
           {usePick ? (
             <>
-              <div className="mb-2 text-[11px] text-blue-100">
+              <div className="mb-2 text-[11px] text-white/70">
                 已選 <b className="text-amber-300">{picked.length}</b> / 應為 {cards.length} 個
               </div>
               <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
@@ -817,7 +912,7 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
                         if (soundEnabled) Sound.click()
                       }}
                       className={`flex aspect-square items-center justify-center rounded-xl border-2 transition active:scale-95 ${
-                        on ? 'border-amber-400 bg-amber-400/25' : 'border-blue-600/40 bg-[#0d2050]'
+                        on ? 'border-amber-400 bg-amber-400/25' : 'border-white/15 bg-black/25'
                       }`}
                     >
                       {renderCardFace(c, 'md')}
@@ -831,7 +926,7 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder={`輸入你記得的 ${cards.length} 項，用逗號分隔`}
-              className="min-h-32 w-full rounded-xl border border-blue-600/50 bg-[#0d2050] p-3 text-base text-white placeholder-blue-300/70 focus:border-amber-400 focus:outline-none"
+              className="min-h-32 w-full rounded-xl border border-white/20 bg-black/25 p-3 text-base text-white placeholder:text-white/40 focus:border-amber-400 focus:outline-none"
             />
           )}
 
@@ -839,7 +934,7 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
             onClick={handleSubmit}
             disabled={submitted}
             className={`mt-3 w-full rounded-xl py-3.5 text-base font-bold ${
-              submitted ? 'bg-blue-900/50 text-blue-100' : 'bg-amber-400 text-stone-900 active:scale-[0.99]'
+              submitted ? 'bg-black/35 text-white/70' : 'bg-amber-400 text-stone-900 active:scale-[0.99]'
             }`}
           >
             📤 提交
@@ -849,7 +944,7 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
 
       {/* ============ RESULTS ============ */}
       {phase === 'results' && (
-        <div className="rounded-2xl border border-blue-700/40 bg-[#081737] p-5">
+        <div className="rounded-2xl border border-white/15 bg-black/30 p-5">
           <h2 className="mb-3 text-sm font-bold text-white">📊 結果</h2>
           <div className="mb-3 grid grid-cols-3 gap-2">
             <div className="rounded-lg bg-emerald-900/50 p-2 text-center">
@@ -879,7 +974,7 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
           <div className="mb-3">
             <button
               onClick={() => setShowAnswers(!showAnswers)}
-              className="flex items-center gap-1 text-xs text-blue-100 hover:text-white"
+              className="flex items-center gap-1 text-xs text-white/70 hover:text-white"
             >
               <Info size={12} />
               {showAnswers ? '隱藏' : '顯示'}答案
@@ -894,7 +989,7 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
                     >
                       {renderCardFace(c, 'sm')}
                     </div>
-                    <div className="mt-0.5 max-w-14 truncate text-[10px] text-blue-100">{c.name}</div>
+                    <div className="mt-0.5 max-w-14 truncate text-[10px] text-white/70">{c.name}</div>
                   </div>
                 ))}
               </div>
@@ -909,13 +1004,15 @@ export default function TextMemory({ config, playerName, onBack, onResult }: Pro
             </button>
             <button
               onClick={onBack}
-              className="flex-1 rounded-lg border border-blue-500/60 bg-blue-900/40 py-3 text-sm text-blue-100"
+              className="flex-1 rounded-lg border border-white/20 bg-black/30 py-3 text-sm text-white/70"
             >
               ⬅️ 返回
             </button>
           </div>
         </div>
       )}
+
+      {demoMode && phase !== 'setup' && <DemoCaption text={demoCaption} onExit={() => setDemoMode(false)} />}
     </div>
   )
 }

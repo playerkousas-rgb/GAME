@@ -11,6 +11,7 @@ import {
   RotateCcw, Timer, SkipForward, ChevronLeft, Flag, ListOrdered,
 } from 'lucide-react'
 import QRCode from '../../components/QRCode'
+import { PageHeader, ThemeToggle } from '../../components/ui'
 import { DRAW_BANK } from '../../data/drawBank'
 import { GameSound } from '../../shared/gameSound'
 import type { Question } from '../../shared/questionBank'
@@ -109,7 +110,7 @@ export default function SecretDrawHost({ levels, categories, customAnswers, onBa
   /* ============ SETUP ============ */
   if (phase === 'setup') {
     return (
-      <Shell>
+      <Shell onBack={onBack}>
         <div className="mx-auto w-full max-w-2xl space-y-4">
           <button
             onClick={onBack}
@@ -118,7 +119,7 @@ export default function SecretDrawHost({ levels, categories, customAnswers, onBa
             <ArrowLeft className="h-4 w-4" /> 返回一般模式
           </button>
 
-          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#0a2260] to-[#02133e] p-5 text-center">
+          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-400/10 to-transparent p-5 text-center">
             <div className="text-4xl">🎨🔒</div>
             <h1 className="mt-1 text-2xl font-black text-white">秘密派題模式</h1>
             <p className="mt-1 text-xs leading-relaxed text-white/75">
@@ -220,7 +221,7 @@ export default function SecretDrawHost({ levels, categories, customAnswers, onBa
   /* ============ QR ============ */
   if (phase === 'qr') {
     return (
-      <Shell>
+      <Shell onBack={onBack}>
         <div className="mx-auto w-full max-w-4xl space-y-4">
           <div className="flex items-center justify-between gap-2">
             <button
@@ -294,9 +295,9 @@ export default function SecretDrawHost({ levels, categories, customAnswers, onBa
 
   if (finished) {
     return (
-      <Shell>
+      <Shell onBack={onBack}>
         <div className="mx-auto w-full max-w-2xl space-y-4 text-center">
-          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[#0a2260] to-[#02133e] p-8">
+          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-400/10 to-transparent p-8">
             <Flag className="mx-auto h-14 w-14 text-amber-300" />
             <h1 className="mt-3 text-2xl font-black text-white">整輪玩完！</h1>
             <p className="mt-2 text-sm leading-relaxed text-white/75">
@@ -350,7 +351,7 @@ export default function SecretDrawHost({ levels, categories, customAnswers, onBa
   }
 
   return (
-    <Shell>
+    <Shell onBack={onBack}>
       <div className="mx-auto w-full max-w-3xl space-y-4">
         {/* 進度 */}
         <div className="flex items-center justify-center gap-2 text-xs text-white/75">
@@ -368,7 +369,7 @@ export default function SecretDrawHost({ levels, categories, customAnswers, onBa
         {/* 叫人出場 */}
         {phase === 'lobby' && (
           <>
-            <div className="rounded-2xl border border-emerald-400/30 bg-gradient-to-br from-emerald-900/40 to-[#02133e] p-6 text-center">
+            <div className="rounded-2xl border border-emerald-400/30 bg-gradient-to-br from-emerald-500/15 to-transparent p-6 text-center">
               <div className="text-xs text-white/75">請呢位玩家出嚟作畫</div>
               <div
                 className="my-1 font-black leading-none text-emerald-300"
@@ -512,7 +513,7 @@ export default function SecretDrawHost({ levels, categories, customAnswers, onBa
                   className={`flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-xs ${
                     r.round === round
                       ? 'border-amber-400 bg-amber-400/15'
-                      : 'border-white/10 bg-[#0d2050]'
+                      : 'border-white/10 bg-black/20'
                   }`}
                 >
                   <span className="w-8 shrink-0 text-left font-black text-amber-300">{r.round}.</span>
@@ -570,8 +571,19 @@ export default function SecretDrawHost({ levels, categories, customAnswers, onBa
   )
 }
 
-function Shell({ children }: { children: React.ReactNode }) {
-  return <div className="min-h-[100dvh] bg-[#02133e] px-4 pb-24 pt-5 text-white">{children}</div>
+function Shell({ children, onBack }: { children: React.ReactNode; onBack: () => void }) {
+  return (
+    <div className="ss-page flex flex-col">
+      <PageHeader
+        emoji="🎨"
+        title="秘密派題"
+        subtitle="猜猜畫畫 · 手機出題"
+        onBack={onBack}
+        actions={<ThemeToggle />}
+      />
+      <div className="mx-auto w-full max-w-6xl flex-1 px-4 pb-8 pt-4">{children}</div>
+    </div>
+  )
 }
 
 function Section({

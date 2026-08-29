@@ -3,6 +3,33 @@ import { Timer, ShieldCheck, Medal, ArrowLeft, Info, CheckCircle2, XCircle, Help
 import { Item, GameConfig, GameResult } from '../types'
 import { DISTRACTORS, shuffleArray, normalizeText } from '../data/items'
 import { Sound } from '../hooks/useSound'
+import { DemoCaption, GameIntro, type IntroSection } from '../../../components/GameIntro'
+
+const KIMS_INTRO: IntroSection[] = [
+  {
+    title: '🎯 玩法',
+    items: [
+      '物品（Emoji／圖形／相片）展示一段時間後自動遮蓋。',
+      '靠記憶作答：「選擇模式」點選記得的物品（混有干擾項），或「輸入模式」打字輸入。',
+      '系統計算正確／錯誤／遺漏，換算準確率與勳章積分。',
+    ],
+  },
+  {
+    title: '⚙️ 可調參數',
+    items: [
+      '物品數量、觀察秒數、作答秒數——愈多愈難。',
+      '選擇模式可開關「干擾項」；輸入模式不設干擾，考驗拼寫記憶。',
+    ],
+  },
+  {
+    title: '📦 物品庫與自訂',
+    items: [
+      '主頁「物品庫」內建 90+ 童軍主題物品，分 25+ 類。',
+      '可自行新增自訂物品（Emoji＋名稱，含「自訂」分類），本裝置保存。',
+      '💡 首次使用建議按「🎬 觀看示範」，15 秒看懂整個流程。',
+    ],
+  },
+]
 
 interface Props {
   config: GameConfig
@@ -34,6 +61,11 @@ export default function KimsGame({ config, uploadedItems = [], allItems, playerN
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [showNames, setShowNames] = useState(false)
 
+  /* ---------- 示範模式（MOCK） ---------- */
+  const [demoMode, setDemoMode] = useState(false)
+  const [demoCaption, setDemoCaption] = useState('')
+  const [introOpen, setIntroOpen] = useState(false)
+
   const allItemsPool = useMemo(() => allItems || [...uploadedItems], [allItems, uploadedItems])
   const filteredItems = useMemo(() => {
     if (config.difficulty === 'easy') return allItemsPool.filter(i => i.level === 'easy')
@@ -59,15 +91,19 @@ export default function KimsGame({ config, uploadedItems = [], allItems, playerN
   }, [])
 
   useEffect(() => {
-    if (phase !== 'observe' && phase !== 'answer') return
+    if (phase !== 'observe' && phase !== 'answer' && phase !== 'hidden') return
+    // 遮蓋完 1.5 秒緩衝後進入作答（獨立 effect 段，避免被 phase 變更的 cleanup 取消）
+    if (phase === 'hidden') {
+      const toAnswer = window.setTimeout(() => { setAnimating(false); setPhase('answer'); setTimer(answerSeconds) }, 1500)
+      return () => { window.clearTimeout(toAnswer) }
+    }
     if (timer <= 5 && timer > 0 && soundEnabled) Sound.tick()
     if (timer <= 0) {
       // 以 timeout 延後，避免在 effect 內同步 setState
       if (phase === 'observe') {
         if (soundEnabled) Sound.submit()
         const toHidden = window.setTimeout(() => { setPhase('hidden'); setShowItems(false); setAnimating(true) }, 0)
-        const toAnswer = window.setTimeout(() => { setAnimating(false); setPhase('answer'); setTimer(answerSeconds) }, 1500)
-        return () => { window.clearTimeout(toHidden); window.clearTimeout(toAnswer) }
+        return () => { window.clearTimeout(toHidden) }
       }
       if (submitted) return
       const t = window.setTimeout(() => {
@@ -121,6 +157,49 @@ export default function KimsGame({ config, uploadedItems = [], allItems, playerN
 
   const handleSubmit = useCallback(() => { if (!submitted) { setSubmitted(true); if (soundEnabled) Sound.submit(); setPhase('results') }}, [submitted, soundEnabled])
 
+  /* 示範模式：快進走完整流程（觀察→遮蓋→作答→結果） */
+  const submitRef = useRef(handleSubmit)
+  useEffect(() => { submitRef.current = handleSubmit })
+
+  const startDemo = useCallback(() => {
+    setDemoMode(true)
+    setDemoCaption('🎬 示範開始——物品出現，努力記住！')
+    startGame()
+  }, [startGame])
+
+  useEffect(() => {
+    if (!demoMode) return
+    if (phase === 'observe') {
+      const t = setTimeout(() => { setShowItems(false); setPhase('hidden') }, 3200)
+      return () => clearTimeout(t)
+    }
+    if (phase === 'hidden') {
+      setDemoCaption('遮蓋了！現在全憑記憶')
+      const t = setTimeout(() => setPhase('answer'), 1600)
+      return () => clearTimeout(t)
+    }
+    if (phase === 'answer') {
+      setDemoCaption(config.answerMode === 'input' ? '輸入記得的物品（逗號分隔）→ 提交' : '點選記得的物品——選項區混入了干擾項')
+      const t1 = setTimeout(() => {
+        if (config.answerMode === 'input') {
+          setInputText(roundItems.map(i => i.name).slice(0, Math.max(2, roundItems.length - 1)).join('、'))
+        } else {
+          const correctIds = answerPool
+            .filter(i => roundItems.some(r => r.id === i.id))
+            .slice(0, Math.max(2, roundItems.length - 1))
+            .map(i => i.id)
+          setSelectedChoices(correctIds)
+        }
+        setDemoCaption('示範：故意漏記一件，示範「遺漏」如何計分')
+      }, 2600)
+      const t2 = setTimeout(() => submitRef.current(), 4600)
+      return () => { clearTimeout(t1); clearTimeout(t2) }
+    }
+    if (phase === 'results') {
+      setDemoCaption('🎉 示範完成——正確／錯誤／遺漏自動計分。按「結束」回到正常遊戲')
+    }
+  }, [demoMode, phase, config.answerMode, roundItems, answerPool])
+
   // 手機優先的欄數
   const gridCols = useMemo(() => {
     const n = roundItems.length
@@ -151,39 +230,44 @@ export default function KimsGame({ config, uploadedItems = [], allItems, playerN
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between rounded-xl bg-[#02133E]/60 border border-blue-800/30 p-2.5">
-        <button onClick={onBack} className="flex items-center gap-1 text-blue-100 hover:text-blue-100 text-xs"><ArrowLeft size={14} /> 返回</button>
-        <div className="flex items-center gap-2 text-xs text-blue-200">
+      <div className="flex items-center justify-between rounded-xl bg-white/5 border border-white/10 p-2.5">
+        <button onClick={onBack} className="flex items-center gap-1 text-white/70 hover:text-white/70 text-xs"><ArrowLeft size={14} /> 返回</button>
+        <div className="flex items-center gap-2 text-xs text-white/60">
           <span className="font-bold text-amber-300">{score} 分</span>
-          {playerName && (<><span className="text-blue-200">|</span><span className="text-white">{playerName}</span></>)}
+          {playerName && (<><span className="text-white/60">|</span><span className="text-white">{playerName}</span></>)}
         </div>
         <div className="flex gap-1">
-          <button onClick={toggleFullscreen} className="text-blue-100 hover:text-white p-1">{isFullscreen ? <Minimize size={14} /> : <Maximize size={14} />}</button>
-          <button onClick={() => setSoundEnabled(!soundEnabled)} className="text-blue-100 hover:text-white">{soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}</button>
+          <button onClick={toggleFullscreen} className="text-white/70 hover:text-white p-1">{isFullscreen ? <Minimize size={14} /> : <Maximize size={14} />}</button>
+          <button onClick={() => setSoundEnabled(!soundEnabled)} className="text-white/70 hover:text-white">{soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}</button>
         </div>
       </div>
 
       {phase === 'setup' && (
-        <div className="rounded-2xl border border-blue-800/30 bg-[#02133E]/60 p-6 text-center">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-center">
           <div className="text-5xl mb-3">🏕️</div>
           <h2 className="text-xl font-bold text-white">金氏遊戲</h2>
-          <p className="text-blue-100 text-xs mt-1">物品展示後遮蓋，考驗記憶力</p>
+          <p className="text-white/70 text-xs mt-1">物品展示後遮蓋，考驗記憶力</p>
           {playerName && <div className="mt-2 inline-block rounded-full bg-amber-400/20 px-3 py-0.5 text-xs text-amber-300">🎯 {playerName}</div>}
-          <div className="mt-3 flex justify-center gap-4 text-xs text-blue-200">
+          <div className="mt-3 flex justify-center gap-4 text-xs text-white/60">
             <span>📦 {itemsCount} 件</span><span>⏱️ {observeSeconds}s</span><span>✍️ {answerSeconds}s</span>
           </div>
-          <button onClick={startGame} className="mt-5 px-8 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold text-sm">🚀 開始</button>
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+            <button onClick={startGame} className="px-8 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-900 font-bold text-sm">🚀 開始</button>
+            <button onClick={startDemo} className="px-4 py-2.5 rounded-xl border border-indigo-400/40 bg-indigo-500/15 text-indigo-200 hover:bg-indigo-500/25 font-bold text-sm">🎬 觀看示範</button>
+            <button onClick={() => setIntroOpen(true)} className="px-4 py-2.5 rounded-xl border border-white/15 bg-white/5 text-white/90 hover:bg-white/10 font-bold text-sm">📖 玩法介紹</button>
+          </div>
+          <GameIntro open={introOpen} onClose={() => setIntroOpen(false)} emoji="🏕️" title="金氏遊戲" tagline="物品展示後遮蓋，考驗記憶力" sections={KIMS_INTRO} />
         </div>
       )}
 
       {phase === 'observe' && (
-        <div className="rounded-2xl border border-blue-700/40 bg-[#081737] p-3 sm:p-4">
+        <div className="rounded-2xl border border-white/15 bg-black/30 p-3 sm:p-4">
           <div className="mb-3 flex items-center justify-between gap-2">
             <h2 className="text-sm font-semibold text-white">👀 觀察 · {roundItems.length} 件</h2>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowNames(v => !v)}
-                className="rounded-lg border border-blue-500/50 bg-[#0d2050] px-2.5 py-1 text-[11px] text-blue-100"
+                className="rounded-lg border border-white/20 bg-black/25 px-2.5 py-1 text-[11px] text-white/70"
               >
                 {showNames ? '隱藏名稱' : '顯示名稱'}
               </button>
@@ -216,45 +300,45 @@ export default function KimsGame({ config, uploadedItems = [], allItems, playerN
       )}
 
       {phase === 'hidden' && (
-        <div className="rounded-2xl border border-blue-800/30 bg-[#02133E]/60 p-8 text-center">
-          <ShieldCheck className="mx-auto mb-2 text-blue-100/60" size={36} />
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
+          <ShieldCheck className="mx-auto mb-2 text-white/40" size={36} />
           <h2 className="text-lg font-bold text-white">🔒 已遮蓋</h2>
-          <p className="text-blue-100/60 text-xs mt-1">準備作答...</p>
+          <p className="text-white/40 text-xs mt-1">準備作答...</p>
         </div>
       )}
 
       {phase === 'answer' && (
-        <div className="rounded-2xl border border-blue-800/30 bg-[#02133E]/60 p-4">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-white">✍️ 回答</h2>
             <div className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-bold ${timer <= 5 ? 'bg-rose-500 text-white animate-pulse' : 'bg-amber-400/80 text-stone-900'}`}><Timer size={12} /> {timer}s</div>
           </div>
           {config.answerMode === 'input' ? (
-            <textarea value={inputText} onChange={e => setInputText(e.target.value)} placeholder="輸入記得的物品，逗號分隔" className="min-h-32 w-full rounded-xl border border-blue-700/40 bg-[#0a1e4a]/50 p-3 text-sm text-white placeholder-blue-300/80 focus:border-amber-400/50 focus:outline-none" />
+            <textarea value={inputText} onChange={e => setInputText(e.target.value)} placeholder="輸入記得的物品，逗號分隔" className="min-h-32 w-full rounded-xl border border-white/15 bg-black/25 p-3 text-sm text-white placeholder:text-white/40 focus:border-amber-400/50 focus:outline-none" />
           ) : (
             <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-6">
               {answerPool.map(item => {
                 const checked = selectedChoices.includes(item.id)
                 return (
                   <button key={item.id} onClick={() => setSelectedChoices(prev => checked ? prev.filter(x => x !== item.id) : [...prev, item.id])}
-                    className={`flex aspect-square flex-col items-center justify-center gap-1 rounded-xl border-2 p-1 transition active:scale-95 ${checked ? 'border-amber-400 bg-amber-400/25' : 'border-blue-600/40 bg-[#0d2050]'}`}>
+                    className={`flex aspect-square flex-col items-center justify-center gap-1 rounded-xl border-2 p-1 transition active:scale-95 ${checked ? 'border-amber-400 bg-amber-400/25' : 'border-white/15 bg-black/25'}`}>
                     {item.imageUrl
                       ? <img src={item.imageUrl} alt={item.name} className="max-h-[55%] max-w-[80%] object-contain" />
                       : <span style={{ fontSize: 'clamp(1.4rem, 6vw, 2.4rem)', lineHeight: 1 }}>{item.emoji}</span>}
-                    <span className={`w-full truncate px-0.5 text-center text-[10px] ${checked ? 'text-amber-100' : 'text-blue-100'}`}>{item.name}</span>
+                    <span className={`w-full truncate px-0.5 text-center text-[10px] ${checked ? 'text-amber-100' : 'text-white/70'}`}>{item.name}</span>
                   </button>
                 )
               })}
             </div>
           )}
-          <button onClick={handleSubmit} disabled={submitted} className={`mt-3 w-full rounded-xl py-2.5 text-xs font-bold ${submitted ? 'bg-blue-900/30 text-blue-200' : 'bg-amber-400 text-stone-900 hover:bg-amber-300'}`}>
+          <button onClick={handleSubmit} disabled={submitted} className={`mt-3 w-full rounded-xl py-2.5 text-xs font-bold ${submitted ? 'bg-black/25 text-white/60' : 'bg-amber-400 text-stone-900 hover:bg-amber-300'}`}>
             {submitted ? '已提交' : '📤 提交'}
           </button>
         </div>
       )}
 
       {phase === 'results' && (
-        <div className="rounded-2xl border border-blue-800/30 bg-[#02133E]/60 p-5">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
           <h2 className="text-sm font-bold text-white mb-3">📊 結果</h2>
           <div className="grid grid-cols-3 gap-2 mb-3">
             <div className="rounded-lg bg-emerald-900/30 p-2 text-center"><CheckCircle2 className="mx-auto mb-0.5 text-emerald-400" size={16} /><div className="text-[10px] text-emerald-300">正確</div><div className="text-lg font-bold text-emerald-400">{result.correct}</div></div>
@@ -268,15 +352,17 @@ export default function KimsGame({ config, uploadedItems = [], allItems, playerN
             <div className="text-sm font-bold text-white mt-1">+{result.score} 分</div>
           </div>
           <div className="mb-3">
-            <button onClick={() => setShowAnswers(!showAnswers)} className="text-xs text-blue-100 hover:text-blue-100 flex items-center gap-1"><Info size={12} />{showAnswers ? '隱藏' : '顯示'}答案</button>
-            {showAnswers && <div className="mt-1 flex flex-wrap gap-1">{roundItems.map(item => <span key={item.id} className="rounded-full bg-blue-900/40 px-2 py-0.5 text-[10px] text-blue-200">{item.emoji} {item.name}</span>)}</div>}
+            <button onClick={() => setShowAnswers(!showAnswers)} className="text-xs text-white/70 hover:text-white/70 flex items-center gap-1"><Info size={12} />{showAnswers ? '隱藏' : '顯示'}答案</button>
+            {showAnswers && <div className="mt-1 flex flex-wrap gap-1">{roundItems.map(item => <span key={item.id} className="rounded-full bg-black/30 px-2 py-0.5 text-[10px] text-white/60">{item.emoji} {item.name}</span>)}</div>}
           </div>
           <div className="flex gap-2">
             <button onClick={startGame} className="flex-1 rounded-lg bg-amber-400 py-2.5 text-xs font-bold text-stone-900 hover:bg-amber-300">🔄 再來</button>
-            <button onClick={onBack} className="flex-1 rounded-lg border border-blue-600/50 bg-blue-900/30 py-2.5 text-xs text-blue-200">⬅️ 返回</button>
+            <button onClick={onBack} className="flex-1 rounded-lg border border-white/20 bg-black/25 py-2.5 text-xs text-white/60">⬅️ 返回</button>
           </div>
         </div>
       )}
+
+      {demoMode && phase !== 'setup' && <DemoCaption text={demoCaption} onExit={() => setDemoMode(false)} />}
     </div>
   )
 }

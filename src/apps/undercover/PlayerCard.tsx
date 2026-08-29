@@ -158,7 +158,7 @@ export default function PlayerCard() {
               className={`relative flex aspect-[3/4] w-full max-w-sm select-none flex-col items-center justify-center rounded-3xl bg-gradient-to-br shadow-2xl ring-4 transition-transform active:scale-[0.98] ${
                 revealed
                   ? `${ROLE_STYLE[mine.role].bg} ${ROLE_STYLE[mine.role].ring}`
-                  : 'from-[#0a2260] to-[#02133e] ring-white/10'
+                  : 'from-indigo-400/10 to-transparent ring-white/10'
               }`}
               style={{ WebkitTouchCallout: 'none' }}
             >

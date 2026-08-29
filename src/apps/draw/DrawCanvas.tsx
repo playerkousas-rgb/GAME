@@ -115,8 +115,8 @@ export default function DrawCanvas({ disabled = false }: { disabled?: boolean })
       {/* 畫布 */}
       <div
         ref={wrapRef}
-        className="relative min-h-0 flex-1 overflow-hidden rounded-2xl border border-white/10 bg-[#0b1a3d]"
-        style={{ touchAction: 'none' }}
+        className="relative min-h-0 flex-1 overflow-hidden rounded-2xl border border-white/10"
+        style={{ touchAction: 'none', background: 'var(--ss-canvas)' }}
       >
         <canvas
           ref={canvasRef}

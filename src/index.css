@@ -1,8 +1,64 @@
 @import "tailwindcss";
 
+/* ==================================================================
+   SCOUT SYSTEM — 設計系統（單一事實來源）
+   全站統一配色：深藍底 + 琥珀金主色。
+   深色為預設；淺色主題透過 [data-theme="light"] 覆寫變數。
+   ================================================================== */
+
+:root {
+  /* 背景 */
+  --ss-bg: #02133e;
+  --ss-bg-2: #0a1e4a;
+  /* 表面（卡片／面板） */
+  --ss-surface: rgba(255, 255, 255, 0.05);
+  --ss-surface-2: rgba(255, 255, 255, 0.09);
+  /* 凹陷（輸入框底色） */
+  --ss-inset: rgba(0, 0, 0, 0.28);
+  /* 邊框 */
+  --ss-border: rgba(255, 255, 255, 0.10);
+  --ss-border-2: rgba(255, 255, 255, 0.20);
+  /* 文字 */
+  --ss-text: #ffffff;
+  --ss-text-2: rgba(255, 255, 255, 0.75);
+  --ss-text-3: rgba(255, 255, 255, 0.50);
+  /* 主色（琥珀金） */
+  --ss-accent: #fbbf24;
+  --ss-accent-soft: rgba(251, 191, 36, 0.14);
+  --ss-accent-border: rgba(251, 191, 36, 0.55);
+  --ss-accent-text: #fde68a;
+  --ss-accent-ink: #1c1917;
+  /* 頭部浮動背景 */
+  --ss-header-bg: rgba(2, 19, 62, 0.85);
+  --ss-sticky-bg: rgba(2, 19, 62, 0.92);
+  /* 畫板表面（深淺主題都保持深色，像黑板） */
+  --ss-canvas: #081737;
+}
+
+[data-theme="light"] {
+  --ss-bg: #f1f5f9;
+  --ss-bg-2: #e2e8f0;
+  --ss-surface: #ffffff;
+  --ss-surface-2: #eef2f7;
+  --ss-inset: #ffffff;
+  --ss-border: rgba(15, 23, 42, 0.10);
+  --ss-border-2: rgba(15, 23, 42, 0.22);
+  --ss-text: #0f172a;
+  --ss-text-2: rgba(15, 23, 42, 0.72);
+  --ss-text-3: rgba(15, 23, 42, 0.45);
+  --ss-accent: #f59e0b;
+  --ss-accent-soft: rgba(245, 158, 11, 0.12);
+  --ss-accent-border: rgba(217, 119, 6, 0.50);
+  --ss-accent-text: #92400e;
+  --ss-accent-ink: #1c1917;
+  --ss-header-bg: rgba(241, 245, 249, 0.88);
+  --ss-sticky-bg: rgba(241, 245, 249, 0.94);
+  --ss-canvas: #0f172a;
+}
+
 html, body, #root {
-  background-color: #02133e;
-  color: #ffffff;
+  background-color: var(--ss-bg);
+  color: var(--ss-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -33,12 +89,12 @@ input, select, textarea {
 
 /* 下拉選單在深色底的可讀性（部分 Android 會用系統白底） */
 select {
-  color: #ffffff;
-  background-color: #0d2050;
+  color: var(--ss-text);
+  background-color: var(--ss-inset);
 }
 select option {
-  color: #ffffff;
-  background-color: #0d2050;
+  color: var(--ss-text);
+  background-color: var(--ss-bg);
 }
 
 /* 觸控目標最小尺寸 + 移除點擊高亮 */
@@ -60,14 +116,216 @@ h1, h2, h3, p, span, div, label {
   overflow-wrap: anywhere;
 }
 
+/* 隐藏卷軸（橫向捲動列用） */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* 浮動返回主頁按鈕（深淺主題通用 — 深底淺字） */
+.hub-pill {
+  background: rgba(0, 0, 0, 0.55);
+  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.hub-pill:hover {
+  color: #fde68a;
+  border-color: rgba(251, 191, 36, 0.50);
+  background: rgba(0, 0, 0, 0.70);
+}
+
 /* 列印 QR 卡（誰是臥底） */
 @media print {
   body, html, #root { background: #ffffff !important; }
   .print\:hidden { display: none !important; }
 }
 
-/* ============ LIGHT THEME GLOBAL OVERRIDES ============ */
-/* Using higher-specificity [data-theme="light"] selectors to override Tailwind dark utilities without touching component source */
+/* ==================================================================
+   共用元件類（深色／淺色自動切換 — 統一設計語言）
+   放在 components 層，Tailwind 工具類別仍可覆寫
+   ================================================================== */
+@layer components {
+  /* 整頁外殼 */
+  .ss-page {
+    min-height: 100dvh;
+    background-color: var(--ss-bg);
+    color: var(--ss-text);
+  }
+
+  /* 頂部吸附導覽列 */
+  .ss-header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    border-bottom: 1px solid var(--ss-border);
+    background: var(--ss-header-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  /* 底部吸附 CTA 容器 */
+  .ss-sticky-cta {
+    position: sticky;
+    bottom: 0;
+    z-index: 30;
+    padding-top: 0.75rem;
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+    background: linear-gradient(to top, var(--ss-sticky-bg) 70%, transparent);
+  }
+
+  /* 卡片表面 */
+  .card {
+    border-radius: 1rem;
+    border: 1px solid var(--ss-border);
+    background: var(--ss-surface);
+    padding: 1rem;
+  }
+  .card-lg {
+    border-radius: 1.25rem;
+    border: 1px solid var(--ss-border);
+    background: var(--ss-surface);
+    padding: 1.25rem;
+  }
+
+  /* 凹陷輸入表面 */
+  .inset {
+    background: var(--ss-inset);
+    border: 1px solid var(--ss-border);
+  }
+
+  /* 文字階層 */
+  .muted { color: var(--ss-text-2); }
+  .muted-2 { color: var(--ss-text-3); }
+  .accent-text { color: var(--ss-accent-text); }
+
+  /* 段落標題（emoji／icon + 標題 + 說明） */
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--ss-text);
+  }
+  .section-title .accent-text { color: var(--ss-accent); }
+
+  /* 主要按鈕 */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 1rem;
+    background: var(--ss-accent);
+    color: var(--ss-accent-ink);
+    font-weight: 800;
+    padding: 0.9rem 1.5rem;
+    font-size: 1rem;
+    box-shadow: 0 8px 24px -8px color-mix(in srgb, var(--ss-accent) 45%, transparent);
+    transition: filter 0.15s ease, transform 0.1s ease;
+  }
+  .btn-primary:hover:not(:disabled) { filter: brightness(1.08); }
+  .btn-primary:active:not(:disabled) { transform: scale(0.99); }
+  .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
+
+  /* 次級按鈕 */
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.9rem;
+    border: 1px solid var(--ss-border-2);
+    background: var(--ss-surface);
+    color: var(--ss-text-2);
+    font-weight: 600;
+    padding: 0.7rem 1.25rem;
+    font-size: 0.875rem;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .btn-ghost:hover { background: var(--ss-surface-2); color: var(--ss-text); }
+  .btn-ghost:active { transform: scale(0.99); }
+  .btn-ghost:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* 圖示按鈕（頂列小按鈕） */
+  .icon-btn {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.75rem;
+    color: var(--ss-text-2);
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .icon-btn:hover { background: var(--ss-surface-2); color: var(--ss-text); }
+  .icon-btn:active { transform: scale(0.96); }
+  .icon-btn:disabled { opacity: 0.3; }
+
+  /* 選項 chip（設定頁的難度／時間／數量） */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    border-radius: 0.625rem;
+    border: 1px solid var(--ss-border);
+    background: var(--ss-inset);
+    color: var(--ss-text-2);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.55rem 0.5rem;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+  }
+  .chip:hover { color: var(--ss-text); }
+  .chip:active { transform: scale(0.97); }
+  .chip-on {
+    border-color: var(--ss-accent-border);
+    background: var(--ss-accent-soft);
+    color: var(--ss-accent-text);
+  }
+  /* 全選 chip（大按鈕） */
+  .chip-lg {
+    border-radius: 0.75rem;
+    padding: 0.7rem 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+  }
+
+  /* 輸入框 */
+  .input {
+    width: 100%;
+    border-radius: 0.625rem;
+    border: 1px solid var(--ss-border);
+    background: var(--ss-inset);
+    color: var(--ss-text);
+    padding: 0.55rem 0.75rem;
+    font-size: 0.875rem;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+  .input::placeholder { color: var(--ss-text-3); }
+  .input:focus { border-color: var(--ss-accent-border); }
+
+  /* 統計數字磚 */
+  .stat {
+    border-radius: 0.875rem;
+    border: 1px solid var(--ss-border);
+    background: var(--ss-surface);
+    padding: 0.625rem 0.5rem;
+    text-align: center;
+  }
+  .stat-value { font-size: 1.375rem; font-weight: 900; font-variant-numeric: tabular-nums; }
+  .stat-label { font-size: 0.6875rem; color: var(--ss-text-2); }
+}
+
+/* ==================================================================
+   LIGHT THEME — 舊有 class 級覆寫（兼容尚未改用變數的元件）
+   ================================================================== */
 
 [data-theme="light"] html,
 [data-theme="light"] body,
@@ -95,13 +353,28 @@ h1, h2, h3, p, span, div, label {
 [data-theme="light"] .bg-white\/10 {
   background-color: #f8fafc !important;
 }
+[data-theme="light"] .bg-white\/\[0\.03\] {
+  background-color: #ffffff !important;
+}
+[data-theme="light"] .bg-white\/\[0\.06\] {
+  background-color: #ffffff !important;
+}
 
 /* Raised panels */
 [data-theme="light"] .bg-black\/20 {
   background-color: #f1f5f9 !important;
 }
+[data-theme="light"] .bg-black\/25 {
+  background-color: #eef2f7 !important;
+}
 [data-theme="light"] .bg-black\/30 {
   background-color: #e2e8f0 !important;
+}
+[data-theme="light"] .bg-black\/35 {
+  background-color: #dbe2ec !important;
+}
+[data-theme="light"] .bg-black\/40 {
+  background-color: #cbd5e1 !important;
 }
 [data-theme="light"] .bg-black\/70 {
   background-color: rgba(0,0,0,0.70) !important;
@@ -116,6 +389,9 @@ h1, h2, h3, p, span, div, label {
 }
 [data-theme="light"] .text-white\/80 {
   color: rgba(15,23,42,0.80) !important;
+}
+[data-theme="light"] .text-white\/75 {
+  color: rgba(15,23,42,0.75) !important;
 }
 [data-theme="light"] .text-white\/70 {
   color: rgba(15,23,42,0.70) !important;
@@ -142,7 +418,6 @@ h1, h2, h3, p, span, div, label {
   color: rgba(15,23,42,0.30) !important;
 }
 
-
 /* 補充：淺色主題下較高不透明度的白字 */
 [data-theme="light"] .text-white\/85 { color: rgba(15,23,42,0.85) !important; }
 [data-theme="light"] .text-white\/75 { color: rgba(15,23,42,0.75) !important; }
@@ -155,6 +430,9 @@ h1, h2, h3, p, span, div, label {
 }
 [data-theme="light"] .border-white\/5 {
   border-color: rgba(0,0,0,0.04) !important;
+}
+[data-theme="light"] .border-white\/15 {
+  border-color: rgba(0,0,0,0.09) !important;
 }
 [data-theme="light"] .border-white\/20 {
   border-color: rgba(0,0,0,0.10) !important;
@@ -173,25 +451,10 @@ h1, h2, h3, p, span, div, label {
 [data-theme="light"] .hover\:bg-black\/20:hover {
   background-color: #f1f5f9 !important;
 }
-[data-theme="light"] .hover\:bg-white\:\[0\.07\]:hover {
-  background-color: #f8fafc !important;
-}
 
 /* Rings */
 [data-theme="light"] .ring-white\/10 {
   --tw-ring-color: rgba(0,0,0,0.06) !important;
-}
-[data-theme="light"] .ring-indigo-400\/20 {
-  --tw-ring-color: rgba(99,102,241,0.25) !important;
-}
-[data-theme="light"] .ring-indigo-400\/30 {
-  --tw-ring-color: rgba(99,102,241,0.35) !important;
-}
-[data-theme="light"] .ring-amber-400\/30 {
-  --tw-ring-color: rgba(245,158,11,0.35) !important;
-}
-[data-theme="light"] .ring-emerald-400\/30 {
-  --tw-ring-color: rgba(52,211,153,0.35) !important;
 }
 
 /* Accent colors - Indigo */
@@ -210,12 +473,6 @@ h1, h2, h3, p, span, div, label {
 [data-theme="light"] .bg-indigo-500\/20 {
   background-color: #c7d2fe !important;
 }
-[data-theme="light"] .shadow-indigo-500\/30 {
-  --tw-shadow-color: rgba(79,70,229,0.15) !important;
-}
-[data-theme="light"] .shadow-indigo-500\/20 {
-  --tw-shadow-color: rgba(79,70,229,0.10) !important;
-}
 
 /* Accent - Emerald */
 [data-theme="light"] .text-emerald-300 {
@@ -223,6 +480,9 @@ h1, h2, h3, p, span, div, label {
 }
 [data-theme="light"] .text-emerald-200 {
   color: #10b981 !important;
+}
+[data-theme="light"] .text-emerald-400 {
+  color: #047857 !important;
 }
 [data-theme="light"] .bg-emerald-500\/15 {
   background-color: #d1fae5 !important;
@@ -232,8 +492,17 @@ h1, h2, h3, p, span, div, label {
 [data-theme="light"] .text-amber-300 {
   color: #d97706 !important;
 }
+[data-theme="light"] .text-amber-400 {
+  color: #d97706 !important;
+}
+[data-theme="light"] .text-amber-500 {
+  color: #b45309 !important;
+}
 [data-theme="light"] .text-amber-200 {
   color: #f59e0b !important;
+}
+[data-theme="light"] .text-amber-100 {
+  color: #b45309 !important;
 }
 [data-theme="light"] .text-amber-600 {
   color: #b45309 !important;
@@ -244,23 +513,21 @@ h1, h2, h3, p, span, div, label {
 [data-theme="light"] .bg-amber-500\/10 {
   background-color: #fffbeb !important;
 }
-[data-theme="light"] .shadow-amber-500\/20 {
-  --tw-shadow-color: rgba(217,119,6,0.15) !important;
+[data-theme="light"] .bg-amber-400\/15 {
+  background-color: #fef3c7 !important;
 }
-
-/* Accent - Sky */
-[data-theme="light"] .text-sky-300 {
-  color: #0284c7 !important;
+[data-theme="light"] .bg-amber-400\/10 {
+  background-color: #fffbeb !important;
 }
-[data-theme="light"] .text-sky-200 {
-  color: #0ea5e9 !important;
-}
-[data-theme="light"] .bg-sky-500\/15 {
-  background-color: #e0f2fe !important;
+[data-theme="light"] .bg-amber-400\/20 {
+  background-color: #fde68a !important;
 }
 
 /* Accent - Rose */
 [data-theme="light"] .text-rose-300 {
+  color: #e11d48 !important;
+}
+[data-theme="light"] .text-rose-400 {
   color: #e11d48 !important;
 }
 [data-theme="light"] .text-rose-200 {
@@ -269,8 +536,24 @@ h1, h2, h3, p, span, div, label {
 [data-theme="light"] .bg-rose-500\/20 {
   background-color: #ffe4e6 !important;
 }
+[data-theme="light"] .bg-rose-500\/15 {
+  background-color: #ffe4e6 !important;
+}
 [data-theme="light"] .bg-rose-500\/10 {
   background-color: #fff1f2 !important;
+}
+
+/* Accent - Fuchsia */
+[data-theme="light"] .text-fuchsia-300 {
+  color: #c026d3 !important;
+}
+
+/* Accent - Cyan */
+[data-theme="light"] .text-cyan-300 {
+  color: #0891b2 !important;
+}
+[data-theme="light"] .text-cyan-400 {
+  color: #0e7490 !important;
 }
 
 /* Accent - Slate */
@@ -287,10 +570,6 @@ h1, h2, h3, p, span, div, label {
 [data-theme="light"] .focus\:ring-indigo-400\/40:focus {
   --tw-ring-color: rgba(99,102,241,0.25) !important;
 }
-[data-theme="light"] .focus\:outline-none:focus {
-  outline: 2px solid transparent;
-  outline-offset: 2px;
-}
 
 /* Select / input styling for light */
 [data-theme="light"] select option {
@@ -298,38 +577,34 @@ h1, h2, h3, p, span, div, label {
   color: #0f172a !important;
 }
 
-/* Scrollbar for light */
-[data-theme="light"] ::-webkit-scrollbar {
-  width: 6px;
-}
-[data-theme="light"] ::-webkit-scrollbar-track {
-  background: transparent;
-}
-[data-theme="light"] ::-webkit-scrollbar-thumb {
-  background: rgba(0,0,0,0.15);
-  border-radius: 3px;
-}
+/* ==================================================================
+   KIM'S GAME STYLES (merged from Guinness-Games)
+   ================================================================== */
 
-/* ============ KIM'S GAME STYLES (merged from Guinness-Games) ============ */
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #02133E;
+  background: var(--ss-bg);
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e3a5f;
+  background: var(--ss-border-2);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #2a4a7f;
+  filter: brightness(1.2);
 }
 
 /* Selection color */
 ::selection {
   background: rgba(251, 191, 36, 0.3);
-  color: white;
+  color: #fff;
+}
+[data-theme="light"] ::selection {
+  background: rgba(245, 158, 11, 0.3);
+  color: #0f172a;
 }
 
 /* Animations */
@@ -380,11 +655,30 @@ h1, h2, h3, p, span, div, label {
   z-index: 100 !important;
   filter: brightness(1.2);
 }
-/* ============ SCOUT SYSTEM — 新遊戲共用動畫 ============ */
+
+/* ============ SCOUT SYSTEM — 共用動畫 ============ */
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   20% { transform: translateX(-7px); }
   40% { transform: translateX(7px); }
   60% { transform: translateX(-4px); }
   80% { transform: translateX(4px); }
+}
+
+@keyframes pop-in {
+  0% { transform: scale(0.6); opacity: 0; }
+  70% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animate-pop-in {
+  animation: pop-in 0.35s ease-out both;
+}
+
+/* 減少動態偏好 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -86,17 +86,17 @@ export default function QuestionManager({ bank, builtIn, custom, onChange, onClo
     : '帳篷 | 童軍裝備 | 易\n打繩結 | 童軍活動 | 中 | 用手示範'
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+    <div className="card-lg">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="flex items-center gap-2 text-sm font-bold">
-          <span className="text-amber-400">✏️</span>
+        <h3 className="section-title">
+          <span className="accent-text">✏️</span>
           自訂題目
-          <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-normal text-white/75">
+          <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-normal muted">
             {custom.length} 題
           </span>
         </h3>
         {onClose && (
-          <button onClick={onClose} className="rounded-lg p-1 text-white/75 transition hover:bg-white/10 hover:text-white">
+          <button onClick={onClose} className="icon-btn !h-8 !w-8" aria-label="關閉">
             <X className="h-4 w-4" />
           </button>
         )}
@@ -109,7 +109,7 @@ export default function QuestionManager({ bank, builtIn, custom, onChange, onClo
             value={emoji}
             onChange={(e) => setEmoji(e.target.value)}
             placeholder="Emoji 題面（例：🦁👑）"
-            className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-lg outline-none focus:border-amber-400/50"
+            className="input !text-lg"
           />
         )}
         <input
@@ -117,14 +117,14 @@ export default function QuestionManager({ bank, builtIn, custom, onChange, onClo
           onChange={(e) => setAnswer(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && add()}
           placeholder={isEmoji ? '答案（例：獅子王）' : '題目／答案（例：帳篷）'}
-          className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none focus:border-amber-400/50"
+          className="input"
         />
         <input
           value={category}
           onChange={(e) => setCategory(e.target.value)}
           list={`cats-${bank}`}
           placeholder="分類"
-          className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none focus:border-amber-400/50"
+          className="input"
         />
         <datalist id={`cats-${bank}`}>
           {categories.map((c) => (
@@ -135,21 +135,18 @@ export default function QuestionManager({ bank, builtIn, custom, onChange, onClo
           value={hint}
           onChange={(e) => setHint(e.target.value)}
           placeholder="提示（可選）"
-          className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none focus:border-amber-400/50"
+          className="input"
         />
       </div>
 
       <div className="mt-2 flex flex-wrap items-center gap-2">
-        <div className="flex gap-1">
+        <div className="flex gap-1.5">
           {(['easy', 'medium', 'hard'] as QDifficulty[]).map((l) => (
             <button
               key={l}
+              type="button"
               onClick={() => setLevel(l)}
-              className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition ${
-                level === l
-                  ? 'border-amber-400/60 bg-amber-400/15 text-amber-200'
-                  : 'border-white/10 bg-black/20 text-white/70 hover:text-white/70'
-              }`}
+              className={`chip !py-1.5 !px-3 ${level === l ? 'chip-on' : ''}`}
             >
               {DIFFICULTY_META[l].label}
             </button>
@@ -157,7 +154,7 @@ export default function QuestionManager({ bank, builtIn, custom, onChange, onClo
         </div>
         <button
           onClick={add}
-          className="ml-auto flex items-center gap-1.5 rounded-lg bg-amber-400 px-4 py-1.5 text-xs font-bold text-stone-900 transition hover:bg-amber-300"
+          className="btn-ghost ml-auto !bg-amber-400 !text-stone-900 !border-transparent px-4 py-2 text-xs hover:!bg-amber-300"
         >
           <Plus className="h-3.5 w-3.5" />
           加入題目
@@ -168,7 +165,7 @@ export default function QuestionManager({ bank, builtIn, custom, onChange, onClo
       <div className="mt-3 flex flex-wrap gap-2">
         <button
           onClick={() => setBulkOpen((o) => !o)}
-          className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-black/20 px-3 py-1.5 text-[11px] text-white/75 transition hover:text-white"
+          className="btn-ghost px-3 py-1.5 text-[11px]"
         >
           <Upload className="h-3.5 w-3.5" />
           批次匯入
@@ -179,7 +176,7 @@ export default function QuestionManager({ bank, builtIn, custom, onChange, onClo
             onClick={() => {
               if (confirm(`確定清除全部 ${custom.length} 條自訂題目？`)) onChange([])
             }}
-            className="flex items-center gap-1.5 rounded-lg border border-rose-500/20 bg-rose-500/10 px-3 py-1.5 text-[11px] text-rose-300 transition hover:bg-rose-500/20"
+            className="btn-ghost !border-rose-500/20 !bg-rose-500/10 !text-rose-300 px-3 py-1.5 text-[11px] hover:!bg-rose-500/20"
           >
             <Trash2 className="h-3.5 w-3.5" />
             全部清除
@@ -189,7 +186,7 @@ export default function QuestionManager({ bank, builtIn, custom, onChange, onClo
 
       {bulkOpen && (
         <div className="mt-2 rounded-xl border border-white/10 bg-black/30 p-3">
-          <p className="mb-2 text-[11px] leading-relaxed text-white/70">
+          <p className="mb-2 text-[11px] leading-relaxed muted">
             每行一題，用 <code className="rounded bg-white/10 px-1 text-amber-300">|</code> 分隔。格式：
             <br />
             <code className="text-amber-300">
@@ -202,7 +199,7 @@ export default function QuestionManager({ bank, builtIn, custom, onChange, onClo
             onChange={(e) => setBulkText(e.target.value)}
             rows={6}
             placeholder={placeholder}
-            className="w-full resize-y rounded-lg border border-white/10 bg-black/40 p-2 font-mono text-xs outline-none focus:border-amber-400/50"
+            className="input !bg-black/40 !p-2 font-mono !text-xs resize-y"
           />
           <button
             onClick={importBulk}
@@ -223,12 +220,12 @@ export default function QuestionManager({ bank, builtIn, custom, onChange, onClo
       {custom.length > 0 && (
         <>
           <div className="mt-3 flex items-center gap-2">
-            <Search className="h-3.5 w-3.5 text-white/75" />
+            <Search className="h-3.5 w-3.5 shrink-0 muted" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="搜尋自訂題目..."
-              className="flex-1 rounded-lg border border-white/10 bg-black/20 px-2 py-1 text-xs outline-none focus:border-amber-400/40"
+              className="input !py-1 !text-xs"
             />
           </div>
           <div className="mt-2 max-h-52 space-y-1 overflow-y-auto pr-1">
@@ -238,21 +235,22 @@ export default function QuestionManager({ bank, builtIn, custom, onChange, onClo
                 className="flex items-center gap-2 rounded-lg bg-black/20 px-2.5 py-1.5 text-xs"
               >
                 {q.emoji && <span className="text-base">{q.emoji}</span>}
-                <span className="font-medium">{q.answer}</span>
-                <span className="text-[10px] text-white/75">({q.category})</span>
+                <span className="min-w-0 truncate font-medium">{q.answer}</span>
+                <span className="hidden text-[10px] muted sm:inline">({q.category})</span>
                 <span className={`text-[10px] ${DIFFICULTY_META[q.level].color}`}>
                   {DIFFICULTY_META[q.level].short}
                 </span>
                 <button
                   onClick={() => remove(q.id)}
-                  className="ml-auto rounded p-1 text-white/75 transition hover:bg-rose-500/20 hover:text-rose-300"
+                  className="ml-auto rounded p-1 muted-2 transition hover:bg-rose-500/20 hover:text-rose-300"
+                  aria-label={`刪除 ${q.answer}`}
                 >
                   <Trash2 className="h-3 w-3" />
                 </button>
               </div>
             ))}
             {filtered.length === 0 && (
-              <p className="py-3 text-center text-[11px] text-white/75">沒有符合的題目</p>
+              <p className="py-3 text-center text-[11px] muted">沒有符合的題目</p>
             )}
           </div>
         </>
