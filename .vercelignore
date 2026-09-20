@@ -1,0 +1,55 @@
+# ─── Scout System · Vercel 上傳排除清單 ───────────────────────────
+# 目的：防止 Vercel 儲存空間／部署配額爆滿。
+# 規則：只上傳「建置最終網頁產物所必需」的檔案。
+# 注意：使用 GitHub 整合部署時 Vercel 會 clone 整個 repo，
+#       此檔主要約束 `vercel` CLI 上傳；但維持此清單可確保
+#       兩種部署方式都不會上傳多餘檔案。
+# 詳見 docs/瘦身與防增肥守則.md（新增任何檔案前先讀！）
+
+# 版本控制與部署中繼資料
+.git
+.vercel
+
+# 依賴與建置產物（Vercel 端會自行 npm ci + build，不需上傳）
+node_modules
+dist
+dist-ssr
+coverage
+
+# 開發期備份／暫存／日誌檔
+*.bak
+*.tmp
+*.old
+*.orig
+*.rej
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 測試上傳資料／使用者產出內容（絕不可入庫）
+uploads/
+tmp/
+temp/
+scratch/
+
+# 測試與文件（生產建置不需要；tsc -b 只涵蓋 src 與 vite.config.ts）
+tests/
+docs/
+vitest.config.ts
+vitest.setup.ts
+eslint.config.js
+README.md
+LICENSE
+
+# 系統／編輯器雜檔
+.DS_Store
+Thumbs.db
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

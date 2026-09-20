@@ -2,7 +2,7 @@
  * 玩法介紹（功能介紹）+ 示範模式（MOCK）共用元件
  * — 各遊戲統一入口：📖 玩法介紹（modal）、🎬 觀看示範（自動示範）
  */
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { X, BookOpen, Clapperboard } from 'lucide-react'
 
 export interface IntroSection {
