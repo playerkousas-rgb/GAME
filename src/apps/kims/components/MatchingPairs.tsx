@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Timer, ArrowLeft, Star, Volume2, VolumeX } from 'lucide-react'
 import { DemoCaption, GameIntro, type IntroSection } from '../../../components/GameIntro'
 

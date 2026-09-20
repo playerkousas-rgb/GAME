@@ -8,7 +8,6 @@ import {
 } from 'lucide-react'
 import { Item, GameConfig, GameResult, Difficulty, GameMode, PlayMode, TeamScore, Competitor } from './types'
 import { DEFAULT_BUILT_IN_ITEMS } from './data/items'
-import { useImageUpload } from './hooks/useGame'
 import { Sound } from './hooks/useSound'
 import KimsGame from './components/KimsGame'
 import MatchingPairs from './components/MatchingPairs'
@@ -49,7 +48,6 @@ function KimsApp() {
     answerMode: 'input', enableDistractors: false, playMode: 'team', teamName: '獵鷹小隊',
     competitionMode: false, teams: ['獵鷹小隊', '灰狼小隊', '黑熊小隊'],
   })
-  const { upload } = useImageUpload()
   const [activeItems, setActiveItems] = useState<Item[]>(() => [...DEFAULT_BUILT_IN_ITEMS])
   const [scores, setScores] = useState<TeamScore[]>(
     DEFAULT_TEAMS.map(name => ({ team: name, points: 0, rounds: 0 }))
@@ -70,8 +68,7 @@ function KimsApp() {
       imageUrl: URL.createObjectURL(file), isCustom: true,
     }))
     setActiveItems(prev => [...prev, ...newItems])
-    upload(files)
-  }, [upload])
+  }, [])
 
   const handleGameResult = useCallback((result: GameResult) => {
     if (config.playMode === 'individual') return

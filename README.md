@@ -115,12 +115,14 @@
 ```bash
 npm install      # 安裝依賴
 npm run dev      # 開發伺服器 (http://localhost:5173)
+npm run check    # 一鍵驗證：tsc 型別檢查 + ESLint + Vitest（PR 必跑必綠）
 npm run build    # 生產打包 → dist/
 npm run preview  # 預覽打包結果
 npm run lint     # ESLint 檢查
+npm test         # Vitest（52 項單元 + E2E 冒煙測試）
 ```
 
-**技術棧**：React 19 · TypeScript 5.9 · Vite 7 · Tailwind CSS 4 · React Router 7 · Framer Motion · Lucide Icons · qrcode
+**技術棧**：React 19 · TypeScript 5.9 · Vite 7 · Tailwind CSS 4 · React Router 7 · Lucide Icons · qrcode（動畫與音效皆為自製，零多餘依賴）
 
 ### 手機友善設計
 - 全站以 `100dvh` 計算高度，避免 iOS Safari 工具列遮擋內容
@@ -213,8 +215,13 @@ export const COPYRIGHT_UPPER = `COPYRIGHT ${COPYRIGHT_YEAR} SCOUT SYSTEM`
 
 由於使用 **BrowserRouter**，需設定 SPA fallback（所有路徑改寫至 `/index.html`）：
 
-- **Vercel** — 新增 `vercel.json`：`{ "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }] }`
-- **Netlify** — 新增 `public/_redirects`：`/*  /index.html  200`
+- **Vercel** — `vercel.json` 已設定 `framework: vite`、`buildCommand: npm run build`、`installCommand: npm ci`、`outputDirectory: dist`（只部署最終靜態產物）與 SPA `rewrites`
+- **Netlify** — `public/_redirects`：`/*  /index.html  200`
+
+### 🥗 儲存空間瘦身與防增肥
+
+專案已於 2026-09-20 完成大瘦身（移除 0 引用依賴 `framer-motion` ~10 MB、4 個死重檔案、未引用素材；新增 `.vercelignore` 與 `npm run check`）。
+**改版前必讀**：[docs/瘦身與防增肥守則.md](docs/瘦身與防增肥守則.md) —— 依賴、靜態資源、死代碼、Vercel 配置四大守則，防止專案再增肥、Vercel 配額爆滿。
 
 ---
 
