@@ -5,6 +5,7 @@
  */
 import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { Analytics } from '@vercel/analytics/react'
 import Home from './components/Home'
 import BackToHub from './components/BackToHub'
 
@@ -39,37 +40,40 @@ function PageLoader() {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      {GAME_ROUTES.map((r) => (
+    <>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        {GAME_ROUTES.map((r) => (
+          <Route
+            key={r.path}
+            path={r.path}
+            element={
+              <>
+                <Suspense fallback={<PageLoader />}>{r.element}</Suspense>
+                <BackToHub />
+              </>
+            }
+          />
+        ))}
         <Route
-          key={r.path}
-          path={r.path}
+          path="/undercover/card"
           element={
-            <>
-              <Suspense fallback={<PageLoader />}>{r.element}</Suspense>
-              <BackToHub />
-            </>
+            <Suspense fallback={<PageLoader />}>
+              <PlayerCard />
+            </Suspense>
           }
         />
-      ))}
-      <Route
-        path="/undercover/card"
-        element={
-          <Suspense fallback={<PageLoader />}>
-            <PlayerCard />
-          </Suspense>
-        }
-      />
-      <Route
-        path="/draw/card"
-        element={
-          <Suspense fallback={<PageLoader />}>
-            <DrawCard />
-          </Suspense>
-        }
-      />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        <Route
+          path="/draw/card"
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <DrawCard />
+            </Suspense>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      <Analytics />
+    </>
   )
 }
