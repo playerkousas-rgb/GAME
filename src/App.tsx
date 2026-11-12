@@ -8,6 +8,8 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { Analytics } from '@vercel/analytics/react'
 import Home from './components/Home'
 import BackToHub from './components/BackToHub'
+import InstallButton from './components/InstallButton'
+import UpdateBanner from './components/UpdateBanner'
 
 const KimsApp = lazy(() => import('./apps/kims/KimsApp'))
 const PhotoApp = lazy(() => import('./apps/photo/PhotoApp'))
@@ -73,6 +75,9 @@ export default function App() {
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      {/* PWA：安裝入口（standalone 時自動隱藏）＋ 更新橫額（全域） */}
+      <InstallButton />
+      <UpdateBanner />
       <Analytics />
     </>
   )

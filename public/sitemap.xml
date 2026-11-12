@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://game-blond-nu.vercel.app/</loc><priority>1.0</priority></url>
+  <url><loc>https://game-blond-nu.vercel.app/draw</loc><priority>0.8</priority></url>
+  <url><loc>https://game-blond-nu.vercel.app/act</loc><priority>0.8</priority></url>
+  <url><loc>https://game-blond-nu.vercel.app/emoji</loc><priority>0.8</priority></url>
+  <url><loc>https://game-blond-nu.vercel.app/kims</loc><priority>0.8</priority></url>
+  <url><loc>https://game-blond-nu.vercel.app/photo</loc><priority>0.8</priority></url>
+  <url><loc>https://game-blond-nu.vercel.app/undercover</loc><priority>0.8</priority></url>
+</urlset>

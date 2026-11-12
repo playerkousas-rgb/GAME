@@ -89,7 +89,7 @@
 - **聽覺金氏遊戲** — 聆聽聲音序列並複述
 - **圖案記憶** — 四種卡片類型：**大 Emoji 圖案卡**（8 個主題包，128 個圖案）、**幾何圖形卡**（16 形狀 × 9 顏色，考形狀＋顏色）、**自訂相片卡**、傳統文字卡；可選「一次過全部」或「逐張大圖」展示，作答支援**圖案點選**（帶干擾項）或打字
 - **配對記憶** — 翻牌找出相同配對
-- 內建童軍物品庫 **114 件**（可增刪、可上傳自訂圖片）
+- 內建童軍物品庫 **94 件**（可增刪、可上傳自訂圖片）
 - 金氏遊戲改用**大圖卡網格**展示（彩色卡背、手機自動調整欄數），作答亦改為**圖片選擇**，不再是細字清單
 - 圖案記憶另有 **14 組字詞包**可載入文字卡模式
 - 三種難度（幼童軍 / 童軍 / 深資童軍）
@@ -119,10 +119,19 @@ npm run check    # 一鍵驗證：tsc 型別檢查 + ESLint + Vitest（PR 必跑
 npm run build    # 生產打包 → dist/
 npm run preview  # 預覽打包結果
 npm run lint     # ESLint 檢查
-npm test         # Vitest（52 項單元 + E2E 冒煙測試）
+npm test         # Vitest（55 項單元 + E2E 冒煙測試）
 ```
 
 **技術棧**：React 19 · TypeScript 5.9 · Vite 7 · Tailwind CSS 4 · React Router 7 · Lucide Icons · qrcode（動畫與音效皆為自製，零多餘依賴）
+
+### PWA（可安裝＋離線可用）
+- **一鍵安裝**：右下角「📲 加入主畫面」浮動入口（standalone 開啟時自動隱藏）；Android 攔 `beforeinstallprompt`、iOS 出三步教學卡（Safari 分享 → 加入主畫面 → 加入）
+- **離線可用**：`public/sw.js`（network-first 導覽 + stale-while-revalidate 靜態資源），首次到訪後斷網照開
+- **靜默更新，由用戶決定**：新版本停喺 waiting，出「有新版本」橫額；㩒「立即更新」先 reload（3 秒 fallback）；「稍後」記住同一版本唔再彈
+- **九個圖標**（G11 標準）：`public/icons/` — favicon.ico（16/32/48）＋ 16/32/180/192/512 PNG ＋ maskable ×2 ＋ og-image.png，全部 PNG/ICO、合共 ≤ 260 KB
+
+### CI
+`.github/workflows/ci.yml` — 每次 push / PR 自動跑 `npm ci` → `npm run check` → `npm run build`（Actions 全部 pin 到 commit SHA）。
 
 ### 手機友善設計
 - 全站以 `100dvh` 計算高度，避免 iOS Safari 工具列遮擋內容
@@ -142,6 +151,7 @@ src/
 ├── index.css                 # 合併後的全域樣式（含淺色主題覆寫）
 ├── shared/
 │   ├── brand.ts              # 品牌與版權設定（單一事實來源）
+│   ├── pwa.ts                # PWA：註冊 SW、standalone／iOS 偵測
 │   ├── questionBank.ts       # 題庫型別、隨機抽題、自訂題目儲存、批次匯入
 │   ├── useQuestionBank.ts    # 題庫 hook（合併內建＋自訂、localStorage 持久化）
 │   ├── useRoundEngine.ts     # 回合引擎（題目佇列、倒數、計分）
@@ -158,6 +168,8 @@ src/
 │   ├── Home.tsx              # 主頁遊戲中心
 │   ├── Footer.tsx            # 統一版權頁腳
 │   ├── BackToHub.tsx         # 子遊戲返回主頁按鈕
+│   ├── InstallButton.tsx     # 📲 加入主畫面入口（PWA）
+│   ├── UpdateBanner.tsx      # 有新版本橫額（PWA）
 │   ├── QRCode.tsx            # 本地產生 QR Code（不依賴外部 API）
 │   ├── QuestionManager.tsx   # 自訂題目管理（新增／刪除／批次匯入）
 │   ├── BankFilters.tsx       # 難度與分類篩選
@@ -182,7 +194,7 @@ src/
         ├── components/
         │   └── PairManager.tsx    # 領袖自訂詞語對（逐對新增／批次匯入）
         ├── lib/deal.ts            # 牌局密鑰、角色分派、QR 連結編碼
-        └── data/wordPairs.ts      # 74 組內建詞語對
+        └── data/wordPairs.ts      # 152 組內建詞語對
 ```
 
 ### 自訂題庫（領袖功能）
@@ -213,15 +225,30 @@ export const COPYRIGHT_UPPER = `COPYRIGHT ${COPYRIGHT_YEAR} SCOUT SYSTEM`
 
 打包後的 `dist/` 為純靜態檔案，可部署至 Vercel、Netlify、GitHub Pages 等。
 
+公開目錄（`public/`）重點檔案：
+
+```
+public/
+├── icons/                    # G11 九個圖標 + og-image.png（≤ 260 KB）
+├── manifest.webmanifest      # PWA manifest（standalone、theme_color #02133E）
+├── sw.js                     # Service Worker（network-first 導覽 + SWR 靜態）
+├── robots.txt  sitemap.xml   # SEO
+└── _redirects                # Netlify SPA fallback
+```
+
 由於使用 **BrowserRouter**，需設定 SPA fallback（所有路徑改寫至 `/index.html`）：
 
-- **Vercel** — `vercel.json` 已設定 `framework: vite`、`buildCommand: npm run build`、`installCommand: npm ci`、`outputDirectory: dist`（只部署最終靜態產物）與 SPA `rewrites`
+- **Vercel** — `vercel.json` 已設定 `framework: vite`、`buildCommand: npm run build`、`installCommand: npm ci`、`outputDirectory: dist`（只部署最終靜態產物）與 SPA `rewrites`。`public/` 內實體檔（icons、sw.js、manifest…）優先於 rewrite 提供服務，SW 因此可正常註冊。
 - **Netlify** — `public/_redirects`：`/*  /index.html  200`
+
+> **PWA 注意**：`public/sw.js` 嘅 `CACHE_NAME` 綁定版本號（現為 `scout-system-v1.1.0`）；每次發版改版號時四處同步——`package.json`／`BRAND.version`／`index.html` 的 `<meta name="app-version">`／`sw.js`（`tests/units.test.ts` 有測試守住，唔使靠人手記）。
 
 ### 🥗 儲存空間瘦身與防增肥
 
 專案已於 2026-09-20 完成大瘦身（移除 0 引用依賴 `framer-motion` ~10 MB、4 個死重檔案、未引用素材；新增 `.vercelignore` 與 `npm run check`）。
 **改版前必讀**：[docs/瘦身與防增肥守則.md](docs/瘦身與防增肥守則.md) —— 依賴、靜態資源、死代碼、Vercel 配置四大守則，防止專案再增肥、Vercel 配額爆滿。
+
+> 變更紀錄見 [CHANGELOG.md](CHANGELOG.md)；2026-11-12 對照 [playerkousas-rgb/readme](https://github.com/playerkousas-rgb/readme) 規範嘅完整審查報告見 [docs/審查報告-2026-11-12.md](docs/審查報告-2026-11-12.md)。
 
 ---
 

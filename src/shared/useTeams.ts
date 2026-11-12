@@ -26,15 +26,18 @@ export function useTeams(initial: string[] = DEFAULT_TEAMS) {
     setActive(0)
   }, [])
 
-  const score = useCallback((delta: number, index?: number) => {
-    setTeams((t) => {
-      const i = index ?? 0
-      if (!t[i]) return t
-      const next = [...t]
-      next[i] = { ...next[i], score: Math.max(0, next[i].score + delta) }
-      return next
-    })
-  }, [])
+  const score = useCallback(
+    (delta: number, index?: number) => {
+      setTeams((t) => {
+        const i = index ?? active
+        if (!t[i]) return t
+        const next = [...t]
+        next[i] = { ...next[i], score: Math.max(0, next[i].score + delta) }
+        return next
+      })
+    },
+    [active],
+  )
 
   const nextTurn = useCallback(() => setActive((a) => (teams.length ? (a + 1) % teams.length : 0)), [teams.length])
   const resetScores = useCallback(() => {

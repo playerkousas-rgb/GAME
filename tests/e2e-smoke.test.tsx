@@ -115,7 +115,7 @@ describe('主頁', () => {
     fireEvent.click(btn)
     const after = document.documentElement.dataset.theme as 'light' | 'dark'
     expect(after).toBe(before === 'dark' ? 'light' : 'dark')
-    expect(localStorage.getItem('photo-game-theme')).toBe(after)
+    expect(localStorage.getItem('scout-system:theme')).toBe(after)
     fireEvent.click(btn)
     expect(document.documentElement.dataset.theme).toBe(before)
   })
