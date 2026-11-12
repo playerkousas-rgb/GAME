@@ -11,7 +11,7 @@ export const BRAND = {
   /** 平台副標 */
   tagline: '集會遊戲一站式平台',
   /** 版本 */
-  version: 'v1.0.0',
+  version: 'v1.1.0',
 } as const
 
 /** 版權年份 */

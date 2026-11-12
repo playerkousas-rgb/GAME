@@ -2,15 +2,57 @@
 <html lang="zh-Hant">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚜</text></svg>" />
+    <!-- 圖標（G11 標準：全部 PNG／ICO，唔用 SVG favicon） -->
+    <link rel="icon" href="/icons/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Scout System" />
     <meta name="format-detection" content="telephone=no" />
-    <meta name="description" content="Scout System — 童軍集會遊戲平台：6 個遊戲（金氏遊戲、像素化猜謎圖、猜猜畫畫、大電視、EMOJI 猜謎、誰是臥底），內建 540+ 條題目，全部手機友善。" />
-    <meta name="theme-color" content="#02133e" />
+    <meta name="theme-color" content="#02133E" />
+    <!-- 雙版號：同步 package.json / BRAND.version / public/sw.js CACHE_NAME（tests/units.test.ts 有測試守） -->
+    <meta name="app-version" content="v1.1.0" />
+    <meta
+      name="description"
+      content="Scout System — 童軍集會遊戲平台：6 個遊戲（金氏遊戲、像素化猜謎圖、猜猜畫畫、大電視、EMOJI 猜謎、誰是臥底），內建 540+ 條題目，全部手機友善，支援離線使用。"
+    />
+    <meta name="robots" content="index,follow" />
+    <link rel="canonical" href="https://game-blond-nu.vercel.app/" />
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Scout System" />
+    <meta property="og:url" content="https://game-blond-nu.vercel.app/" />
+    <meta property="og:title" content="Scout System — 童軍集會遊戲平台" />
+    <meta property="og:description" content="6 個遊戲 · 內建 540+ 條題目 · 支援自訂題庫 · 離線可用，適合旅團集會。" />
+    <meta property="og:image" content="https://game-blond-nu.vercel.app/icons/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="zh_HK" />
+    <!-- X／Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Scout System — 童軍集會遊戲平台" />
+    <meta name="twitter:description" content="6 個遊戲 · 內建 540+ 條題目 · 支援自訂題庫 · 離線可用。" />
+    <meta name="twitter:image" content="https://game-blond-nu.vercel.app/icons/og-image.png" />
+    <!-- 結構化資料 -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Scout System — 童軍集會遊戲平台",
+      "url": "https://game-blond-nu.vercel.app/",
+      "description": "一站式童軍集會遊戲平台：金氏遊戲、像素化猜謎圖、猜猜畫畫、大電視、EMOJI 猜謎、誰是臥底，內建 540+ 條題目，支援自訂題庫與離線使用。",
+      "applicationCategory": "GameApplication",
+      "operatingSystem": "Any",
+      "inLanguage": "zh-Hant",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "HKD" },
+      "author": { "@type": "Organization", "name": "Scout System" }
+    }
+    </script>
     <title>Scout System — 童軍集會遊戲平台</title>
     <!-- Copyright (c) 2026 Scout System. All rights reserved. -->
     <style>
@@ -22,7 +64,21 @@
     </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- 靜態骨架：React 載入前顯示；createRoot render 時會被取代（同時提供 h1 畀搜尋引擎） -->
+      <main style="min-height:100dvh;display:grid;place-items:center;color:#f5f1e2;font-family:system-ui,-apple-system,'PingFang TC','Microsoft JhengHei',sans-serif;text-align:center">
+        <div>
+          <div style="font-size:3rem;line-height:1">⚜</div>
+          <h1 style="margin:0.75rem 0 0.25rem;font-size:1.5rem;font-weight:900">童軍遊戲系統</h1>
+          <p style="margin:0;font-size:0.85rem;color:rgba(255,255,255,0.65)">集會遊戲一站式平台</p>
+        </div>
+      </main>
+    </div>
+    <noscript>
+      <p style="color:#f5f1e2;background:#02133E;padding:1rem;text-align:center;font-family:system-ui,sans-serif">
+        此平台需要啟用 JavaScript 才能使用。
+      </p>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

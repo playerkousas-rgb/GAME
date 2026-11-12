@@ -1,4 +1,5 @@
 import { X, Smartphone, Wifi } from 'lucide-react'
+import QRCode from '../../../components/QRCode'
 
 type Props = {
   url: string
@@ -7,7 +8,6 @@ type Props = {
 
 export default function QRCodeModal({ url, onClose }: Props) {
   if (!url) return null
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=12&color=ffffff&bgcolor=02133e&data=${encodeURIComponent(url)}`
 
   return (
     <div
@@ -36,12 +36,7 @@ export default function QRCodeModal({ url, onClose }: Props) {
         </p>
 
         <div className="mx-auto mb-4 overflow-hidden rounded-2xl border border-white/10">
-          <img
-            src={qrUrl}
-            alt="QR Code"
-            className="h-64 w-64 object-contain sm:h-80 sm:w-80"
-            draggable={false}
-          />
+          <QRCode value={url} size={288} dark="#02133e" light="#ffffff" className="h-64 w-64 sm:h-72 sm:w-72" />
         </div>
 
         <div className="rounded-lg border border-white/5 bg-white/[0.03] px-3 py-2">

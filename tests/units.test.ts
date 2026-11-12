@@ -314,3 +314,70 @@ describe('金氏遊戲物品庫 & 像素猜謎題目包', () => {
     }
   })
 })
+
+/* ================= 雙版號同步（package.json ↔ brand.ts ↔ index.html ↔ sw.js） ================= */
+
+describe('版本號四處同步（V 系列）', () => {
+  it('package.json / BRAND / index.html meta / sw.js CACHE_NAME 一致', async () => {
+    const { readFileSync } = await import('node:fs')
+    const { join } = await import('node:path')
+    const root = process.cwd()
+
+    const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as { version: string }
+    const brand = readFileSync(join(root, 'src/shared/brand.ts'), 'utf8')
+    const html = readFileSync(join(root, 'index.html'), 'utf8')
+    const sw = readFileSync(join(root, 'public/sw.js'), 'utf8')
+
+    const m = /version:\s*'v([^']+)'/.exec(brand)
+    expect(m, 'brand.ts 要有 BRAND.version').toBeTruthy()
+    expect(pkg.version).toBe(m![1])
+    expect(html).toContain(`<meta name="app-version" content="v${pkg.version}" />`)
+    expect(sw).toContain(`scout-system-v${pkg.version}`)
+  })
+
+  it('manifest.webmanifest 存在且 icons 指向實體檔', async () => {
+    const { readFileSync, existsSync } = await import('node:fs')
+    const { join } = await import('node:path')
+    const root = process.cwd()
+
+    const manifest = JSON.parse(readFileSync(join(root, 'public/manifest.webmanifest'), 'utf8')) as {
+      display: string
+      theme_color: string
+      icons: { src: string; sizes: string }[]
+    }
+    expect(manifest.display).toBe('standalone')
+    expect(manifest.theme_color).toBe('#02133E')
+    expect(manifest.icons.length).toBeGreaterThanOrEqual(4)
+    for (const icon of manifest.icons) {
+      expect(existsSync(join(root, 'public', icon.src)), `${icon.src} 要存在`).toBe(true)
+    }
+  })
+
+  it('G11 九個圖標檔齊備且尺寸正確', async () => {
+    const { readFileSync, existsSync } = await import('node:fs')
+    const { join } = await import('node:path')
+    const root = process.cwd()
+
+    const pngSize = (p: string) => {
+      const buf = readFileSync(p)
+      expect(buf.toString('ascii', 1, 4)).toBe('PNG')
+      return { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) }
+    }
+    const expected: [string, number, number][] = [
+      ['public/icons/favicon-16.png', 16, 16],
+      ['public/icons/favicon-32.png', 32, 32],
+      ['public/icons/apple-touch-icon.png', 180, 180],
+      ['public/icons/icon-192.png', 192, 192],
+      ['public/icons/icon-512.png', 512, 512],
+      ['public/icons/icon-maskable-192.png', 192, 192],
+      ['public/icons/icon-maskable-512.png', 512, 512],
+      ['public/icons/og-image.png', 1200, 630],
+    ]
+    for (const [rel, w, h] of expected) {
+      const p = join(root, rel)
+      expect(existsSync(p), `${rel} 要存在`).toBe(true)
+      expect(pngSize(p)).toEqual({ w, h })
+    }
+    expect(existsSync(join(root, 'public/icons/favicon.ico')), 'favicon.ico 要存在').toBe(true)
+  })
+})
